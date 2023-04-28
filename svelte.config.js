@@ -20,11 +20,11 @@ const config = {
 			assets: 'build',
 			fallback: null,
 			precompress: false,
-			strict: true,
-			paths: {
-				base: dev ? '' : '/memaker'
-			}
-		})
+			strict: true
+		}),
+		paths: {
+			base: dev ? '' : '/memaker'
+		}
 	}
 };
 
