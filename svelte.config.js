@@ -3,7 +3,6 @@ import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/kit/vite';
 import { mdsvex } from 'mdsvex';
 
-const dev = process.argv.includes('dev');
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	extensions: ['.svelte', ...mdsvexConfig.extensions],
@@ -22,9 +21,6 @@ const config = {
 			precompress: false,
 			strict: true
 		}),
-		paths: {
-			base: dev ? '' : '/memaker'
-		}
 	}
 };
 

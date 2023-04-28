@@ -14,7 +14,9 @@ jobs:
         with:
           node-version: 18.x
       - run: 'npm install'
-      - run: 'npm run build'
+      - run: |
+        npm run build
+        touch build/.nojekyll
       - if: success()
         uses: crazy-max/ghaction-github-pages@v2.5.0
         with:
