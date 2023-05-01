@@ -61,7 +61,7 @@
 	let skinKey = 'default';
 	onMount(() => {
 		skinKey = new URL(location.href).searchParams.get('skin') ?? skinKey;
-		const gl = canvasWebgl.getContext('webgl2', { alpha: false })!;
+		const gl = canvasWebgl.getContext('webgl2')!;
 		memaker = new Memaker(
 			{ block: activeBlock, frame: activeFrame, meme, busy, previews: updatePreview },
 			gl,

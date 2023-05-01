@@ -355,7 +355,8 @@ function redrawWrapper<T extends (...args: any) => void>(draw: T) {
 	let frameIndex = 0;
 	return (...args: Parameters<T>) => {
 		if (frameIndex) {
-			cancelAnimationFrame(frameIndex);
+			return;
+			// cancelAnimationFrame(frameIndex);
 		}
 		frameIndex = requestAnimationFrame(() => {
 			frameIndex = 0;

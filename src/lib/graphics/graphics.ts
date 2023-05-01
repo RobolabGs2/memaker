@@ -130,7 +130,6 @@ export class Graphics<T = unknown> {
 		gl.clearColor(0, 0, 0, 0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ZERO);
 		this.drawStencilLayer(
 			textStencil,
 			channel,
@@ -166,7 +165,6 @@ export class Graphics<T = unknown> {
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
 		twgl.setUniforms(this.shadowProgram, {
 			...uniforms,
 			stencilSampler: shadowBufferX.attachments[0],

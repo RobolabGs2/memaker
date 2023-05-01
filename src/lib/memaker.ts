@@ -357,8 +357,12 @@ export class Memaker {
 	}
 	draw(frame = this.activeFrame, force = false) {
 		if (this.busy && !force) return;
+		const start = performance.now();
 		this.drawer.drawFrame(frame);
+		const start1 = performance.now();
 		this.stores.previews.value[frame.id]?.(this.gl.canvas as HTMLCanvasElement);
+		const start3 = performance.now();
+		console.log(`${(start1-start)/1000} _ ${(start3-start1)/1000}`)
 	}
 	renderMeme(): Promise<{ ext: string; blob: Blob }> {
 		return this.runTask(
@@ -469,7 +473,7 @@ export class Memaker {
 function redrawWrapper(draw: () => void) {
 	let frameIndex = 0;
 	return () => {
-		if (frameIndex) cancelAnimationFrame(frameIndex);
+		if (frameIndex) return; //cancelAnimationFrame(frameIndex);
 		frameIndex = requestAnimationFrame(() => {
 			frameIndex = 0;
 			draw();
