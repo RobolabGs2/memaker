@@ -22,9 +22,6 @@ jobs:
       - run: |
           npm run build
           touch build/.nojekyll
-      - run: |
-          echo ${{ secrets.TEST_SECRET }}
-          echo $TEST_SECRET
       - if: success()
         uses: crazy-max/ghaction-github-pages@v2.5.0
         with:
@@ -33,4 +30,4 @@ jobs:
           repo: RobolabGs2/memaker-prerelease
           build_dir: build
         env:
-          GH_PAT: ${{ secrets.GT_PAT }}
+          GH_PAT: ${{ secrets.GH_PAT }}
