@@ -7,7 +7,9 @@ on:
 
 jobs:
   deploy-pages-prerelease:
-    environment: prerelease
+    environment:
+      name: prerelease
+      url: https://RobolabGs2.github.io/memaker-prerelease
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -20,6 +22,9 @@ jobs:
       - run: |
           npm run build
           touch build/.nojekyll
+      - run: |
+          echo ${{ secrets.TEST_SECRET }}
+          echo $TEST_SECRET
       - if: success()
         uses: crazy-max/ghaction-github-pages@v2.5.0
         with:
@@ -28,5 +33,4 @@ jobs:
           repo: RobolabGs2/memaker-prerelease
           build_dir: build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_PAT: ${{ secrets.GT_PAT}}
+          GH_PAT: ${{ secrets.GT_PAT }}
