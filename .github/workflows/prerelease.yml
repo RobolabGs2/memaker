@@ -1,9 +1,9 @@
-name: pages
+name: pages-release
 
 on:
   push:
-    tags:
-      - v*
+    branch:
+      - main
 
 jobs:
   deploy-pages-demo:
@@ -21,6 +21,8 @@ jobs:
         uses: crazy-max/ghaction-github-pages@v2.5.0
         with:
           target_branch: gh-pages
+          repo: RobolabGs2/memaker-prerelease
           build_dir: build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT: ${{ secrets.GT_PAT}}
