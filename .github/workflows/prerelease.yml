@@ -7,6 +7,7 @@ on:
 
 jobs:
   deploy-pages-prerelease:
+    environment: prerelease
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -22,6 +23,7 @@ jobs:
       - if: success()
         uses: crazy-max/ghaction-github-pages@v2.5.0
         with:
+          keep_history: true
           target_branch: gh-pages
           repo: RobolabGs2/memaker-prerelease
           build_dir: build
