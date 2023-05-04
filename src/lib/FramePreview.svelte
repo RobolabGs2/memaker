@@ -11,11 +11,7 @@
 		const previewHeight = (previewScale * source.height) | 0;
 		if (canvas.width != previewWidth) canvas.width = previewWidth;
 		if (canvas.height != previewHeight) canvas.height = previewHeight;
-		ctx.fillStyle = `#${Math.ceil(Math.random()*0xFFFFFF).toString(16).padStart(6, "0")}`;
-		ctx.fillRect(0, 0, previewWidth, previewHeight);
-		// return
-		// ctx.drawImage(source, 0, 0);
-		// ctx.drawImage(source, 0, 0, previewWidth, previewHeight, 0, 0, previewWidth, previewHeight);
+		ctx.drawImage(source, 0, 0, previewWidth, previewHeight);
 	};
 
 	onMount(() => {

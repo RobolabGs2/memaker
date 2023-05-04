@@ -355,14 +355,18 @@ export class Memaker {
 		this.drawer.drawFrame(frame);
 		return canvasToBlob(this.gl.canvas as HTMLCanvasElement);
 	}
+	drawPreview(frame: Frame) {
+		this.stores.previews.value[frame.id]?.(this.gl.canvas as HTMLCanvasElement);
+	}
+	drawPreviewAsync = timeoutWrapper((frame) => {
+		this.drawer.drawFrame(frame);
+		this.drawPreview(frame);
+	}, 250);
 	draw(frame = this.activeFrame, force = false) {
 		if (this.busy && !force) return;
-		const start = performance.now();
 		this.drawer.drawFrame(frame);
-		const start1 = performance.now();
-		this.stores.previews.value[frame.id]?.(this.gl.canvas as HTMLCanvasElement);
-		const start3 = performance.now();
-		console.log(`${(start1-start)/1000} _ ${(start3-start1)/1000}`)
+		if (force) this.drawPreview(frame);
+		else this.drawPreviewAsync(frame);
 	}
 	renderMeme(): Promise<{ ext: string; blob: Blob }> {
 		return this.runTask(
@@ -470,16 +474,35 @@ export class Memaker {
 	}
 }
 
-function redrawWrapper(draw: () => void) {
+function redrawWrapper<T extends (...args: any) => void>(draw: T) {
 	let frameIndex = 0;
-	return () => {
-		if (frameIndex) return; //cancelAnimationFrame(frameIndex);
+	return (...args: Parameters<T>) => {
+		if (frameIndex) {
+			return;
+			// cancelAnimationFrame(frameIndex);
+		}
 		frameIndex = requestAnimationFrame(() => {
 			frameIndex = 0;
-			draw();
+			// eslint-disable-next-line prefer-spread
+			draw.apply(undefined, args);
 		});
 	};
 }
+
+function timeoutWrapper<T extends (...args: any) => void>(draw: T, delay: number) {
+	let frameIndex = 0;
+	return (...args: Parameters<T>) => {
+		if (frameIndex) {
+			clearTimeout(frameIndex);
+		}
+		frameIndex = setTimeout(() => {
+			frameIndex = 0;
+			// eslint-disable-next-line prefer-spread
+			draw.apply(undefined, args);
+		}, delay) as unknown as number;
+	};
+}
+
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 	return new Promise((resolve, error) =>
 		canvas.toBlob((blob) => {
