@@ -55,10 +55,11 @@ export class FrameDrawer {
 	}
 
 	drawFrame(frame: Frame) {
-		const { gl, graphics } = this;
-		graphics.resize(frame.width, frame.height);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		this.graphics.resize(frame.width, frame.height);
+		const gl = this.gl;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.clearColor(0, 0, 0, 0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 		frame.blocks.forEach((block) => this.drawBlock(frame, block));
 	}
 	drawBlock(frame: Frame, block: Block) {

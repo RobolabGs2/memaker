@@ -1,16 +1,16 @@
 <script lang="ts">
-	import ThemeContext from './base/ThemeContext.svelte';
 	import { onMount, tick } from 'svelte';
+	import { writable } from 'svelte/store';
+	import MemeEditor from './MemeEditor.svelte';
+	import Modal from './base/Modal.svelte';
+	import ThemeContext from './base/ThemeContext.svelte';
 	import { theme } from './base/theme_store';
+	import { RectangleEditor } from './legacy/rectangle_editor';
+	import { Memaker, type FileImport, type SkinsMap } from './memaker';
 	import type { Block, Frame, Meme } from './meme';
 	import { StateStore } from './state';
-	import { RectangleEditor } from './legacy/rectangle_editor';
-	import MemeEditor from './MemeEditor.svelte';
-	import { saveBlob } from './utils';
-	import Modal from './base/Modal.svelte';
-	import { writable } from 'svelte/store';
 	import { defaultStyle } from './text/presets';
-	import { type FileImport, Memaker, type SkinsMap } from './memaker';
+	import { saveBlob } from './utils';
 
 	export let patternUrls: FileImport[];
 	export let placeholdersUrls: SkinsMap;
@@ -61,10 +61,9 @@
 	let skinKey = 'default';
 	onMount(() => {
 		skinKey = new URL(location.href).searchParams.get('skin') ?? skinKey;
-		const gl = canvasWebgl.getContext('webgl2')!;
 		memaker = new Memaker(
 			{ block: activeBlock, frame: activeFrame, meme, busy, previews: updatePreview },
-			gl,
+			canvasWebgl,
 			patternUrls,
 			placeholdersUrls,
 			skinKey

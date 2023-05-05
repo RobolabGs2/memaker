@@ -81,6 +81,7 @@ export class Memaker {
 		blocks.delete(block);
 		if (blocks.size == 0) this.textures.delete(textureId);
 	}
+	readonly gl: WebGL2RenderingContext;
 	constructor(
 		readonly stores: {
 			meme: StateStore<Meme>;
@@ -89,11 +90,14 @@ export class Memaker {
 			previews: StateStore<Record<string, (canvas: HTMLCanvasElement) => void>>;
 			busy: Writable<string>;
 		},
-		readonly gl: WebGL2RenderingContext,
+		canvas: HTMLCanvasElement,
 		defaultPatterns: { name: string; url: string }[],
 		placeholdersUrls: SkinsMap,
 		skinKey: string
 	) {
+		const gl = canvas.getContext('webgl2', { premultipliedAlpha: false });
+		if (!gl) throw new Error('Failed to create WebGL2 context!');
+		this.gl = gl;
 		this.textures = new TextureManager(gl);
 		this.drawer = new FrameDrawer(gl, this.textures);
 		this.runTask(

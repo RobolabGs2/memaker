@@ -32,6 +32,7 @@ export class Graphics<T = unknown> {
 		shaders: Record<string, RawShader<unknown>>
 	) {
 		gl.enable(gl.BLEND);
+		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 		{
 			const options = [{ format: gl.RGBA }];
 			this.shadowBuffer = [
@@ -129,7 +130,6 @@ export class Graphics<T = unknown> {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, shadowBufferOrigin.framebuffer);
 		gl.clearColor(0, 0, 0, 0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
-
 		this.drawStencilLayer(
 			textStencil,
 			channel,
