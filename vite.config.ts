@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vitest/config';
 import { execSync } from 'node:child_process';
+import { imagetools } from 'vite-imagetools';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig(() => {
 	const commitDescribe = execSync('git describe --tags').toString().trimEnd();
@@ -14,7 +15,15 @@ export default defineConfig(() => {
 	process.env.VITE_APP_VERSION = commitDescribe;
 
 	return {
-		plugins: [sveltekit()],
+		plugins: [
+			sveltekit(),
+			imagetools({
+				defaultDirectives: () =>
+					new URLSearchParams({
+						format: 'webp'
+					})
+			})
+		],
 		assetsInclude: ['**/*.meme'],
 		test: {
 			include: ['src/**/*.{test,spec}.{js,ts}']

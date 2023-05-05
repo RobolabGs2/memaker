@@ -1,15 +1,17 @@
 <script lang="ts">
-	import MaterialInput from '$lib/material/MaterialInput.svelte';
-	import TabsContainer from '$lib/base/TabsContainer.svelte';
-	import type { TextStyle } from './text';
-	import { applyStylePreset, presets, type StylePresetType } from './presets';
-	import TextSettings from './TextSettings.svelte';
-	import Select from '$lib/base/Select.svelte';
-	import { fontSettingsToCSS } from './font';
 	import Label from '$lib/base/Label.svelte';
-	import FillIcon from '$lib/icons/fill.png';
-	import StrokeIcon from '$lib/icons/stroke.png';
 	import NumberInput from '$lib/base/NumberInput.svelte';
+	import Select from '$lib/base/Select.svelte';
+	import TabsContainer from '$lib/base/TabsContainer.svelte';
+	import AtlasDescription from '$lib/icons/atlas.json';
+	import AtlasPng from '$lib/icons/atlas.png';
+	import AtlasIcon from '$lib/icons/AtlasIcon.svelte';
+	import MaterialInput from '$lib/material/MaterialInput.svelte';
+	import { fontSettingsToCSS } from './font';
+	import { applyStylePreset, presets, type StylePresetType } from './presets';
+	import type { TextStyle } from './text';
+	import TextSettings from './TextSettings.svelte';
+
 	export let style: TextStyle;
 	export let text: string;
 
@@ -19,11 +21,11 @@
 	};
 	let tabs: TabEntry[] = [
 		{
-			icon: FillIcon,
+			icon: 'fill',
 			label: 'Заливка'
 		},
 		{
-			icon: StrokeIcon,
+			icon: 'stroke',
 			label: 'Обводка'
 		}
 	];
@@ -73,7 +75,12 @@
 	<textarea style="width:100%" rows="6" bind:value={text} on:change />
 	<TabsContainer {tabs} let:tab bind:activeTab={selected}>
 		<div class="icon">
-			<img width="24" height="24" src={tab.icon} alt={tab.label} />
+			<AtlasIcon
+				size={24}
+				name={tab.icon}
+				atlasDescription={AtlasDescription}
+				atlasURL={AtlasPng}
+			/>
 		</div>
 		<div slot="content">
 			{#if tab.label === 'Заливка'}
