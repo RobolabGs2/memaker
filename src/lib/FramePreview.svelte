@@ -5,7 +5,6 @@
 	let ctx: CanvasRenderingContext2D;
 	export let index: number;
 	export const updatePreview = (source: HTMLCanvasElement) => {
-
 		const previewWidth = canvas.clientWidth;
 		const previewScale = previewWidth / source.width;
 		const previewHeight = (previewScale * source.height) | 0;

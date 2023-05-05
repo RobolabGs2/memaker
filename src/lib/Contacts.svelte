@@ -1,7 +1,7 @@
 <script lang="ts">
 	import {
 		IconBrandGithubFilled,
-		// IconBrandVk,
+		IconBrandVk,
 		IconHelp,
 		IconHistory,
 		IconInfoCircle
@@ -22,6 +22,7 @@
 
 	let showInfo = false;
 	let showChangelog = false;
+	let iconsSize = 24;
 </script>
 
 <main>
@@ -40,21 +41,23 @@
 				target="_blank"
 				rel="noreferrer"
 				title="Changelog"
-				href="https://github.com/RobolabGs2/memaker/blob/main/CHANGELOG.md">GutHub</a
+				href="https://github.com/RobolabGs2/memaker/blob/main/CHANGELOG.md">GitHub</a
 			>.
 		</p>
 	</Modal>
 	<header>Memaker&nbsp;{version}</header>
 	<section>
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<div title="Открыть пример" on:click={() => dispatch('openExample')}><IconHelp /></div>
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<div title="История версий приложения" on:click={() => (showChangelog = true)}>
-			<IconHistory />
+		<div title="Открыть пример" on:click={() => dispatch('openExample')}>
+			<IconHelp size={iconsSize} />
 		</div>
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<div title="Полная информация о версии" on:click={() => (showInfo = true)}>
-			<IconInfoCircle />
+		<div title="История версий приложения" on:click={() => (showChangelog = true)}>
+			<IconHistory size={iconsSize} />
+		</div>
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
+		<div title="О проекте" on:click={() => (showInfo = true)}>
+			<IconInfoCircle size={iconsSize} />
 		</div>
 		<a
 			target="_blank"
@@ -62,11 +65,11 @@
 			title="GitHub репозиторий"
 			href="https://github.com/RobolabGs2/memaker"
 		>
-			<IconBrandGithubFilled />
+			<IconBrandGithubFilled size={iconsSize} />
 		</a>
-		<!-- <a target="_blank" rel="noreferrer" title="Группа ВК" href="https://vk.com/...">
-			<IconBrandVk />
-		</a> -->
+		<a target="_blank" rel="noreferrer" title="Группа ВК" href="https://vk.com/memaker_app">
+			<IconBrandVk size={iconsSize} />
+		</a>
 	</section>
 </main>
 
@@ -74,7 +77,7 @@
 	main {
 		position: absolute;
 		width: 100%;
-		height: 116px;
+		height: 124px;
 		bottom: 0;
 		padding: 8px;
 		display: flex;
@@ -96,6 +99,8 @@
 		& > * {
 			display: flex;
 			padding: 4px;
+			padding-left: 8px;
+			padding-right: 8px;
 			color: var(--text-secondary);
 			&:hover {
 				color: blue;
