@@ -132,6 +132,7 @@ export class Memaker {
 				.then(Object.fromEntries)
 				.then((x) => (this.placeholdersTextures = x[skinKey] ?? x['default']))
 				.then(() => this.deleteFrame(this.activeFrame))
+				.then(() => this.draw(this.activeFrame, true))
 		);
 		const redraw = redrawWrapper(() => this.draw());
 		stores.meme.subscribe((value) => {
@@ -474,9 +475,10 @@ export class Memaker {
 	}
 }
 
-function redrawWrapper<T extends (...args: any) => void>(draw: T) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function redrawWrapper<Args extends any[]>(draw: (...v: Args) => void) {
 	let frameIndex = 0;
-	return (...args: Parameters<T>) => {
+	return (...args: Args) => {
 		if (frameIndex) {
 			return;
 			// cancelAnimationFrame(frameIndex);
@@ -489,9 +491,10 @@ function redrawWrapper<T extends (...args: any) => void>(draw: T) {
 	};
 }
 
-function timeoutWrapper<T extends (...args: any) => void>(draw: T, delay: number) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function timeoutWrapper<Args extends any[]>(draw: (...v: Args) => void, delay: number) {
 	let frameIndex = 0;
-	return (...args: Parameters<T>) => {
+	return (...args: Args) => {
 		if (frameIndex) {
 			clearTimeout(frameIndex);
 		}
