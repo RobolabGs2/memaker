@@ -2,7 +2,7 @@ name: pages-release
 
 on:
   push:
-    branch:
+    branches:
       - main
 
 jobs:
