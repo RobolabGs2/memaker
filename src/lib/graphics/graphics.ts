@@ -1,5 +1,5 @@
 import type { Rectangle } from '$lib/geometry/rectangle';
-import type { Material, ShadowSettings } from '$lib/material/material';
+import type { Material, ShadowSettings } from '$lib/material';
 import * as twgl from 'twgl.js';
 
 import fullscreenShader from './fullscreen.vert?raw';

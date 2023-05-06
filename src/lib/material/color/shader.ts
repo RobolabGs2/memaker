@@ -1,6 +1,6 @@
 import { parseColor } from '$lib/graphics/graphics';
+import type { MaterialSettings } from '$lib/material';
 import fragmentShader from './color.frag?raw';
-import type { MaterialSettings } from './material';
 
 export const ColorShader = {
 	fragment: fragmentShader,

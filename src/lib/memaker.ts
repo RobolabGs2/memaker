@@ -3,7 +3,7 @@ import { tick } from 'svelte';
 import type { Writable } from 'svelte/store';
 import { TextureManager, type Texture } from './graphics/textures';
 import { IdGenerator } from './id_generator';
-import { patternsNames } from './material/patterns_store';
+import { patternsNames } from '$lib/material/pattern/store';
 import { FrameDrawer, type Meme, type Frame, type Block } from './meme';
 import { MemeFormat } from './meme_format';
 import { type StateStore, deepCopy } from './state';

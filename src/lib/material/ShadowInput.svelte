@@ -3,7 +3,7 @@
 	import Label from '$lib/base/Label.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
 	import PointInput from '$lib/base/PointInput.svelte';
-	import type { ShadowSettings } from './material';
+	import type { ShadowSettings } from '$lib/material';
 
 	export let value: ShadowSettings;
 </script>

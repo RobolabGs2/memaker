@@ -1,4 +1,4 @@
-import type { Point } from '../geometry/point';
+import type { Point } from '$lib/geometry/point';
 
 export type Color = string;
 interface MaterialTypes {

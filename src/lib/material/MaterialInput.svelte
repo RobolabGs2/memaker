@@ -1,13 +1,13 @@
 <script lang="ts">
-	import ColorSettings from './ColorSettings.svelte';
 	import InputGroup from '$lib/base/InputGroup.svelte';
 	import Label from '$lib/base/Label.svelte';
-	import Select from '$lib/base/Select.svelte';
-	import type { Material, MaterialSettings, MaterialType } from './material';
-	import PatternSettings from './PatternSettings.svelte';
-	import ShadowInput from './ShadowInput.svelte';
-	import { slide } from 'svelte/transition';
 	import NumberInput from '$lib/base/NumberInput.svelte';
+	import Select from '$lib/base/Select.svelte';
+	import { slide } from 'svelte/transition';
+	import type { Material, MaterialSettings, MaterialType } from '.';
+	import ShadowInput from './ShadowInput.svelte';
+	import ColorSettings from './color/ColorSettings.svelte';
+	import PatternSettings from './pattern/PatternSettings.svelte';
 	export let value: Material<MaterialType>;
 	export let defaults: MaterialSettings<MaterialType>[];
 

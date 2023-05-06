@@ -1,13 +1,13 @@
+import { ColorShader } from '$lib/material/color/shader';
+import { Gradient4Shader } from '$lib/material/gradient/shader';
+import { PatternShader } from '$lib/material/pattern/shader';
+import { patternsNames } from '$lib/material/pattern/store';
 import type { Rectangle } from './geometry/rectangle';
 import { Graphics } from './graphics/graphics';
-import type { TextureManager } from './graphics/textures';
-import type { TextBaseline, TextStyle } from './text/text';
-import { ColorShader } from './material/color';
-import { PatternShader } from './material/pattern';
-import { Gradient4Shader } from './material/gradient';
-import { patternsNames } from './material/patterns_store';
 import { TextStencilService } from './graphics/text_stencil_service';
+import type { TextureManager } from './graphics/textures';
 import type { TextDrawInfo } from './text/manager';
+import type { TextBaseline, TextStyle } from './text/text';
 
 export type TextContent = {
 	text: string;

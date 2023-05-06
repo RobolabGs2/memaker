@@ -1,8 +1,8 @@
-import type { MaterialSettings } from './material';
+import type { MaterialSettings } from '..';
 import fragmentShader from './pattern.frag?raw';
 import { m4 } from 'twgl.js';
 import type { Rectangle } from '$lib/geometry/rectangle';
-import type { PatternsManager } from './patterns_store';
+import type { PatternsManager } from './store';
 import type { GraphicsContext } from '$lib/graphics/graphics';
 
 export function PatternShader(patterns: PatternsManager) {

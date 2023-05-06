@@ -1,4 +1,4 @@
-import type { Material } from '$lib/material/material';
+import type { Material } from '$lib/material';
 import type { FontSettings } from './font';
 
 export type TextCase = 'As is' | 'UPPER' | 'lower';

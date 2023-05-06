@@ -5,9 +5,10 @@
 	import NumberInput from './NumberInput.svelte';
 
 	export let value: Point;
+	export let step = 1;
 </script>
 
 <InputGroup>
-	<Label>x <NumberInput bind:value={value.x} on:change /></Label>
-	<Label>y <NumberInput bind:value={value.y} on:change /></Label>
+	<Label>x <NumberInput bind:value={value.x} {step} on:change /></Label>
+	<Label>y <NumberInput bind:value={value.y} {step} on:change /></Label>
 </InputGroup>

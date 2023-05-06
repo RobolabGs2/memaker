@@ -1,6 +1,6 @@
 import type { Frame, Meme, TextContent } from '$lib/meme';
 import JSZip from 'jszip';
-import type { MaterialSettings, MaterialType, ShadowSettings } from './material/material';
+import type { MaterialSettings, MaterialType, ShadowSettings } from './material';
 import type { TextStyle } from './text/text';
 import { downloadImage, useBlobUrl } from './utils';
 

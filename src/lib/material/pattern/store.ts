@@ -16,7 +16,7 @@ export class PatternsManager implements Readable<Pattern[]> {
 		};
 	}
 	addPattern(...patterns: Pattern[]) {
-		this.patterns = this.patterns.filter((p) => patterns.find((newP) => newP.name == p.name));
+		this.patterns = this.patterns.filter((p) => !patterns.find((newP) => newP.name == p.name));
 		this.patterns.push(...patterns);
 		this.subscribers.forEach((s) => s(this.patterns));
 	}
