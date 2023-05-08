@@ -15,9 +15,9 @@ export class PatternsManager implements Readable<Pattern[]> {
 			this.subscribers.delete(run);
 		};
 	}
-	addPattern(...patterns: Pattern[]) {
-		this.patterns = this.patterns.filter((p) => !patterns.find((newP) => newP.name == p.name));
-		this.patterns.push(...patterns);
+	addPattern(...newPatterns: Pattern[]) {
+		this.patterns = this.patterns.filter((p) => !newPatterns.find((newP) => newP.name == p.name));
+		this.patterns.push(...newPatterns);
 		this.subscribers.forEach((s) => s(this.patterns));
 	}
 	getTexture(patternName: string) {
@@ -28,6 +28,17 @@ export class PatternsManager implements Readable<Pattern[]> {
 	has(patternName: string) {
 		const pattern = this.patterns.find((p) => p.name == patternName);
 		return pattern != null;
+	}
+	delete(patternName: string) {
+		this.patterns.splice(
+			this.patterns.findIndex((p) => p.name == patternName),
+			1
+		);
+		this.subscribers.forEach((s) => s(this.patterns));
+	}
+	clear() {
+		this.patterns = [];
+		this.subscribers.forEach((s) => s(this.patterns));
 	}
 }
 

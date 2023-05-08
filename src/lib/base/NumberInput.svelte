@@ -27,7 +27,7 @@
 		return m;
 	}
 	function deltaChange(delta: number) {
-		value = Math.min(max, Math.max(min, value + delta));
+		value = +Math.min(max, Math.max(min, value + delta)).toFixed(2);
 		dispatch('input', value);
 		dispatch('change', value);
 	}

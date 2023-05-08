@@ -10,6 +10,9 @@
 		close: {
 			action: ModalAction;
 		};
+		paste: {
+			event: ClipboardEvent;
+		};
 	}>();
 
 	function closeModal(reason: ModalAction = 'cancel') {
@@ -19,9 +22,19 @@
 	function exitOnEsc(ev: KeyboardEvent) {
 		if (open && ev.key === 'Escape') closeModal('cancel');
 	}
+	function blockIfOpened(event: ClipboardEvent) {
+		if (open) {
+			dispatch('paste', { event });
+			event.stopPropagation();
+		}
+	}
 	onMount(() => {
 		document.addEventListener('keyup', exitOnEsc);
-		return () => document.removeEventListener('keyup', exitOnEsc);
+		document.addEventListener('paste', blockIfOpened, { capture: true });
+		return () => {
+			document.removeEventListener('paste', blockIfOpened);
+			document.removeEventListener('keyup', exitOnEsc);
+		};
 	});
 </script>
 

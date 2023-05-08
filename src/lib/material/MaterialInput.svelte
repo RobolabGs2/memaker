@@ -14,7 +14,7 @@
 	function changeTypeHandler(ev: CustomEvent<{ value: string }>) {
 		const defaultValue = defaults.find((v) => v.type === ev.detail.value);
 		if (!defaultValue) throw new Error(`Not found default value for type ${ev.detail.value}`);
-		value.settings = defaultValue;
+		value.settings = structuredClone(defaultValue);
 	}
 
 	const modeNames = {

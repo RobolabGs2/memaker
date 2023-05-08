@@ -93,7 +93,7 @@
 							type: 'pattern',
 							name: 'fire',
 							rotate: 0,
-							scale: 'font',
+							scale: { x: 1, y: 1 },
 							shift: { x: 0, y: 0 }
 						}
 					]}
@@ -114,7 +114,7 @@
 							type: 'pattern',
 							name: 'fire',
 							rotate: 0,
-							scale: 'font',
+							scale: { x: 1, y: 1 },
 							shift: { x: 0, y: 0 }
 						}
 					]}

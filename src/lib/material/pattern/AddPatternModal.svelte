@@ -8,14 +8,13 @@
 
 	export let open = true;
 	export let error = '';
-	export let validateName = (name: string) => '';
+	export let validateName: (name: string) => string = () => '';
 
 	let file: File | null = null;
 	let fileUrl = '';
 	let name = '';
 
-	function onChangeFile(ev: CustomEvent<File[]>) {
-		const newFile = ev.detail[0];
+	function setFile(newFile: File) {
 		if (file == newFile) return;
 		if (fileUrl) {
 			URL.revokeObjectURL(fileUrl);
@@ -26,6 +25,25 @@
 			fileUrl = URL.createObjectURL(file);
 			name = file.name.substring(0, file.name.lastIndexOf('.'));
 		}
+	}
+
+	function onPaste(event: ClipboardEvent) {
+		const inFocus = document.activeElement;
+		if (inFocus instanceof HTMLInputElement || inFocus instanceof HTMLTextAreaElement) return;
+		const items = event.clipboardData?.items;
+		if (!items) return;
+		for (let index = 0; index < items.length; index++) {
+			const item = items[index];
+			if (!item.type?.match(/^image/)) continue;
+			const file = item.getAsFile();
+			if (file) setFile(file);
+			else new Error('Failed to paste file');
+			return;
+		}
+	}
+
+	function onChangeFile(ev: CustomEvent<File[]>) {
+		setFile(ev.detail[0]);
 	}
 
 	const dispatch = createEventDispatcher<{
@@ -70,7 +88,7 @@
 	});
 </script>
 
-<Modal bind:open on:close={cancel}>
+<Modal bind:open on:close={cancel} on:paste={(ev) => onPaste(ev.detail.event)}>
 	<header slot="title">Добавить паттерн</header>
 	<article>
 		<InputGroup>

@@ -76,6 +76,8 @@
 				.then((resp) => resp.blob())
 				.then((blob) => memaker.openMeme(blob));
 		}
+
+		return () => memaker.clear();
 	});
 </script>
 

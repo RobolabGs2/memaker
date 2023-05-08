@@ -62,8 +62,8 @@
 		dispatch('changeBackground', { file });
 	}
 	function onPaste(event: ClipboardEvent) {
-		if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
-			return;
+		const inFocus = document.activeElement;
+		if (inFocus instanceof HTMLInputElement || inFocus instanceof HTMLTextAreaElement) return;
 		const items = event.clipboardData?.items;
 		if (!items) return;
 		for (let index = 0; index < items.length; index++) {

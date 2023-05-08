@@ -6,23 +6,48 @@ import { downloadImage, useBlobUrl } from './utils';
 
 export type MemeFile = {
 	meme: Meme;
-	resources: { images: string[] };
+	resources: { images: string[]; patterns: string[] };
 	formatVersion: string;
 	editorVersion: string;
 };
 export interface MemeData {
 	meme: Meme;
+	resources: { images: { id: string; blob: Blob }[]; patterns: { name: string; blob: Blob }[] };
+}
+
+interface MemeDataV0_2_0 {
+	meme: Meme;
 	resources: { images: { id: string; blob: Blob }[] };
 }
 
+/**
+ * -1 -> a < b
+ *  0 -> a = b
+ *  1 -> a > b
+ */
+function compareMemeVersions(a: string, b: string | undefined): -1 | 0 | 1 {
+	if (!b) return 1;
+	if (a === b) return 0;
+	const [a_major, a_minor, a_patch] = a.split('.').map((x) => Number(x));
+	const [b_major, b_minor, b_patch] = a.split('.').map((x) => Number(x));
+	if (a_major < b_major) return -1;
+	if (a_major > b_major) return 1;
+	if (a_minor < b_minor) return -1;
+	if (a_minor > b_minor) return 1;
+	if (a_patch < b_patch) return -1;
+	if (a_patch > b_patch) return 1;
+
+	return 0;
+}
+
 export class MemeFormat {
-	static FormatVersion = '0.2.0';
+	static FormatVersion = '0.2.1';
 	static EditorVersion = import.meta.env.VITE_APP_VERSION;
 	static fromFile(file: Blob): Promise<MemeData> {
 		const zip = new JSZip();
 		return zip.loadAsync(file).then((zip) => {
 			const index = zip.file('index.json');
-			if (!index) return MemeFormat.zeroVersion(zip);
+			if (!index) return MemeFormat.zeroVersion(zip).then(MemeFormat.fromV0_2_0ToV0_2_1);
 			return index.async('string').then((json) => {
 				const index = JSON.parse(json, (key, value) => {
 					if (key === 'container' && value.type === 'global') {
@@ -30,31 +55,48 @@ export class MemeFormat {
 					}
 					return value;
 				}) as MemeFile;
-				if (index.formatVersion !== this.FormatVersion)
+				if (compareMemeVersions(this.FormatVersion, index.formatVersion) == -1)
 					throw new UnsupportedFormatError(
-						`expected version ${this.FormatVersion}, actual: ${index.formatVersion}`
-					); // TODO comparisons
-				// load images
-				return Promise.all(
-					index.resources.images.map((id) => {
-						const image = zip.file(this.imageFilepath(id));
-						if (!image) throw new Error(`Not found image with id ${id}`);
-						return image.async('blob').then((blob) => ({ id, blob }));
-					})
-				).then((images) => ({ meme: index.meme, resources: { images } }));
+						`application version ${this.FormatVersion} lower than file version ${index.formatVersion}`
+					);
+				return Promise.all([
+					Promise.all(
+						index.resources.images.map((id) => {
+							const image = zip.file(this.imageFilepath(id));
+							if (!image) throw new Error(`Not found image with id ${id}`);
+							return image.async('blob').then((blob) => ({ id, blob }));
+						})
+					),
+					Promise.all(
+						(index.resources.patterns || []).map((name) => {
+							const image = zip.file(this.patternFilepath(name));
+							if (!image) throw new Error(`Not found pattern with id ${name}`);
+							return image.async('blob').then((blob) => ({ name, blob }));
+						})
+					)
+				]).then(([images, patterns]) => ({ meme: index.meme, resources: { images, patterns } }));
 			});
 		});
+	}
+	private static fromV0_2_0ToV0_2_1(data: MemeDataV0_2_0): MemeData {
+		return { ...data, resources: { ...data.resources, patterns: [] } };
 	}
 	static toFile(data: MemeData): Promise<Blob> {
 		const zip = new JSZip();
 		data.resources.images.forEach(({ id, blob }) => {
 			zip.file(this.imageFilepath(id), blob, { binary: true });
 		});
+		data.resources.patterns.forEach(({ name, blob }) => {
+			zip.file(this.patternFilepath(name), blob, { binary: true });
+		});
 		const memeFile: MemeFile = {
 			meme: data.meme,
 			formatVersion: this.FormatVersion,
 			editorVersion: this.EditorVersion,
-			resources: { images: data.resources.images.map((t) => t.id) }
+			resources: {
+				images: data.resources.images.map((t) => t.id),
+				patterns: data.resources.patterns.map((t) => t.name)
+			}
 		};
 		zip.file('index.json', JSON.stringify(memeFile));
 		return zip.generateAsync({ type: 'blob' });
@@ -62,7 +104,10 @@ export class MemeFormat {
 	static imageFilepath(id: string): string {
 		return `resources/images/${id}.png`;
 	}
-	static zeroVersion(zip: JSZip): Promise<MemeData> {
+	static patternFilepath(id: string): string {
+		return `resources/patterns/${id}.png`;
+	}
+	static zeroVersion(zip: JSZip): Promise<MemeDataV0_2_0> {
 		const jsonFile = zip.file('text.json');
 		if (!jsonFile) throw new UnsupportedFormatError('Unknown format');
 		const version = jsonFile.comment;

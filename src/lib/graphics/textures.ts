@@ -66,4 +66,9 @@ export class TextureManager<T = unknown> {
 	has(id: string): boolean {
 		return this.textures.has(id);
 	}
+
+	clear() {
+		this.textures.forEach((texture) => this.gl.deleteTexture(texture.texture));
+		this.textures.clear();
+	}
 }

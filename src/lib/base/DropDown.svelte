@@ -11,6 +11,7 @@
 		main: ''
 	};
 	let width = 0;
+	let maxHeight = 0;
 	let bottom = 0;
 	let left = 0;
 </script>
@@ -25,10 +26,11 @@
 			if (!(target instanceof HTMLElement))
 				throw new Error('Target for button is not html element');
 			const rect = target.getBoundingClientRect();
-
+			const viewportHeight = visualViewport?.height || 720;
 			width = rect.width;
 			bottom = rect.bottom;
 			left = rect.left;
+			maxHeight = viewportHeight - bottom;
 			active = !active;
 		}}
 		on:focusout={() => setTimeout(() => (active = false), 100)}
@@ -39,7 +41,7 @@
 	{#if mouseIn || active}
 		<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 		<article
-			style={`width:${width}px;left:${left}px;top:${bottom}px;`}
+			style={`max-height:${maxHeight}px;width:${width}px;left:${left}px;top:${bottom}px;`}
 			transition:slide={{ duration: 150 }}
 			on:mouseover={() => (mouseIn = true)}
 			on:mouseout={() => (mouseIn = false)}
@@ -55,7 +57,7 @@
 		overflow: visible;
 	}
 	article {
-		overflow: visible;
+		overflow: auto;
 		position: fixed;
 		z-index: 1;
 		flex-direction: column;

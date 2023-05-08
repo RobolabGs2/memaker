@@ -406,22 +406,57 @@ export class Memaker {
 			)
 		);
 	}
+	getPatternsList(meme: Meme = this.meme) {
+		return Array.from(
+			new Set(
+				meme.frames.flatMap((frame) =>
+					frame.blocks
+						.map((b) => b.content)
+						.flatMap((c) => {
+							if (c.type != 'text') return [];
+							const patterns = [];
+							const style = c.value.style;
+							if (style.fill.settings.type == 'pattern') patterns.push(style.fill.settings.name);
+							if (style.stroke.settings.type == 'pattern')
+								patterns.push(style.stroke.settings.name);
+							return patterns;
+						})
+						.filter((b) => b)
+				)
+			)
+		)
+			.map((name) => ({ name, texture: this.textures.get(patternsNames.getTexture(name)) }))
+			.filter(({ texture }) => texture.meta.source == 'user');
+	}
 	private zipCanvas = document.createElement('canvas');
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	private zipCtx = this.zipCanvas.getContext('2d')!;
 	exportMeme(): Promise<Blob> {
 		const images = this.getImagesList();
+		const patterns = this.getPatternsList();
 
 		return this.runTask(
 			'Пакуем мем',
-			Promise.all(
-				images.map((texture) => {
-					this.zipCanvas.width = texture.width;
-					this.zipCanvas.height = texture.height;
-					this.zipCtx.drawImage(texture.original, 0, 0);
-					return canvasToBlob(this.zipCanvas).then((blob) => ({ id: texture.id, blob }));
-				})
-			).then((images) => MemeFormat.toFile({ meme: this.meme, resources: { images } }))
+			Promise.all([
+				Promise.all(
+					images.map((texture) => {
+						this.zipCanvas.width = texture.width;
+						this.zipCanvas.height = texture.height;
+						this.zipCtx.drawImage(texture.original, 0, 0);
+						return canvasToBlob(this.zipCanvas).then((blob) => ({ id: texture.id, blob }));
+					})
+				),
+				Promise.all(
+					patterns.map(({ name, texture }) => {
+						this.zipCanvas.width = texture.width;
+						this.zipCanvas.height = texture.height;
+						this.zipCtx.drawImage(texture.original, 0, 0);
+						return canvasToBlob(this.zipCanvas).then((blob) => ({ name, blob }));
+					})
+				)
+			]).then(([images, patterns]) =>
+				MemeFormat.toFile({ meme: this.meme, resources: { images, patterns } })
+			)
 		);
 	}
 	openMeme(file: Blob) {
@@ -432,14 +467,32 @@ export class Memaker {
 				this.getImagesList().forEach((tex) => this.textures.delete(tex.id));
 				this.usedImages.clear();
 				return Promise.all(
-					memeData.resources.images.map(({ id, blob }) =>
-						useBlobUrl(blob, (url) =>
-							this.textures.downloadImage(url, {
-								id,
-								meta: { source: 'user', type: 'image' }
-							})
+					memeData.resources.images
+						.map(({ id, blob }) =>
+							useBlobUrl(
+								blob,
+								(url) =>
+									this.textures.downloadImage(url, {
+										id,
+										meta: { source: 'user', type: 'image' }
+									}) as Promise<unknown>
+							)
 						)
-					)
+						.concat(
+							memeData.resources.patterns.map(({ name, blob }) =>
+								useBlobUrl(blob, (url) => {
+									if (patternsNames.has(name)) {
+										this.textures.delete(patternsNames.getTexture(name));
+										patternsNames.delete(name);
+									}
+									return this.textures
+										.downloadImage(url, {
+											meta: { source: 'user', type: 'pattern' }
+										})
+										.then((texture) => patternsNames.addPattern({ name, textureId: texture.id }));
+								})
+							)
+						)
 				)
 					.then(() => {
 						this.meme = memeData.meme;
@@ -488,6 +541,11 @@ export class Memaker {
 				return pattern;
 			})
 		);
+	}
+	clear() {
+		patternsNames.clear();
+		this.textures.clear();
+		this.usedImages.clear();
 	}
 }
 
