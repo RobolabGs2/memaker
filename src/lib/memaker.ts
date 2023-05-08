@@ -540,7 +540,7 @@ export class Memaker {
 				patternsNames.addPattern(pattern);
 				return pattern;
 			})
-		);
+		).then(() => this.draw(this.activeFrame));
 	}
 	clear() {
 		patternsNames.clear();

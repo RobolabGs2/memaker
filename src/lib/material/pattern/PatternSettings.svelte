@@ -22,6 +22,7 @@
 
 	function addPattern(ev: CustomEvent<{ name: string; image: File }>) {
 		dispatch('addPattern', ev.detail);
+		value.name = ev.detail.name;
 	}
 
 	let openAddModal = false;
