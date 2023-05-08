@@ -107,6 +107,7 @@
 		on:shiftFrame={(ev) => memaker?.shiftFrame(ev.detail.frame, ev.detail.shift)}
 		on:deleteFrame={(ev) => memaker?.deleteFrame(ev.detail.frame)}
 		on:framesFromImages={(ev) => memaker?.framesFromImages(ev.detail.files)}
+		on:addPattern={(ev) => memaker?.addPattern(ev.detail.name, ev.detail.image)}
 	/>
 </ThemeContext>
 

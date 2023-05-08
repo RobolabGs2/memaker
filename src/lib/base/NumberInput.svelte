@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconMinus, IconPlus } from '@tabler/icons-svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import Button from './Button.svelte';
 
 	export let value: number;
 	export let min = -Infinity;
@@ -60,7 +61,8 @@
 		on:change={(ev) => dispatch('change', Number(ev.currentTarget.value))}
 	/>
 	<footer>
-		<button
+		<Button
+			disablePadding={true}
 			{title}
 			on:mousedown={(ev) => {
 				if (ev.button != 0) return;
@@ -73,8 +75,9 @@
 			}}
 		>
 			<IconMinus />
-		</button>
-		<button
+		</Button>
+		<Button
+			disablePadding={true}
 			{title}
 			on:mousedown={(ev) => {
 				if (ev.button != 0) return;
@@ -87,7 +90,7 @@
 			}}
 		>
 			<IconPlus />
-		</button>
+		</Button>
 	</footer>
 </main>
 
@@ -101,10 +104,5 @@
 	}
 	input {
 		width: 48px;
-	}
-	button {
-		margin: 0;
-		padding: 0;
-		display: flex;
 	}
 </style>

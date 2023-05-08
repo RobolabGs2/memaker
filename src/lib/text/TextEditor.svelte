@@ -98,6 +98,7 @@
 						}
 					]}
 					on:change
+					on:addPattern
 				/>
 			{:else if tab.label === 'Обводка'}
 				<Label>
@@ -118,6 +119,7 @@
 						}
 					]}
 					on:change
+					on:addPattern
 				/>
 			{/if}
 		</div>

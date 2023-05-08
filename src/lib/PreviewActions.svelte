@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Button from './base/Button.svelte';
+
 	import { IconTrash, IconArrowUp, IconArrowDown, IconCopy } from '@tabler/icons-svelte';
 	import { createEventDispatcher } from 'svelte';
 
@@ -29,16 +31,16 @@
 
 <footer>
 	{#if remove}
-		<button class="danger" on:click={redirectEvent('remove')}><IconTrash size={iconSize} /></button>
+		<Button type="danger" on:click={redirectEvent('remove')}><IconTrash size={iconSize} /></Button>
 	{/if}
 	{#if copy}
-		<button on:click={redirectEvent('copy')}><IconCopy size={iconSize} /></button>
+		<Button on:click={redirectEvent('copy')}><IconCopy size={iconSize} /></Button>
 	{/if}
 	{#if up}
-		<button on:click={redirectEvent('up')}><IconArrowUp size={iconSize} /></button>
+		<Button on:click={redirectEvent('up')}><IconArrowUp size={iconSize} /></Button>
 	{/if}
 	{#if down}
-		<button on:click={redirectEvent('down')}><IconArrowDown size={iconSize} /></button>
+		<Button on:click={redirectEvent('down')}><IconArrowDown size={iconSize} /></Button>
 	{/if}
 	<slot />
 </footer>
@@ -47,18 +49,12 @@
 	footer {
 		display: flex;
 		width: 100%;
-		& > * {
+		& > :global(*) {
 			height: 32px;
 			flex: 1;
 			display: flex;
 			justify-content: center;
 			align-items: center;
 		}
-	}
-	button {
-		cursor: pointer;
-	}
-	.danger:hover {
-		background-color: #aa0000;
 	}
 </style>

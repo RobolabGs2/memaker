@@ -8,6 +8,7 @@
 		borderSecondary: string;
 		borderSecondaryHover: string;
 		borderSecondaryActive: string;
+		textError: string;
 	}
 	function themeToCss(theme: Theme) {
 		return Object.entries(theme)
@@ -50,20 +51,6 @@
 		background-color: var(--text-secondary);
 		border-radius: 20px;
 		border: 3px solid var(--secondary);
-	}
-	:global(button) {
-		padding: 8px 8px;
-		background-color: var(--secondary);
-		color: var(--text-secondary);
-		border: var(--border-secondary);
-		&:hover {
-			border: var(--border-secondary-hover);
-			background-color: var(--secondary-hover);
-		}
-		&:active {
-			border: var(--border-secondary-active);
-			background-color: var(--secondary-active);
-		}
 	}
 	:global(input),
 	:global(textarea) {

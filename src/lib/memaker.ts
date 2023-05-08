@@ -45,42 +45,6 @@ export class Memaker {
 		if (!this.busy) return '';
 		return this.backgroundTasks.values().next().value;
 	}
-	private backgroundTasks: Map<Promise<unknown>, string> = new Map();
-	private runTask<T>(description: string, task: Promise<T>): Promise<T> {
-		this.backgroundTasks.set(task, description);
-		this.stores.busy.set(this.currentTask);
-		task.finally(() => {
-			this.backgroundTasks.delete(task);
-			this.stores.busy.set(this.currentTask);
-		});
-		return task;
-	}
-	private placeholdersTextures = new Array<Texture>();
-	// texture.id => block[]
-	private usedImages = new Map<string, Set<Block>>();
-	private addImageUsage(block: Block) {
-		if (block.content.type != 'image') return;
-		const textureId = block.content.value.id;
-		const texture = this.textures.get(textureId);
-		if (texture.meta.source == 'default') return;
-		let blocks = this.usedImages.get(textureId);
-		if (!blocks) {
-			this.usedImages.set(textureId, (blocks = new Set()));
-		}
-		blocks.add(block);
-	}
-	private removeImageUsage(block: Block) {
-		if (block.content.type != 'image') return;
-		const textureId = block.content.value.id;
-		const texture = this.textures.get(textureId);
-		if (texture.meta.source == 'default') return;
-		const blocks = this.usedImages.get(textureId);
-		if (!blocks) {
-			return;
-		}
-		blocks.delete(block);
-		if (blocks.size == 0) this.textures.delete(textureId);
-	}
 	readonly gl: WebGL2RenderingContext;
 	constructor(
 		readonly stores: {
@@ -154,6 +118,42 @@ export class Memaker {
 			this.activeBlock = value;
 		});
 	}
+	private backgroundTasks: Map<Promise<unknown>, string> = new Map();
+	private runTask<T>(description: string, task: Promise<T>): Promise<T> {
+		this.backgroundTasks.set(task, description);
+		this.stores.busy.set(this.currentTask);
+		task.finally(() => {
+			this.backgroundTasks.delete(task);
+			this.stores.busy.set(this.currentTask);
+		});
+		return task;
+	}
+	private placeholdersTextures = new Array<Texture>();
+	// texture.id => block[]
+	private usedImages = new Map<string, Set<Block>>();
+	private addImageUsage(block: Block) {
+		if (block.content.type != 'image') return;
+		const textureId = block.content.value.id;
+		const texture = this.textures.get(textureId);
+		if (texture.meta.source == 'default') return;
+		let blocks = this.usedImages.get(textureId);
+		if (!blocks) {
+			this.usedImages.set(textureId, (blocks = new Set()));
+		}
+		blocks.add(block);
+	}
+	private removeImageUsage(block: Block) {
+		if (block.content.type != 'image') return;
+		const textureId = block.content.value.id;
+		const texture = this.textures.get(textureId);
+		if (texture.meta.source == 'default') return;
+		const blocks = this.usedImages.get(textureId);
+		if (!blocks) {
+			return;
+		}
+		blocks.delete(block);
+		if (blocks.size == 0) this.textures.delete(textureId);
+	}
 	protected memeUpdated() {
 		this.inUpdate.meme = true;
 		this.stores.meme.set(this.meme);
@@ -218,8 +218,8 @@ export class Memaker {
 			}
 		};
 		this.activeFrame.blocks.push(newBlock);
-		this.activeBlock = newBlock;
 		this.frameUpdated();
+		this.activeBlock = newBlock;
 		this.blockUpdated();
 	}
 	newFrame(background: Texture): Frame {
@@ -475,6 +475,18 @@ export class Memaker {
 				.then((frames) => {
 					frames.forEach((frame) => this.draw(frame, true));
 				})
+		);
+	}
+	addPattern(name: string, image: Blob) {
+		return this.runTask(
+			'Добавляем паттерн',
+			useBlobUrl(image, (url) =>
+				this.textures.downloadImage(url, { meta: { source: 'user', type: 'pattern' } })
+			).then((texture) => {
+				const pattern = { name, textureId: texture.id };
+				patternsNames.addPattern(pattern);
+				return pattern;
+			})
 		);
 	}
 }

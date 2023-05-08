@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from '$lib/base/Button.svelte';
 	import InputGroup from '$lib/base/InputGroup.svelte';
 	import Label from '$lib/base/Label.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
@@ -6,13 +7,34 @@
 	import Select from '$lib/base/Select.svelte';
 	import ToggleButton from '$lib/base/ToggleButton.svelte';
 	import type { MaterialSettings } from '$lib/material';
+	import { IconPlus } from '@tabler/icons-svelte';
+	import { createEventDispatcher } from 'svelte';
+	import AddPatternModal from './AddPatternModal.svelte';
 	import { patternsNames } from './store';
 	export let value: MaterialSettings<'pattern'>;
+
+	const dispatch = createEventDispatcher<{ addPattern: { name: string; image: File } }>();
+
+	function validateName(name: string) {
+		if (patternsNames.has(name)) return 'Это имя уже занято';
+		return '';
+	}
+
+	function addPattern(ev: CustomEvent<{ name: string; image: File }>) {
+		dispatch('addPattern', ev.detail);
+	}
+
+	let openAddModal = false;
 </script>
 
 <InputGroup>
-	<Label>
-		Паттерн <Select value={value.name} items={$patternsNames.map((p) => p.name)} />
+	<Label for="ignore">
+		Паттерн <Select bind:value={value.name} items={$patternsNames.map((p) => p.name)} let:item>
+			{item}
+		</Select>
+		<Button width="fin-content" on:click={() => (openAddModal = true)}>
+			<IconPlus size={28} />
+		</Button>
 	</Label>
 	<Label>
 		Поворот <NumberInput min={-360} max={360} step={0.5} bind:value={value.rotate} on:change />
@@ -30,4 +52,6 @@
 	{#if value.scale !== 'font'}
 		<InputGroup><PointInput bind:value={value.scale} step={0.1} on:change /></InputGroup>
 	{/if}
+
+	<AddPatternModal {validateName} bind:open={openAddModal} on:submit={addPattern} />
 </InputGroup>

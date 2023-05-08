@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 	import { IconChevronDown } from '@tabler/icons-svelte';
+	import Button from './Button.svelte';
 	let active = false;
 	let mouseIn = false;
 
@@ -10,25 +11,35 @@
 		main: ''
 	};
 	let width = 0;
+	let bottom = 0;
+	let left = 0;
 </script>
 
 <main style={`height:${css.height};width:${css.width};${css.main}`}>
-	<button
+	<Button
 		style={`height:${css.height};width:${css.width};`}
+		justifyContent="space-between"
 		on:click={(ev) => {
-			const rect = ev.currentTarget.getBoundingClientRect();
+			const target = ev.currentTarget;
+			if (!target) throw new Error('Not found target for button in drop down');
+			if (!(target instanceof HTMLElement))
+				throw new Error('Target for button is not html element');
+			const rect = target.getBoundingClientRect();
+
 			width = rect.width;
+			bottom = rect.bottom;
+			left = rect.left;
 			active = !active;
 		}}
 		on:focusout={() => setTimeout(() => (active = false), 100)}
 	>
 		<slot name="header" />
 		<IconChevronDown />
-	</button>
+	</Button>
 	{#if mouseIn || active}
 		<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 		<article
-			style={`width:${width}px;`}
+			style={`width:${width}px;left:${left}px;top:${bottom}px;`}
 			transition:slide={{ duration: 150 }}
 			on:mouseover={() => (mouseIn = true)}
 			on:mouseout={() => (mouseIn = false)}
@@ -42,22 +53,6 @@
 	main {
 		position: relative;
 		overflow: visible;
-	}
-	button {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		background-color: var(--secondary);
-		color: var(--text-secondary);
-		border: var(--border-secondary);
-		&:hover {
-			border: var(--border-secondary-hover);
-			background-color: var(--secondary-hover);
-		}
-		&:active {
-			background-color: var(--secondary-active);
-			border: var(--border-secondary-active);
-		}
 	}
 	article {
 		overflow: visible;

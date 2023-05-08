@@ -25,6 +25,10 @@ export class PatternsManager implements Readable<Pattern[]> {
 		if (!pattern) throw new Error(`Not found pattern '${patternName}'`);
 		return pattern.textureId;
 	}
+	has(patternName: string) {
+		const pattern = this.patterns.find((p) => p.name == patternName);
+		return pattern != null;
+	}
 }
 
 export const patternsNames = new PatternsManager();

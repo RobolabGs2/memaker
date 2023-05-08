@@ -41,7 +41,9 @@
 			{#if value.settings.type === 'color'}
 				<div transition:slide><ColorSettings bind:value={value.settings} on:change /></div>
 			{:else if value.settings.type === 'pattern'}
-				<div transition:slide><PatternSettings bind:value={value.settings} on:change /></div>
+				<div transition:slide>
+					<PatternSettings bind:value={value.settings} on:change on:addPattern />
+				</div>
 			{/if}
 			<div transition:slide>
 				<Label>

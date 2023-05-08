@@ -16,6 +16,8 @@
 		changeBackground: { file: File };
 		frameToClipboard: { frame: Frame };
 		framesFromImages: { files: File[] };
+
+		addPattern: { name: string; image: File };
 	}
 	export type MemeEvent<K extends keyof EventsMap> = CustomEvent<EventsMap[K]>;
 </script>
@@ -43,6 +45,7 @@
 	import { onMount } from 'svelte';
 	import BlockConverter from './BlockConverter.svelte';
 	import Contacts from './Contacts.svelte';
+	import Button from './base/Button.svelte';
 
 	export let meme: Meme;
 	export let frame: Frame;
@@ -98,9 +101,9 @@
 
 <article>
 	<section>
-		<button class="new-block" on:click={() => dispatch('createFrame')}>
+		<Button type="primary" justifyContent="flex-start" on:click={() => dispatch('createFrame')}>
 			<IconNewSection /> <span>Новый фрейм</span>
-		</button>
+		</Button>
 		<PreviewsContainer
 			height="50%"
 			items={meme.frames}
@@ -123,18 +126,24 @@
 				/>
 			</FramePreview>
 		</PreviewsContainer>
-		<button class="new-block" on:click={() => dispatch('renderMeme', { meme })}>
-			<IconPhotoDown size={24} /> <span>Скачать мем</span>
-		</button>
-		<button class="new-block" on:click={() => dispatch('saveMeme', { meme })}>
-			<IconDeviceFloppy size={24} /> <span>Сохранить проект мема</span>
-		</button>
-		<FileInput
-			class="new-block"
-			accept=".meme"
-			on:change={(ev) => dispatch('openMeme', { file: ev.detail[0] })}
+		<Button
+			type="primary"
+			justifyContent="flex-start"
+			on:click={() => dispatch('renderMeme', { meme })}
 		>
-			<IconUpload size={24} /><span>Открыть проект мема</span>
+			<IconPhotoDown size={24} /> <span>Скачать мем</span>
+		</Button>
+		<Button
+			type="primary"
+			justifyContent="flex-start"
+			on:click={() => dispatch('saveMeme', { meme })}
+		>
+			<IconDeviceFloppy size={24} /> <span>Сохранить проект мема</span>
+		</Button>
+		<FileInput accept=".meme" on:change={(ev) => dispatch('openMeme', { file: ev.detail[0] })}>
+			<Button type="primary" justifyContent="flex-start">
+				<IconUpload size={24} /><span>Открыть проект мема</span>
+			</Button>
 		</FileInput>
 		<Contacts
 			{version}
@@ -147,16 +156,21 @@
 	<section>
 		<header class="controls">
 			<FileInput
-				class="new-block"
 				accept="image/*"
 				typeFilter={/^image\//}
 				on:change={(ev) => onChangeBackground(ev.detail[0])}
 			>
-				<IconPhotoUp size={24} /><span>Сменить фон</span>
+				<Button type="primary" justifyContent="flex-start">
+					<IconPhotoUp size={24} /><span>Сменить фон</span>
+				</Button>
 			</FileInput>
-			<button class="new-block" on:click={() => dispatch('frameToClipboard', { frame })}>
+			<Button
+				type="primary"
+				justifyContent="flex-start"
+				on:click={() => dispatch('frameToClipboard', { frame })}
+			>
 				<IconCopy /><span>Копировать</span>
-			</button>
+			</Button>
 		</header>
 		<header class="canvas">
 			<Canvas
@@ -167,9 +181,9 @@
 		</header>
 	</section>
 	<section>
-		<button class="new-block" on:click={() => dispatch('createBlock')}>
+		<Button type="primary" justifyContent="flex-start" on:click={() => dispatch('createBlock')}>
 			<IconNewSection /> <span>Новый блок</span>
-		</button>
+		</Button>
 		<PreviewsContainer
 			height="25%"
 			reverse
@@ -205,7 +219,7 @@
 			<span>{tab}</span>
 			<div slot="content">
 				{#if tab === 'Текст' && block.content.type == 'text'}
-					<TextContentSettings bind:content={block.content.value} on:change />
+					<TextContentSettings bind:content={block.content.value} on:change on:addPattern />
 				{:else if tab === 'Контейнер'}
 					<ContainerSettings
 						frameHeight={frame.height}
@@ -261,27 +275,9 @@
 		height: 100%;
 		width: 100%;
 	}
-	:global(label.new-block),
-	:global(button.new-block) {
-		width: 100%;
-		height: 40px;
-		border-radius: 4px;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: flex-start;
-		background-color: #4444dd;
-		font-family: inherit;
-		font-size: small;
-		font-weight: bold;
-		color: var(--text-secondary);
-		border: var(--border-secondary);
-		padding: 8px 8px;
-		&:hover {
-			background-color: #4444ff;
-		}
-		& > span {
-			padding-left: 8px;
-		}
+	span {
+		padding-left: 8px;
+		padding-right: 8px;
+		text-align: left;
 	}
 </style>

@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { IconX } from '@tabler/icons-svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import Button from './Button.svelte';
 
 	export let open = true;
 	export let closable = true;
-	type ModalAction = 'cancel' | 'ok';
+	type ModalAction = 'cancel';
 	const dispatch = createEventDispatcher<{
 		close: {
 			action: ModalAction;
@@ -13,8 +14,7 @@
 
 	function closeModal(reason: ModalAction = 'cancel') {
 		if (!closable) return;
-		open = false;
-		dispatch('close', { action: reason });
+		if (dispatch('close', { action: reason }, { cancelable: true })) open = false;
 	}
 	function exitOnEsc(ev: KeyboardEvent) {
 		if (open && ev.key === 'Escape') closeModal('cancel');
@@ -32,7 +32,10 @@
 			{#if $$slots.title}
 				<header>
 					<slot name="title" />
-					{#if closable} <button on:click={() => closeModal('cancel')}> <IconX /> </button>{/if}
+					{#if closable}
+						<Button width="auto" border={false} on:click={() => closeModal('cancel')}>
+							<IconX />
+						</Button>{/if}
 				</header>
 			{/if}
 			<main><slot /></main>
@@ -105,13 +108,8 @@
 		footer {
 			border-top: 1px #ffffff44 solid;
 			width: 100%;
-			height: 64px;
+			min-height: 64px;
 			padding: 16px;
-		}
-		button {
-			padding: 0;
-			border: none;
-			cursor: pointer;
 		}
 	}
 </style>

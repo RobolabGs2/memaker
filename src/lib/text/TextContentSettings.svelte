@@ -4,4 +4,4 @@
 	export let content: TextContent;
 </script>
 
-<TextEditor on:change bind:text={content.text} bind:style={content.style} />
+<TextEditor on:change bind:text={content.text} bind:style={content.style} on:addPattern />

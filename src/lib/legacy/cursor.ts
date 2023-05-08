@@ -46,20 +46,24 @@ export class CanvasCursor {
 			this.shift = ev.shiftKey;
 			onMove();
 		});
-		canvas.addEventListener('touchstart', (ev) => {
-			const scale = this.scale;
-			const { x, y } = this.posFromTouchEvent(ev);
-			this.position.x = x * scale;
-			this.position.y = y * scale;
-			if (!this.pressed) {
-				this.moveStart = { ...this.position };
-				if (onMoveStart(this.moveStart, this)) ev.preventDefault();
-				else this.moveStart = undefined;
-			}
-			this.ctrl = ev.ctrlKey;
-			this.shift = ev.shiftKey;
-			onMove();
-		});
+		canvas.addEventListener(
+			'touchstart',
+			(ev) => {
+				const scale = this.scale;
+				const { x, y } = this.posFromTouchEvent(ev);
+				this.position.x = x * scale;
+				this.position.y = y * scale;
+				if (!this.pressed) {
+					this.moveStart = { ...this.position };
+					if (onMoveStart(this.moveStart, this)) ev.preventDefault();
+					else this.moveStart = undefined;
+				}
+				this.ctrl = ev.ctrlKey;
+				this.shift = ev.shiftKey;
+				onMove();
+			},
+			{ passive: true }
+		);
 		canvas.addEventListener('mousedown', (ev) => {
 			if (ev.button !== 0) return;
 			const scale = this.scale;

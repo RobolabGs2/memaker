@@ -1,4 +1,4 @@
-name: pages-release
+name: prerelease
 
 on:
   push:
