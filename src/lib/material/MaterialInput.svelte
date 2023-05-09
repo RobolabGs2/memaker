@@ -8,6 +8,8 @@
 	import ShadowInput from './ShadowInput.svelte';
 	import ColorSettings from './color/ColorSettings.svelte';
 	import PatternSettings from './pattern/PatternSettings.svelte';
+	import GradientSettings from './gradient/GradientSettings.svelte';
+	import JsonView from '$lib/debug/JsonView.svelte';
 	export let value: Material<MaterialType>;
 	export let defaults: MaterialSettings<MaterialType>[];
 
@@ -17,18 +19,20 @@
 		value.settings = structuredClone(defaultValue);
 	}
 
-	const modeNames = {
+	const modeNames: Record<MaterialType, string> = {
 		disabled: 'Выключить',
 		color: 'Цвет',
-		pattern: 'Паттерн'
-	} as Record<string, string>;
+		pattern: 'Паттерн',
+		gradient4: 'Градиент (крестовой)'
+	};
+	const materialKeys = Object.keys(modeNames) as MaterialType[];
 </script>
 
 <article>
 	<header>
 		<Select
 			value={value.settings.type}
-			items={['disabled', 'color', 'pattern']}
+			items={materialKeys}
 			on:change={changeTypeHandler}
 			let:item
 			on:change
@@ -38,11 +42,20 @@
 	</header>
 	{#if value.settings.type !== 'disabled'}
 		<InputGroup>
-			{#if value.settings.type === 'color'}
+			{@const type = value.settings.type}
+			{#if type === 'color'}
 				<div transition:slide><ColorSettings bind:value={value.settings} on:change /></div>
-			{:else if value.settings.type === 'pattern'}
+			{:else if type === 'pattern'}
 				<div transition:slide>
 					<PatternSettings bind:value={value.settings} on:change on:addPattern />
+				</div>
+			{:else if type === 'gradient4'}
+				<div transition:slide>
+					<GradientSettings bind:value={value.settings} />
+				</div>
+			{:else}
+				<div transition:slide>
+					<JsonView bind:value={value.settings} />
 				</div>
 			{/if}
 			<div transition:slide>

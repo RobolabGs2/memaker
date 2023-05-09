@@ -1,11 +1,9 @@
-import { ColorShader } from '$lib/material/color/shader';
-import { Gradient4Shader } from '$lib/material/gradient/shader';
-import { PatternShader } from '$lib/material/pattern/shader';
 import { patternsNames } from '$lib/material/pattern/store';
 import type { Rectangle } from './geometry/rectangle';
 import { Graphics } from './graphics/graphics';
 import { TextStencilService } from './graphics/text_stencil_service';
 import type { TextureManager } from './graphics/textures';
+import { MaterialShaders } from './material';
 import type { TextDrawInfo } from './text/manager';
 import type { TextBaseline, TextStyle } from './text/text';
 
@@ -47,11 +45,7 @@ export class FrameDrawer {
 	private graphics: Graphics;
 	constructor(readonly gl: WebGL2RenderingContext, readonly textures: TextureManager) {
 		this.textService = new TextStencilService(gl);
-		this.graphics = new Graphics(gl, textures, {
-			color: ColorShader,
-			pattern: PatternShader(patternsNames),
-			gradient4: Gradient4Shader
-		});
+		this.graphics = new Graphics(gl, textures, MaterialShaders(patternsNames));
 	}
 
 	drawFrame(frame: Frame) {

@@ -95,6 +95,13 @@
 							rotate: 0,
 							scale: { x: 1, y: 1 },
 							shift: { x: 0, y: 0 }
+						},
+						{
+							type: 'gradient4',
+							color1: '#ff0000',
+							color2: '#00ff00',
+							color3: '#0000ff',
+							color4: '#fff000'
 						}
 					]}
 					on:change
@@ -116,6 +123,13 @@
 							rotate: 0,
 							scale: { x: 1, y: 1 },
 							shift: { x: 0, y: 0 }
+						},
+						{
+							type: 'gradient4',
+							color1: '#ff0000',
+							color2: '#00ff00',
+							color3: '#0000ff',
+							color4: '#fff000'
 						}
 					]}
 					on:change

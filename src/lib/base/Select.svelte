@@ -6,7 +6,7 @@
 		change: { value: T };
 	}
 	export let value: T;
-	export let items: T[];
+	export let items: readonly T[];
 	export let placeholder: T | undefined = undefined;
 	export let css = {
 		height: '48px',

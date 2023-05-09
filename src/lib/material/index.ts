@@ -1,21 +1,17 @@
 import type { Point } from '$lib/geometry/point';
+import type { RawShader } from '$lib/graphics/graphics';
+import { ColorShader, type ColorSettings } from './color/shader';
+import { Gradient4Shader, type Gradient4Settings } from './gradient/shader';
+import { PatternShader, type PatternSettings } from './pattern/shader';
+import type { PatternsManager } from './pattern/store';
 
-export type Color = string;
 interface MaterialTypes {
 	disabled: {
 		type: 'disabled';
 	};
-	color: {
-		type: 'color';
-		value: Color;
-	};
-	pattern: {
-		type: 'pattern';
-		name: string;
-		scale: 'font' | Point;
-		rotate: number;
-		shift: Point;
-	};
+	color: ColorSettings;
+	pattern: PatternSettings;
+	gradient4: Gradient4Settings;
 }
 export type MaterialType = keyof MaterialTypes;
 export type MaterialSettings<T extends MaterialType> = MaterialTypes[T];
@@ -29,3 +25,13 @@ export type ShadowSettings = {
 	color: string;
 	offset: Point;
 };
+
+export function MaterialShaders(
+	patternsNames: PatternsManager
+): Record<Exclude<MaterialType, 'disabled'>, RawShader<unknown>> {
+	return {
+		color: ColorShader,
+		pattern: PatternShader(patternsNames),
+		gradient4: Gradient4Shader
+	} as const;
+}

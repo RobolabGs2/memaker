@@ -6,12 +6,13 @@
 	import PointInput from '$lib/base/PointInput.svelte';
 	import Select from '$lib/base/Select.svelte';
 	import ToggleButton from '$lib/base/ToggleButton.svelte';
-	import type { MaterialSettings } from '$lib/material';
 	import { IconPlus } from '@tabler/icons-svelte';
 	import { createEventDispatcher } from 'svelte';
 	import AddPatternModal from './AddPatternModal.svelte';
+	import type { PatternSettings } from './shader';
 	import { patternsNames } from './store';
-	export let value: MaterialSettings<'pattern'>;
+
+	export let value: PatternSettings;
 
 	const dispatch = createEventDispatcher<{ addPattern: { name: string; image: File } }>();
 

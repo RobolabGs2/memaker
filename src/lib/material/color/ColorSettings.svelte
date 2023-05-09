@@ -1,9 +1,9 @@
 <script lang="ts">
 	import InputGroup from '$lib/base/InputGroup.svelte';
 	import Label from '$lib/base/Label.svelte';
-	import type { MaterialSettings } from '$lib/material';
+	import type { ColorSettings } from './shader';
 
-	export let value: MaterialSettings<'color'>;
+	export let value: ColorSettings;
 </script>
 
 <InputGroup>

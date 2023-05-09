@@ -1,10 +1,15 @@
 import { parseColor } from '$lib/graphics/graphics';
-import type { MaterialSettings } from '$lib/material';
 import fragmentShader from './color.frag?raw';
+
+export type Color = string;
+export interface ColorSettings {
+	type: 'color';
+	value: Color;
+}
 
 export const ColorShader = {
 	fragment: fragmentShader,
-	uniforms(settings: MaterialSettings<'color'>) {
+	uniforms(settings: ColorSettings) {
 		return {
 			color: parseColor(settings.value)
 		};
