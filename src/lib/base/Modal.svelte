@@ -80,6 +80,7 @@
 		pointer-events: none;
 	}
 	article {
+		line-height: 1.4em;
 		pointer-events: all;
 		background-color: var(--secondary);
 		color: var(--text-secondary);

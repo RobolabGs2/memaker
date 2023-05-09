@@ -1,12 +1,12 @@
+import { patternsNames } from '$lib/material/pattern/store';
 import JSZip from 'jszip';
 import { tick } from 'svelte';
 import type { Writable } from 'svelte/store';
 import { TextureManager, type Texture } from './graphics/textures';
 import { IdGenerator } from './id_generator';
-import { patternsNames } from '$lib/material/pattern/store';
-import { FrameDrawer, type Meme, type Frame, type Block } from './meme';
+import { FrameDrawer, type Block, type Frame, type Meme } from './meme';
 import { MemeFormat } from './meme_format';
-import { type StateStore, deepCopy } from './state';
+import { deepCopy, type StateStore } from './state';
 import { forceLoadFonts } from './text/fonts_store';
 import { defaultStyle } from './text/presets';
 import { useBlobUrl } from './utils';
@@ -350,9 +350,7 @@ export class Memaker {
 	copyFrameToClipboard(): Promise<void> {
 		return this.runTask(
 			'Копируем',
-			this.frameBlob(this.activeFrame).then((blob) => {
-				window.navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-			})
+			this.frameBlob(this.activeFrame).then((blob) => copyImageToClipboard(blob))
 		);
 	}
 
@@ -590,4 +588,22 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 			resolve(blob);
 		})
 	);
+}
+
+export class ClipboardItemError extends Error {
+	constructor(msg: string, readonly blob: Blob) {
+		super(msg);
+	}
+}
+
+function copyImageToClipboard(blob: Blob) {
+	if (!window.ClipboardItem)
+		return Promise.reject(
+			new ClipboardItemError(
+				`Ваш браузер не поддерживает копирование изображений из скриптов.`,
+				blob
+			)
+		);
+
+	return window.navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
 }

@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { writable } from 'svelte/store';
+	import ClipboardErrorModal from './ClipboardErrorModal.svelte';
 	import MemeEditor from './MemeEditor.svelte';
 	import Modal from './base/Modal.svelte';
 	import ThemeContext from './base/ThemeContext.svelte';
 	import { theme } from './base/theme_store';
 	import { RectangleEditor } from './legacy/rectangle_editor';
-	import { Memaker, type FileImport, type SkinsMap } from './memaker';
+	import { ClipboardItemError, Memaker, type FileImport, type SkinsMap } from './memaker';
 	import type { Block, Frame, Meme } from './meme';
 	import { StateStore } from './state';
 	import { defaultStyle } from './text/presets';
@@ -79,6 +80,16 @@
 
 		return () => memaker.clear();
 	});
+
+	let showFirefoxCopyBlob: null | Blob = null;
+
+	function frameToClipboard() {
+		if (!memaker) return;
+		memaker.copyFrameToClipboard().catch((err) => {
+			if (err instanceof ClipboardItemError) showFirefoxCopyBlob = err.blob;
+			else throw err;
+		});
+	}
 </script>
 
 <ThemeContext bind:theme={$theme}>
@@ -87,6 +98,7 @@
 			{$busy}
 		</article>
 	</Modal>
+	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
 	<MemeEditor
 		version={import.meta.env.VITE_APP_VERSION}
 		{memeExampleURL}
@@ -101,7 +113,7 @@
 		on:renderMeme={() =>
 			memaker?.renderMeme()?.then(({ ext, blob }) => saveBlob(`meme.${ext}`)(blob))}
 		on:changeBackground={(ev) => memaker?.setBackground(ev.detail.file)}
-		on:frameToClipboard={() => memaker?.copyFrameToClipboard()}
+		on:frameToClipboard={frameToClipboard}
 		on:createBlock={(ev) => memaker?.addBlock(ev.detail?.origin)}
 		on:shiftBlock={(ev) => memaker?.shiftBlock(ev.detail.block, ev.detail.shift)}
 		on:deleteBlock={(ev) => memaker?.deleteBlock(ev.detail.block)}
