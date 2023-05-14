@@ -16,6 +16,7 @@ import {
 	circleArrowPolygon,
 	DragAndDropCalculatedPolygon
 } from './sprites/sprite';
+import type { Effect } from '$lib/effect';
 
 export class RectangleEditor {
 	private readonly ctx: CanvasRenderingContext2D;
@@ -24,6 +25,7 @@ export class RectangleEditor {
 		Sprite,
 		(initialState: Rectangle) => (from: Point, to: Point, cursor: CanvasCursor) => Rectangle
 	>();
+
 	private readonly selectors = new Map<Sprite, string>();
 	private activeBlockId = '';
 	private activeContainerType = '';
@@ -53,29 +55,48 @@ export class RectangleEditor {
 						}
 					};
 				}
+				const effectHandler = this.effectsHandlers.get(sprite)?.();
+				if (effectHandler)
+					return {
+						move: redrawWrapper((from, to, cursor) => {
+							effectHandler(from, to, cursor);
+							updating = true;
+							activeBlock.set(activeBlock.value);
+							updating = false;
+						}),
+						drop(from, to, cursor) {
+							effectHandler(from, to, cursor);
+							updating = true;
+							activeBlock.set(activeBlock.value);
+							updating = false;
+						}
+					};
 				const activeContainer = activeBlock.value.container;
 				if (!this.activeBlockId || activeContainer.type !== 'rectangle') return;
 				const handler = this.handlers.get(sprite)?.(activeContainer.value);
-				if (!handler) return;
-				return {
-					move: redrawWrapper((from, to, cursor) => {
-						activeContainer.value = handler(from, to, cursor);
-						updating = true;
-						activeBlock.set(activeBlock.value);
-						updating = false;
-					}),
-					drop(from, to, cursor) {
-						activeContainer.value = handler(from, to, cursor);
-						updating = true;
-						activeBlock.set(activeBlock.value);
-						updating = false;
-					}
-				};
+				if (handler)
+					return {
+						move: redrawWrapper((from, to, cursor) => {
+							activeContainer.value = handler(from, to, cursor);
+							updating = true;
+							activeBlock.set(activeBlock.value);
+							updating = false;
+						}),
+						drop(from, to, cursor) {
+							activeContainer.value = handler(from, to, cursor);
+							updating = true;
+							activeBlock.set(activeBlock.value);
+							updating = false;
+						}
+					};
 			},
 			() => this.draw()
 		);
 		activeMeme.subscribe(() => {
 			this.activeBlockId = '';
+		});
+		activeFrame.subscribe(() => {
+			if (!updating) this.draw();
 		});
 		activeBlock.subscribe((activeBlock) => {
 			if (!updating) this.draw();
@@ -83,12 +104,57 @@ export class RectangleEditor {
 				activeBlock.id == this.activeBlockId &&
 				activeBlock.container.type == this.activeContainerType
 			) {
+				const current = new Map(this.effectToSprite);
+				activeBlock.effects.forEach((effect) => {
+					if (current.has(effect)) {
+						current.delete(effect);
+						return;
+					}
+					this.setupEffect(effect);
+				});
+				for (const [e, s] of current) {
+					this.effectsHandlers.delete(s);
+					this.effectToSprite.delete(e);
+					this.sprites.delete(s);
+				}
 				return;
 			}
+
 			this.activeBlockId = activeBlock.id;
 			this.activeContainerType = activeBlock.container.type;
 			this.setup(activeFrame.value.blocks, activeBlock);
+
+			activeBlock.effects.forEach((effect) => this.setupEffect(effect));
 		});
+	}
+	setupEffect(effect: Effect) {
+		const uiUnit = 8 * this.cursor.scale;
+		const e = effect.settings;
+		if (e.type == 'noise') return;
+		const colorMap = {
+			bugle: '#0fff00',
+			pinch: '#ff00f0',
+			swirl: '#0aaaa0'
+		};
+		this.addEffectModifier(
+			new DragAndDropPolygon(
+				createRectangle(uiUnit * 2, uiUnit * 2),
+				new DynamicTransform(
+					() => (effect.settings.type == 'noise' ? -100 : effect.settings.center.x),
+					() => (effect.settings.type == 'noise' ? -100 : effect.settings.center.y),
+					() => Math.PI / 4
+				),
+				true,
+				alphaGradient(colorMap[e.type])
+			),
+			effect,
+			() => (from: Point, to: Point) => {
+				if (effect.settings.type == 'noise') return false;
+				effect.settings.center.x = to.x | 0;
+				effect.settings.center.y = to.y | 0;
+				return true;
+			}
+		);
 	}
 	draw = redrawWrapper(() => {
 		const canvas = this.ctx.canvas;
@@ -107,6 +173,10 @@ export class RectangleEditor {
 		this.sprites.clear();
 	}
 	setup(blocks: Block[], activeBlock: Block) {
+		const canvas = this.ctx.canvas;
+		const sizes = this.cursor.realSize;
+		if (canvas.width !== sizes.width) canvas.width = sizes.width;
+		if (canvas.height !== sizes.height) canvas.height = sizes.height;
 		this.clear();
 		blocks.forEach((block) => {
 			if (block === activeBlock || block.container.type !== 'rectangle') return;
@@ -253,6 +323,19 @@ export class RectangleEditor {
 		) => (from: Point, to: Point, cursor: CanvasCursor) => Rectangle
 	) {
 		this.handlers.set(this.sprites.add(sprite), handler);
+	}
+	private readonly effectsHandlers = new Map<
+		Sprite,
+		() => (from: Point, to: Point, cursor: CanvasCursor) => boolean
+	>();
+	private readonly effectToSprite = new Map<Effect, Sprite>();
+	private addEffectModifier(
+		sprite: Sprite,
+		effect: Effect,
+		handler: () => (from: Point, to: Point, cursor: CanvasCursor) => boolean
+	) {
+		this.effectsHandlers.set(this.sprites.add(sprite), handler);
+		this.effectToSprite.set(effect, sprite);
 	}
 }
 

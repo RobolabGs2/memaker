@@ -2,14 +2,16 @@
 	import { slide } from 'svelte/transition';
 	import { IconChevronDown } from '@tabler/icons-svelte';
 	import Button from './Button.svelte';
-	let active = false;
-	let mouseIn = false;
 
+	export let hideOnClick = false;
 	export let css = {
 		height: '48px',
 		width: '100%',
 		main: ''
 	};
+
+	let active = false;
+	let mouseIn = false;
 	let width = 0;
 	let maxHeight = 0;
 	let bottom = 0;
@@ -38,7 +40,7 @@
 		<slot name="header" />
 		<IconChevronDown />
 	</Button>
-	{#if mouseIn || active}
+	{#if (mouseIn && !hideOnClick) || active}
 		<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 		<article
 			style={`max-height:${maxHeight}px;width:${width}px;left:${left}px;top:${bottom}px;`}

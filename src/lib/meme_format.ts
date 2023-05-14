@@ -1,4 +1,4 @@
-import type { Frame, Meme, TextContent } from '$lib/meme';
+import type { Container, Content, Frame, Meme, TextContent } from '$lib/meme';
 import JSZip from 'jszip';
 import type { MaterialSettings, MaterialType, ShadowSettings } from './material';
 import type { TextStyle } from './text/text';
@@ -15,9 +15,15 @@ export interface MemeData {
 	resources: { images: { id: string; blob: Blob }[]; patterns: { name: string; blob: Blob }[] };
 }
 
+type BlockV0_2_0 = { id: string; container: Container; content: Content };
+type FrameV0_2_0 = Frame<BlockV0_2_0>;
 interface MemeDataV0_2_0 {
-	meme: Meme;
+	meme: Meme<FrameV0_2_0>;
 	resources: { images: { id: string; blob: Blob }[] };
+}
+interface MemeDataV0_2_1 {
+	meme: Meme<FrameV0_2_0>;
+	resources: { images: { id: string; blob: Blob }[]; patterns: { name: string; blob: Blob }[] };
 }
 
 /**
@@ -29,25 +35,27 @@ function compareMemeVersions(a: string, b: string | undefined): -1 | 0 | 1 {
 	if (!b) return 1;
 	if (a === b) return 0;
 	const [a_major, a_minor, a_patch] = a.split('.').map((x) => Number(x));
-	const [b_major, b_minor, b_patch] = a.split('.').map((x) => Number(x));
+	const [b_major, b_minor, b_patch] = b.split('.').map((x) => Number(x));
 	if (a_major < b_major) return -1;
 	if (a_major > b_major) return 1;
 	if (a_minor < b_minor) return -1;
 	if (a_minor > b_minor) return 1;
 	if (a_patch < b_patch) return -1;
 	if (a_patch > b_patch) return 1;
-
 	return 0;
 }
 
 export class MemeFormat {
-	static FormatVersion = '0.2.1';
+	static FormatVersion = '0.2.2';
 	static EditorVersion = import.meta.env.VITE_APP_VERSION;
 	static fromFile(file: Blob): Promise<MemeData> {
 		const zip = new JSZip();
 		return zip.loadAsync(file).then((zip) => {
 			const index = zip.file('index.json');
-			if (!index) return MemeFormat.zeroVersion(zip).then(MemeFormat.fromV0_2_0ToV0_2_1);
+			if (!index)
+				return MemeFormat.zeroVersion(zip)
+					.then(MemeFormat.fromV0_2_0ToV0_2_1)
+					.then(MemeFormat.fromV0_2_1ToV0_2_2);
 			return index.async('string').then((json) => {
 				const index = JSON.parse(json, (key, value) => {
 					if (key === 'container' && value.type === 'global') {
@@ -59,7 +67,7 @@ export class MemeFormat {
 					throw new UnsupportedFormatError(
 						`application version ${this.FormatVersion} lower than file version ${index.formatVersion}`
 					);
-				return Promise.all([
+				let res = Promise.all([
 					Promise.all(
 						index.resources.images.map((id) => {
 							const image = zip.file(this.imageFilepath(id));
@@ -75,11 +83,27 @@ export class MemeFormat {
 						})
 					)
 				]).then(([images, patterns]) => ({ meme: index.meme, resources: { images, patterns } }));
+				if (compareMemeVersions(index.formatVersion, '0.2.2') === -1)
+					res = res.then(this.fromV0_2_1ToV0_2_2);
+				return res;
 			});
 		});
 	}
-	private static fromV0_2_0ToV0_2_1(data: MemeDataV0_2_0): MemeData {
-		return { ...data, resources: { ...data.resources, patterns: [] } };
+	private static fromV0_2_0ToV0_2_1(data: MemeDataV0_2_0): MemeDataV0_2_1 {
+		return {
+			...data,
+			resources: { ...data.resources, patterns: [] }
+		};
+	}
+	private static fromV0_2_1ToV0_2_2(data: MemeDataV0_2_1): MemeData {
+		return {
+			...data,
+			meme: {
+				frames: data.meme.frames.map((f) => {
+					return { ...f, blocks: f.blocks.map((b) => ({ ...b, effects: [] })) };
+				})
+			}
+		};
 	}
 	static toFile(data: MemeData): Promise<Blob> {
 		const zip = new JSZip();
@@ -114,14 +138,14 @@ export class MemeFormat {
 		return jsonFile.async('string').then((text) => {
 			const texts = JSON.parse(text) as (string | Record<string, unknown>)[];
 			const images = zip.file(/.*\.png/);
-			const frames = new Array<Frame>(images.length);
+			const frames = new Array<FrameV0_2_0>(images.length);
 			return Promise.all(
 				images.map((img) =>
 					img.async('blob').then((blob) => {
 						const frameIndex = +img.name.substring(0, img.name.length - '.png'.length);
 						return this.imageSizes(blob)
 							.then(({ width, height }) => {
-								const frame: Frame = {
+								const frame: FrameV0_2_0 = {
 									id: `old-frame-${frameIndex}`,
 									blocks: [
 										{

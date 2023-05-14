@@ -13,10 +13,11 @@
 		width: '100%',
 		main: ''
 	};
+	export let hideOnClick = false;
 	const dispatch = createEventDispatcher<EventMap>();
 </script>
 
-<DropDown {css}>
+<DropDown {css} {hideOnClick}>
 	<svelte:fragment slot="header"><slot item={value}>{value}</slot></svelte:fragment>
 	<svelte:fragment slot="content">
 		{#each items as item}

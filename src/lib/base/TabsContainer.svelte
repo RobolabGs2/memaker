@@ -2,6 +2,10 @@
 	type T = $$Generic;
 	export let tabs: T[];
 	export let activeTab: T = tabs[0];
+
+	$: {
+		if (!tabs.includes(activeTab)) activeTab = tabs[0];
+	}
 </script>
 
 <article>
@@ -14,7 +18,7 @@
 		{/each}
 	</header>
 	{#each tabs as tab}
-		<section class:hide={activeTab !== tab}>
+		<section class:hide={activeTab !== tab} class="content">
 			<slot name="content" {tab} />
 		</section>
 	{/each}
@@ -22,16 +26,20 @@
 
 <style lang="scss">
 	article {
-		background-color: #1e1f1c;
-		height: 100%;
-		flex: 1 1;
+		padding-top: 4px;
+		background-color: #1e1f1c88;
 		overflow-y: auto;
+		height: 70%;
 	}
 	header {
 		display: flex;
 	}
-	section {
-		height: 80%;
+	.content {
+		height: 90%;
+		padding: 4px;
+		/* border-left: var(--border-secondary-active); */
+		/* border-right: var(--border-secondary-active); */
+		/* border-bottom: var(--border-secondary-active); */
 	}
 	.hide {
 		display: none;
@@ -43,7 +51,7 @@
 		justify-content: center;
 		align-items: center;
 		padding: 4px;
-		border-radius: 4px 4px 0 0;
+		border-radius: 8px 8px 0 0;
 		background-color: var(--secondary);
 		color: var(--text-secondary);
 		border: var(--border-secondary);

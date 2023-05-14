@@ -1,4 +1,5 @@
 import { patternsNames } from '$lib/material/pattern/store';
+import { EffectShaders, type Effect } from './effect';
 import type { Rectangle } from './geometry/rectangle';
 import { Graphics } from './graphics/graphics';
 import { TextStencilService } from './graphics/text_stencil_service';
@@ -34,47 +35,64 @@ export type Content =
 			type: 'image';
 			value: { id: string };
 	  };
-export type Block = { id: string; container: Container; content: Content };
-export type Frame = { id: string; blocks: Block[]; width: number; height: number };
-export type Meme = {
-	frames: Frame[];
+export type Block = { id: string; container: Container; content: Content; effects: Effect[] };
+export type Frame<B = Block> = { id: string; blocks: B[]; width: number; height: number };
+export type Meme<F = Frame> = {
+	frames: F[];
 };
-
+import type * as twgl from 'twgl.js';
 export class FrameDrawer {
 	private textService: TextStencilService;
 	private graphics: Graphics;
 	constructor(readonly gl: WebGL2RenderingContext, readonly textures: TextureManager) {
 		this.textService = new TextStencilService(gl);
-		this.graphics = new Graphics(gl, textures, MaterialShaders(patternsNames));
+		this.graphics = new Graphics(gl, textures, MaterialShaders(patternsNames), EffectShaders());
 	}
-
+	clear() {
+		this.graphics.clear();
+	}
 	drawFrame(frame: Frame) {
 		this.graphics.resize(frame.width, frame.height);
+		const buf = this.graphics.buffersPull.get(frame.width, frame.height);
 		const gl = this.gl;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.clearColor(0, 0, 0, 0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
-		frame.blocks.forEach((block) => this.drawBlock(frame, block));
+		frame.blocks.forEach((block) => {
+			this.drawBlock(frame, block, buf);
+		});
+		this.graphics.buffersPull.free(buf);
 	}
-	drawBlock(frame: Frame, block: Block) {
+	drawBlock(frame: Frame, block: Block, buf: twgl.FramebufferInfo) {
 		const { graphics, textures } = this;
 		const sizes = this.blockSize(frame, block);
 		const { container, content } = block;
+
+		let destination = graphics.canvasRenderBuffer;
+		if (block.effects.length) {
+			destination = buf;
+			this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, buf.framebuffer);
+			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+		}
+		let rect: Rectangle;
 		switch (content.type) {
 			case 'image': {
 				const image = textures.get(content.value.id);
 				switch (container.type) {
 					case 'global': {
 						const size = graphics.size;
-						graphics.drawRectImage(image.texture, {
-							...sizes,
-							position: { x: size.width / 2, y: size.height / 2 },
-							rotation: 0
-						});
+						graphics.drawRectImage(
+							image.texture,
+							(rect = {
+								...sizes,
+								position: { x: size.width / 2, y: size.height / 2 },
+								rotation: 0
+							}),
+							destination
+						);
 						break;
 					}
 					case 'rectangle': {
-						graphics.drawRectImage(image.texture, container.value);
+						graphics.drawRectImage(image.texture, (rect = container.value), destination);
 						break;
 					}
 				}
@@ -83,17 +101,33 @@ export class FrameDrawer {
 			case 'text': {
 				const { text, style } = content.value;
 				const textStencil = this.textService.getTextStencil(text, style, sizes.width, sizes.height);
-				const rect = this.textRectangle(frame, block, sizes, style.baseline, textStencil.info);
+				rect = this.textRectangle(frame, block, sizes, style.baseline, textStencil.info);
 				const enableStroke = style.stroke.settings.type !== 'disabled';
 				const enableFill = style.fill.settings.type !== 'disabled';
 				const channels = (+enableStroke * 1) | (+enableFill * 2);
 				if (enableStroke)
-					graphics.drawStencilLayer(textStencil.stencil, 1, channels, rect, style.stroke);
+					graphics.drawStencilLayer(
+						textStencil.stencil,
+						1,
+						channels,
+						rect,
+						style.stroke,
+						destination
+					);
 				if (enableFill)
-					graphics.drawStencilLayer(textStencil.stencil, 2, channels, rect, style.fill);
+					graphics.drawStencilLayer(
+						textStencil.stencil,
+						2,
+						channels,
+						rect,
+						style.fill,
+						destination
+					);
 				break;
 			}
 		}
+		if (block.effects.length === 0) return;
+		graphics.drawModifications(block.effects, rect, buf, graphics.canvasRenderBuffer, true);
 	}
 	blockSize(frame: Frame, b: Block): { width: number; height: number } {
 		const c = b.container;

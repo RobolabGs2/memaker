@@ -10,6 +10,7 @@
 	export let down = false;
 	export let copy = false;
 	export let remove = false;
+	export let iconSize = 16;
 
 	interface EventMap {
 		up: T;
@@ -26,13 +27,9 @@
 			dispatch(name, value);
 		};
 	}
-	const iconSize = 16;
 </script>
 
-<footer>
-	{#if remove}
-		<Button type="danger" on:click={redirectEvent('remove')}><IconTrash size={iconSize} /></Button>
-	{/if}
+<footer style={`--buttons-height: ${iconSize + 16}px`}>
 	{#if copy}
 		<Button on:click={redirectEvent('copy')}><IconCopy size={iconSize} /></Button>
 	{/if}
@@ -43,14 +40,17 @@
 		<Button on:click={redirectEvent('down')}><IconArrowDown size={iconSize} /></Button>
 	{/if}
 	<slot />
+	{#if remove}
+		<Button type="danger" on:click={redirectEvent('remove')}><IconTrash size={iconSize} /></Button>
+	{/if}
 </footer>
 
 <style lang="scss">
 	footer {
 		display: flex;
-		width: 100%;
+		/* width: 100%; */
 		& > :global(*) {
-			height: 32px;
+			height: var(--buttons-height);
 			flex: 1;
 			display: flex;
 			justify-content: center;

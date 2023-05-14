@@ -10,6 +10,7 @@
 		const previewHeight = (previewScale * source.height) | 0;
 		if (canvas.width != previewWidth) canvas.width = previewWidth;
 		if (canvas.height != previewHeight) canvas.height = previewHeight;
+		ctx.clearRect(0, 0, previewWidth, previewHeight);
 		ctx.drawImage(source, 0, 0, previewWidth, previewHeight);
 	};
 

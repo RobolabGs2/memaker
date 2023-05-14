@@ -7,9 +7,7 @@
 
 <article>
 	<main style="font:{fontSettingsToCSS(content.style.font, 16)};">
-		<div>
-			{content.text}
-		</div>
+		{content.text}
 	</main>
 	<slot />
 </article>
@@ -17,20 +15,21 @@
 <style lang="scss">
 	article {
 		width: 100%;
+		max-width: 100%;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding-left: 4px;
 	}
 	main {
 		height: 32px;
-		max-width: 100%;
 		display: flex;
-		justify-content: center;
 		align-items: center;
 		padding: 8px;
-		& > div {
-			text-align: center;
-			vertical-align: text-bottom;
-			white-space: nowrap;
-			text-overflow: ellipsis;
-			overflow: hidden;
-		}
+		text-align: center;
+		vertical-align: text-bottom;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
 	}
 </style>

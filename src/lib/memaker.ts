@@ -195,6 +195,11 @@ export class Memaker {
 	}
 	blockIdGenerator = new IdGenerator('v.0.2.0-' + Date.now().toString() + '-');
 	addBlock(newBlock = this.activeBlock) {
+		// temporary crutch
+		if (newBlock.content.type !== 'text') {
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			newBlock = this.activeFrame.blocks.find((b) => b.content.type === 'text')!;
+		}
 		newBlock = deepCopy(newBlock);
 		newBlock.id = this.blockIdGenerator.generate();
 		if (newBlock.content.type === 'text') {
@@ -249,7 +254,8 @@ export class Memaker {
 						value: {
 							id: background.id
 						}
-					}
+					},
+					effects: []
 				},
 				{
 					id: this.blockIdGenerator.generate(),
@@ -267,7 +273,8 @@ export class Memaker {
 							text: '',
 							style: textStyle
 						}
-					}
+					},
+					effects: []
 				}
 			],
 			height: background.height,
@@ -544,6 +551,7 @@ export class Memaker {
 		patternsNames.clear();
 		this.textures.clear();
 		this.usedImages.clear();
+		this.drawer.clear();
 	}
 }
 

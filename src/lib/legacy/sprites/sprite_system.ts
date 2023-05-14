@@ -58,6 +58,10 @@ export class SpriteSystem {
 		this.sprites.push(s);
 		return s;
 	}
+	delete(s: Sprite) {
+		const i = this.sprites.indexOf(s);
+		if (i !== -1) this.sprites.splice(i, 1);
+	}
 	clear() {
 		this.dragAndDrop?.system.drop(this.cursor.moveStart!, this.cursor.position, this.cursor);
 		this.dragAndDrop = undefined;

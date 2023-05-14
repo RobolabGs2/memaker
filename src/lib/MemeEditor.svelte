@@ -1,11 +1,11 @@
 <script lang="ts" context="module">
 	export interface EventsMap {
 		createFrame: { origin: Frame } | undefined;
-		shiftFrame: { frame: Frame; shift: number };
+		shiftFrame: { frame: Frame; shift: -1 | 1 };
 		deleteFrame: { frame: Frame };
 
 		createBlock: { origin: Block } | undefined;
-		shiftBlock: { block: Block; shift: number };
+		shiftBlock: { block: Block; shift: -1 | 1 };
 		deleteBlock: { block: Block };
 		convertBlock: { block: Block; type: 'Top' | 'Bottom' | 'Free' };
 
@@ -33,6 +33,7 @@
 	import ContainerSettings from './ContainerSettings.svelte';
 	import {
 		IconNewSection,
+		IconPhoto,
 		IconPhotoUp,
 		IconPhotoDown,
 		IconCopy,
@@ -46,6 +47,7 @@
 	import BlockConverter from './BlockConverter.svelte';
 	import Contacts from './Contacts.svelte';
 	import Button from './base/Button.svelte';
+	import EffectInput from './effect/EffectInput.svelte';
 
 	export let meme: Meme;
 	export let frame: Frame;
@@ -184,13 +186,7 @@
 		<Button type="primary" justifyContent="flex-start" on:click={() => dispatch('createBlock')}>
 			<IconNewSection /> <span>Новый блок</span>
 		</Button>
-		<PreviewsContainer
-			height="25%"
-			reverse
-			items={frame.blocks.filter((b) => b.content.type == 'text')}
-			bind:active={block}
-			let:item
-		>
+		<PreviewsContainer height="25%" reverse items={frame.blocks} bind:active={block} let:item>
 			{#if item.content.type == 'text'}
 				{#if item.id == block.id && block.content.type == 'text'}
 					<TextContentPreview content={block.content.value}>
@@ -202,20 +198,27 @@
 							on:up={() => dispatch('shiftBlock', { block: item, shift: 1 })}
 							on:down={() => dispatch('shiftBlock', { block: item, shift: -1 })}
 							on:remove={() => dispatch('deleteBlock', { block: item })}
+							iconSize={20}
 						>
 							<BlockConverter
 								{frame}
 								bind:style={block.content.value.style}
 								bind:container={block.container}
+								iconSize={20}
 							/>
 						</PreviewActions>
 					</TextContentPreview>
 				{:else}
 					<TextContentPreview content={item.content.value} />
 				{/if}
+			{:else}
+				<div class="image-preview"><IconPhoto /> <span>Фон</span></div>
 			{/if}
 		</PreviewsContainer>
-		<TabsContainer tabs={['Текст', 'Контейнер']} let:tab>
+		<TabsContainer
+			tabs={block.content.type === 'text' ? ['Текст', 'Контейнер', 'Эффекты'] : ['Эффекты']}
+			let:tab
+		>
 			<span>{tab}</span>
 			<div slot="content">
 				{#if tab === 'Текст' && block.content.type == 'text'}
@@ -226,6 +229,8 @@
 						frameWidth={frame.width}
 						bind:container={block.container}
 					/>
+				{:else if tab === 'Эффекты'}
+					<EffectInput bind:value={block.effects} />
 				{/if}
 			</div>
 		</TabsContainer>
@@ -236,29 +241,36 @@
 	article {
 		display: flex;
 		justify-content: center;
-		height: 100%;
+		height: 100vh;
+		width: 100vw;
+		max-height: 100vh;
+		max-width: 100vw;
+		overflow: hidden;
 	}
 	section:nth-of-type(1) {
-		flex: 3;
+		flex: 3 1;
 		position: relative;
+		min-width: 200px;
 	}
 	section:nth-of-type(2) {
-		flex: 15;
-		background-color: #000000;
+		flex: 15 1;
+		background-color: #111;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 	}
 	section:nth-of-type(3) {
-		flex: 5;
-		padding: 2px;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
+		flex: 5 1;
+		min-width: 300px;
+		/* padding: 2px; */
+		/* overflow: auto; */
+		/* display: flex; */
+		/* flex-direction: column; */
 	}
 	section {
 		/* overflow: auto; */
 		height: 100vh;
+		max-height: 100vh;
 	}
 	.controls {
 		display: flex;
@@ -279,5 +291,13 @@
 		padding-left: 8px;
 		padding-right: 8px;
 		text-align: left;
+	}
+	.image-preview {
+		width: 100%;
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		margin: 4px;
+		padding-left: 12px;
 	}
 </style>

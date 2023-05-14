@@ -47,7 +47,7 @@
 	main {
 		font-size: small;
 		font-family: inherit;
-		border-radius: 4px;
+		border-radius: 8px;
 		cursor: pointer;
 		user-select: none;
 		display: flex;

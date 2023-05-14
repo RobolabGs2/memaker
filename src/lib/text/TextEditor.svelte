@@ -74,7 +74,7 @@
 	/>
 	<textarea style="width:100%" rows="6" bind:value={text} on:change />
 	<TabsContainer {tabs} let:tab bind:activeTab={selected}>
-		<div class="icon">
+		<div class="icon" title={tab.label}>
 			<AtlasIcon
 				size={24}
 				name={tab.icon}

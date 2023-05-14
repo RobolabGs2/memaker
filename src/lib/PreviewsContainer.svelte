@@ -1,12 +1,18 @@
 <script lang="ts">
-	type Item = $$Generic<{ id: string }>;
+	type IdType = $$Generic;
+	type Item = $$Generic<{ id: IdType }>;
 	export let items: Array<Item>;
 	export let active: Item;
 	export let reverse = false;
 	export let height = '100%';
 </script>
 
-<main class:reverse style="height: {height};" on:drop on:dragover>
+<main
+	class:reverse
+	style="height: {height};min-height: {height};max-height: {height};"
+	on:drop
+	on:dragover
+>
 	{#each items as item, index (item.id)}
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<article class="item" class:active={item.id === active.id} on:click={() => (active = item)}>

@@ -60,7 +60,7 @@
 </script>
 
 <Select
-	css={{ height: '32px', width: '100%', main: 'flex:1;' }}
+	css={{ height: `${iconSize + 16}px`, width: '100%', main: 'flex:1;' }}
 	items={['Top', 'Bottom', 'Free', 'Custom']}
 	placeholder={'Custom'}
 	value={container.type == 'rectangle' && style.baseline == 'middle'
