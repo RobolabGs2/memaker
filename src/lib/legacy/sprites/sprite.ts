@@ -10,12 +10,12 @@ export interface SpriteSettings {
 
 export abstract class DragAndDropSprite implements Sprite {
 	constructor(public interactive = false, public settings: SpriteSettings) {}
-	protected abstract makePath(ctx: CanvasRenderingContext2D): void;
+	protected abstract makePath(ctx: CanvasRenderingContext2D, state: SpriteState): void;
 	public abstract contains(point: Point): boolean;
 	draw(ctx: CanvasRenderingContext2D, state: SpriteState): void {
 		const fill = this.settings.fill[state];
 		const stroke = this.settings.stroke[state];
-		this.makePath(ctx);
+		this.makePath(ctx, state);
 		if (fill) {
 			ctx.fillStyle = fill;
 			ctx.fill();

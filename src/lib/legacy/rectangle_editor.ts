@@ -17,6 +17,7 @@ import {
 	DragAndDropCalculatedPolygon
 } from './sprites/sprite';
 import type { Effect } from '$lib/effect';
+import { RingSprite } from './sprites/circle_sprite';
 
 export class RectangleEditor {
 	private readonly ctx: CanvasRenderingContext2D;
@@ -130,7 +131,7 @@ export class RectangleEditor {
 	setupEffect(effect: Effect) {
 		const uiUnit = 8 * this.cursor.scale;
 		const e = effect.settings;
-		if (e.type == 'noise') return;
+		if (e.type === 'noise') return;
 		const colorMap = {
 			bugle: '#0fff00',
 			pinch: '#ff00f0',
@@ -152,6 +153,18 @@ export class RectangleEditor {
 				if (effect.settings.type == 'noise') return false;
 				effect.settings.center.x = to.x | 0;
 				effect.settings.center.y = to.y | 0;
+				return true;
+			}
+		);
+		this.addEffectModifier(
+			new RingSprite(e, uiUnit, true, alphaGradient(colorMap[e.type])),
+			effect,
+			() => (from: Point, to: Point) => {
+				if (effect.settings.type == 'noise') return false;
+				const dx = to.x - effect.settings.center.x;
+				const dy = to.y - effect.settings.center.y;
+				const dist = Math.sqrt(dx * dx + dy * dy);
+				effect.settings.radius = dist | 0;
 				return true;
 			}
 		);
@@ -235,8 +248,8 @@ export class RectangleEditor {
 				return {
 					...box,
 					position: {
-						x: x + dx,
-						y: y + dy
+						x: (x + dx) | 0,
+						y: (y + dy) | 0
 					}
 				};
 			}
@@ -381,7 +394,7 @@ function sideResizePatchByUI(side: 'width' | 'height', dir: Point) {
 			const dx = to.x - from.x;
 			const dy = to.y - from.y;
 			const v = Matrix.Rotation(origin.rotation).Transform(dir);
-			let l = dx * v.x + dy * v.y;
+			let l = (dx * v.x + dy * v.y) | 0;
 			if (cursor.shift) l = ((l / 10) | 0) * 10;
 			if (!cursor.ctrl) return { ...origin, [side]: origin[side] + 2 * l };
 			return {
@@ -399,8 +412,8 @@ function resizePatchByUI(dir: Point) {
 			const dy = to.y - from.y;
 			const vv = Matrix.Rotation(origin.rotation).Transform({ x: 0, y: dir.y });
 			const vh = Matrix.Rotation(origin.rotation).Transform({ x: dir.x, y: 0 });
-			let lv = dx * vv.x + dy * vv.y;
-			let lh = dx * vh.x + dy * vh.y;
+			let lv = (dx * vv.x + dy * vv.y) | 0;
+			let lh = (dx * vh.x + dy * vh.y) | 0;
 			if (cursor.shift) {
 				lv = lh = Math.max(lv, lh);
 			}
