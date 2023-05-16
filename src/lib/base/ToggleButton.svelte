@@ -4,10 +4,11 @@
 
 	export let value: boolean;
 	export let width = '';
+	export let title = '';
 
 	const dispatcher = createEventDispatcher<{ change: boolean }>();
 </script>
 
-<Button active={value} on:click={() => dispatcher('change', (value = !value))} {width}>
+<Button {title} active={value} on:click={() => dispatcher('change', (value = !value))} {width}>
 	<slot />
 </Button>

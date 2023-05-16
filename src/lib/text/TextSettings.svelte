@@ -26,10 +26,20 @@
 </script>
 
 <article>
-	<ToggleButton bind:value={font.italic} on:change><IconItalic size={16} /></ToggleButton>
-	<ToggleButton bind:value={font.bold} on:change><IconBold size={16} /></ToggleButton>
-	<ToggleButton bind:value={font.smallCaps} on:change>Small Caps</ToggleButton>
-	<Select bind:value={align} items={['left', 'center', 'right']} on:change let:item>
+	<ToggleButton title="Курсив" bind:value={font.italic} on:change>
+		<IconItalic size={16} />
+	</ToggleButton>
+	<ToggleButton title="Жирный" bind:value={font.bold} on:change>
+		<IconBold size={16} />
+	</ToggleButton>
+	<ToggleButton title="Капитель" bind:value={font.smallCaps} on:change>Small Caps</ToggleButton>
+	<Select
+		title="Выравнивание"
+		bind:value={align}
+		items={['left', 'center', 'right']}
+		on:change
+		let:item
+	>
 		{#if item == 'left'}
 			<IconAlignLeft />
 		{:else if item == 'center'}
@@ -38,7 +48,13 @@
 			<IconAlignRight />
 		{/if}
 	</Select>
-	<Select bind:value={baseline} items={['top', 'middle', 'bottom']} on:change let:item>
+	<Select
+		title="Позиционирование"
+		bind:value={baseline}
+		items={['top', 'middle', 'bottom']}
+		on:change
+		let:item
+	>
 		{#if item == 'top'}
 			<IconAlignBoxTopCenter />
 		{:else if item == 'middle'}
@@ -47,7 +63,10 @@
 			<IconAlignBoxBottomCenter />
 		{/if}
 	</Select>
-	<DropDown css={{ height: '48px', main: 'min-width:100px', width: '100%' }}>
+	<DropDown
+		title="Междустрочный интервал"
+		css={{ height: '48px', main: 'min-width:100px', width: '100%' }}
+	>
 		<svelte:fragment slot="header"><IconLineHeight /></svelte:fragment>
 		<section slot="content" class="spacing-values">
 			<NumberInput bind:value={spacing} min={-1} step={0.125} />
@@ -59,10 +78,16 @@
 			{/each}
 		</section>
 	</DropDown>
-	<Select bind:value={font.family} items={$fontsNames} on:change let:item>
+	<Select title="Шрифт" bind:value={font.family} items={$fontsNames} on:change let:item>
 		<section style="font-family: {item}">{item}</section>
 	</Select>
-	<Select bind:value={textCase} items={['As is', 'UPPER', 'lower']} on:change let:item>
+	<Select
+		title="Регистр"
+		bind:value={textCase}
+		items={['As is', 'UPPER', 'lower']}
+		on:change
+		let:item
+	>
 		{item}
 	</Select>
 </article>

@@ -34,7 +34,11 @@
 		Паттерн <Select bind:value={value.name} items={$patternsNames.map((p) => p.name)} let:item>
 			{item}
 		</Select>
-		<Button width="fin-content" on:click={() => (openAddModal = true)}>
+		<Button
+			title="Добавить изображение как паттерн"
+			width="fin-content"
+			on:click={() => (openAddModal = true)}
+		>
 			<IconPlus size={28} />
 		</Button>
 	</Label>
@@ -44,6 +48,7 @@
 	<Label>Сдвиг<PointInput bind:value={value.shift} on:change /></Label>
 	<Label>
 		Масштаб <ToggleButton
+			title="Авто = растягивать по прямоугольнику"
 			value={value.scale === 'font'}
 			on:change={(ev) => (value.scale = ev.detail ? 'font' : { x: 1, y: 1 })}
 			on:change

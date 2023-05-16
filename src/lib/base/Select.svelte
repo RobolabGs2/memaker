@@ -15,11 +15,12 @@
 	};
 	export let hideOnClick = false;
 	export let type: 'default' | 'primary' | 'secondary' | 'danger' = 'default';
+	export let title = '';
 
 	const dispatch = createEventDispatcher<EventMap>();
 </script>
 
-<DropDown {css} {hideOnClick} {type}>
+<DropDown {css} {hideOnClick} {type} {title}>
 	<svelte:fragment slot="header"><slot item={value}>{value}</slot></svelte:fragment>
 	<svelte:fragment slot="content">
 		{#each items as item}

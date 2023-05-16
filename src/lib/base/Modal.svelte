@@ -46,7 +46,12 @@
 				<header>
 					<slot name="title" />
 					{#if closable}
-						<Button width="auto" border={false} on:click={() => closeModal('cancel')}>
+						<Button
+							title="Закрыть"
+							width="auto"
+							border={false}
+							on:click={() => closeModal('cancel')}
+						>
 							<IconX />
 						</Button>{/if}
 				</header>

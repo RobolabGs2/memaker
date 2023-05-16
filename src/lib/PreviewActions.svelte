@@ -31,17 +31,25 @@
 
 <footer style={`--buttons-height: ${iconSize + 16}px`}>
 	{#if copy}
-		<Button on:click={redirectEvent('copy')}><IconCopy size={iconSize} /></Button>
+		<Button title="Создать копию фрейма" on:click={redirectEvent('copy')}
+			><IconCopy size={iconSize} /></Button
+		>
 	{/if}
 	{#if up}
-		<Button on:click={redirectEvent('up')}><IconArrowUp size={iconSize} /></Button>
+		<Button title="Поменять местами с верхним" on:click={redirectEvent('up')}
+			><IconArrowUp size={iconSize} /></Button
+		>
 	{/if}
 	{#if down}
-		<Button on:click={redirectEvent('down')}><IconArrowDown size={iconSize} /></Button>
+		<Button title="Поменять местами с нижним" on:click={redirectEvent('down')}
+			><IconArrowDown size={iconSize} /></Button
+		>
 	{/if}
 	<slot />
 	{#if remove}
-		<Button type="danger" on:click={redirectEvent('remove')}><IconTrash size={iconSize} /></Button>
+		<Button title="Удалить фрейм" type="danger" on:click={redirectEvent('remove')}
+			><IconTrash size={iconSize} /></Button
+		>
 	{/if}
 </footer>
 
