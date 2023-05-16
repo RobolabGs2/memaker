@@ -3,6 +3,7 @@
 	import { IconChevronDown } from '@tabler/icons-svelte';
 	import Button from './Button.svelte';
 
+	export let type: 'default' | 'primary' | 'secondary' | 'danger' = 'default';
 	export let hideOnClick = false;
 	export let css = {
 		height: '48px',
@@ -20,6 +21,7 @@
 
 <main style={`height:${css.height};width:${css.width};${css.main}`}>
 	<Button
+		{type}
 		style={`height:${css.height};width:${css.width};`}
 		justifyContent="space-between"
 		on:click={(ev) => {

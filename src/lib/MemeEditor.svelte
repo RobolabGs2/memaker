@@ -48,6 +48,7 @@
 	import Contacts from './Contacts.svelte';
 	import Button from './base/Button.svelte';
 	import EffectInput from './effect/EffectInput.svelte';
+	import type { EffectType, EffectSettings } from './effect';
 
 	export let meme: Meme;
 	export let frame: Frame;
@@ -99,6 +100,38 @@
 			document.removeEventListener('drop', preventDefault);
 		};
 	});
+
+	export const EffectDefaults: (frame: Frame, type: EffectType) => EffectSettings<EffectType> = (
+		frame: Frame,
+		type: EffectType
+	) => {
+		return (
+			{
+				noise: { type: 'noise', radius: 10, minAlpha: 0.5, maxAlpha: 1 },
+				bugle: {
+					type: 'bugle',
+					center: { x: (frame.width / 2) | 0, y: (frame.height / 2) | 0 },
+					radius: (Math.min(frame.width, frame.height) / 3) | 0,
+					strength: 0.5
+				},
+				pinch: {
+					type: 'pinch',
+					center: { x: (frame.width / 2) | 0, y: (frame.height / 2) | 0 },
+					radius: (Math.min(frame.width, frame.height) / 3) | 0,
+					strength: 0.5
+				},
+				swirl: {
+					type: 'swirl',
+					center: { x: (frame.width / 2) | 0, y: (frame.height / 2) | 0 },
+					radius: (Math.min(frame.width, frame.height) / 3) | 0,
+					angle: 180
+				},
+				grayscale: { type: 'grayscale' },
+				brightness_contrast: { type: 'brightness_contrast', brightness: 0, contrast: 0 },
+				temperature: { type: 'temperature', temperature: 6550, strength: 1 }
+			} as const
+		)[type];
+	};
 </script>
 
 <article>
@@ -230,7 +263,10 @@
 						bind:container={block.container}
 					/>
 				{:else if tab === 'Эффекты'}
-					<EffectInput bind:value={block.effects} />
+					<EffectInput
+						defaults={(type) => EffectDefaults(frame, type)}
+						bind:value={block.effects}
+					/>
 				{/if}
 			</div>
 		</TabsContainer>

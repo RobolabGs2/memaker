@@ -36,7 +36,7 @@
 		changeTimer = setInterval(() => {
 			intervalStarted = true;
 			deltaChange(delta);
-		}, 150) as unknown as number; // use dom api, not node.js
+		}, 100) as unknown as number; // use dom api, not node.js
 	}
 	onMount(() => {
 		document.addEventListener('mouseup', stopInterval);

@@ -16,7 +16,7 @@ import {
 	circleArrowPolygon,
 	DragAndDropCalculatedPolygon
 } from './sprites/sprite';
-import type { Effect } from '$lib/effect';
+import type { Effect, EffectSettings, EffectType } from '$lib/effect';
 import { RingSprite } from './sprites/circle_sprite';
 
 export class RectangleEditor {
@@ -114,9 +114,9 @@ export class RectangleEditor {
 					this.setupEffect(effect);
 				});
 				for (const [e, s] of current) {
-					this.effectsHandlers.delete(s);
+					s.forEach((s) => this.effectsHandlers.delete(s));
+					s.forEach((s) => this.sprites.delete(s));
 					this.effectToSprite.delete(e);
-					this.sprites.delete(s);
 				}
 				return;
 			}
@@ -131,7 +131,12 @@ export class RectangleEditor {
 	setupEffect(effect: Effect) {
 		const uiUnit = 8 * this.cursor.scale;
 		const e = effect.settings;
-		if (e.type === 'noise') return;
+		function hasCircle(
+			e: EffectSettings<EffectType>
+		): e is EffectSettings<'bugle' | 'swirl' | 'pinch'> {
+			return e.type === 'bugle' || e.type === 'swirl' || e.type === 'pinch';
+		}
+		if (!hasCircle(e)) return;
 		const colorMap = {
 			bugle: '#0fff00',
 			pinch: '#ff00f0',
@@ -141,8 +146,8 @@ export class RectangleEditor {
 			new DragAndDropPolygon(
 				createRectangle(uiUnit * 2, uiUnit * 2),
 				new DynamicTransform(
-					() => (effect.settings.type == 'noise' ? -100 : effect.settings.center.x),
-					() => (effect.settings.type == 'noise' ? -100 : effect.settings.center.y),
+					() => (hasCircle(effect.settings) ? effect.settings.center.x : -100),
+					() => (hasCircle(effect.settings) ? effect.settings.center.y : -100),
 					() => Math.PI / 4
 				),
 				true,
@@ -150,7 +155,7 @@ export class RectangleEditor {
 			),
 			effect,
 			() => (from: Point, to: Point) => {
-				if (effect.settings.type == 'noise') return false;
+				if (!hasCircle(effect.settings)) return false;
 				effect.settings.center.x = to.x | 0;
 				effect.settings.center.y = to.y | 0;
 				return true;
@@ -160,7 +165,7 @@ export class RectangleEditor {
 			new RingSprite(e, uiUnit, true, alphaGradient(colorMap[e.type])),
 			effect,
 			() => (from: Point, to: Point) => {
-				if (effect.settings.type == 'noise') return false;
+				if (!hasCircle(effect.settings)) return false;
 				const dx = to.x - effect.settings.center.x;
 				const dy = to.y - effect.settings.center.y;
 				const dist = Math.sqrt(dx * dx + dy * dy);
@@ -341,14 +346,15 @@ export class RectangleEditor {
 		Sprite,
 		() => (from: Point, to: Point, cursor: CanvasCursor) => boolean
 	>();
-	private readonly effectToSprite = new Map<Effect, Sprite>();
+	private readonly effectToSprite = new Map<Effect, Sprite[]>();
 	private addEffectModifier(
 		sprite: Sprite,
 		effect: Effect,
 		handler: () => (from: Point, to: Point, cursor: CanvasCursor) => boolean
 	) {
 		this.effectsHandlers.set(this.sprites.add(sprite), handler);
-		this.effectToSprite.set(effect, sprite);
+		if (this.effectToSprite.has(effect)) this.effectToSprite.get(effect)!.push(sprite);
+		else this.effectToSprite.set(effect, [sprite]);
 	}
 }
 

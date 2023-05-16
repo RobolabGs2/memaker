@@ -1,15 +1,20 @@
-import type { Point } from '$lib/geometry/point';
 import type { RawShader } from '$lib/graphics/graphics';
-import noiseShader from './noise.frag?raw';
-import bugleShader from './bugle.frag?raw';
-import pinchShader from './pinch.frag?raw';
-import swirlShader from './swirl.frag?raw';
+import { BrightnessContrastShader, type BrightnessContrastSettings } from './brightness_contrast';
+import { BugleShader, type BugleSettings } from './bugle';
+import grayscaleShader from './grayscale.frag?raw';
+import { NoiseShader, type NoiseSettings } from './noise';
+import { PinchShader, type PinchSettings } from './pinch';
+import { SwirlShader, type SwirlSettings } from './swirl';
+import { TemperatureShader, type TemperatureSettings } from './temperature';
 
 interface EffectTypes {
-	noise: { type: 'noise'; radius: number; minAlpha: number; maxAlpha: number };
-	bugle: { type: 'bugle'; radius: number; strength: number; center: Point };
-	pinch: { type: 'pinch'; radius: number; strength: number; center: Point };
-	swirl: { type: 'swirl'; radius: number; angle: number; center: Point };
+	noise: NoiseSettings;
+	bugle: BugleSettings;
+	pinch: PinchSettings;
+	swirl: SwirlSettings;
+	grayscale: { type: 'grayscale' };
+	brightness_contrast: BrightnessContrastSettings;
+	temperature: TemperatureSettings;
 }
 export type EffectType = keyof EffectTypes;
 export type EffectSettings<T extends EffectType> = EffectTypes[T];
@@ -19,52 +24,17 @@ export interface Effect<T extends EffectType = EffectType> {
 
 export function EffectShaders(): Record<EffectType, RawShader<unknown>> {
 	return {
-		noise: {
-			fragment: noiseShader,
-			uniforms(settings: EffectSettings<'noise'>) {
-				return {
-					radius: settings.radius,
-					minAlpha: settings.minAlpha,
-					maxAlpha: settings.maxAlpha
-				};
+		noise: NoiseShader,
+		bugle: BugleShader,
+		pinch: PinchShader,
+		swirl: SwirlShader,
+		grayscale: {
+			fragment: grayscaleShader,
+			uniforms() {
+				return {};
 			}
 		},
-		bugle: {
-			fragment: bugleShader,
-			uniforms(settings: EffectSettings<'bugle'>) {
-				return {
-					center: [settings.center.x, settings.center.y],
-					radius: settings.radius,
-					strength: settings.strength
-				};
-			}
-		},
-		pinch: {
-			fragment: pinchShader,
-			uniforms(settings: EffectSettings<'pinch'>) {
-				return {
-					center: [settings.center.x, settings.center.y],
-					radius: settings.radius,
-					strength: settings.strength
-				};
-			}
-		},
-		swirl: {
-			fragment: swirlShader,
-			uniforms(settings: EffectSettings<'swirl'>) {
-				return {
-					center: [settings.center.x, settings.center.y],
-					radius: settings.radius,
-					angle: settings.angle
-				};
-			}
-		}
+		brightness_contrast: BrightnessContrastShader,
+		temperature: TemperatureShader
 	} as const;
 }
-
-export const EffectDefaults: Record<EffectType, EffectSettings<EffectType>> = {
-	noise: { type: 'noise', radius: 10, minAlpha: 0.5, maxAlpha: 1 },
-	bugle: { type: 'bugle', center: { x: 250, y: 250 }, radius: 500, strength: 0.5 },
-	pinch: { type: 'pinch', center: { x: 250, y: 250 }, radius: 500, strength: 0.5 },
-	swirl: { type: 'swirl', center: { x: 250, y: 250 }, radius: 500, angle: Math.PI }
-};

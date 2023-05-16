@@ -16,7 +16,7 @@ export function parseColor(color: string) {
 	return [(raw >> (2 * 8)) / 255, ((raw >> 8) & 0xff) / 255, (raw & 0xff) / 255];
 }
 
-export interface RawShader<T> {
+export interface RawShader<T = unknown> {
 	vertex?: string;
 	fragment?: string;
 	uniforms(settings: T, rectangle: Rectangle, ctx: GraphicsContext): Record<string, unknown>;
