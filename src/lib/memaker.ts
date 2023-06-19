@@ -7,9 +7,10 @@ import { IdGenerator } from './id_generator';
 import { FrameDrawer, type Block, type Frame, type Meme } from './meme';
 import { MemeFormat } from './meme_format';
 import { deepCopy, type StateStore } from './state';
-import { forceLoadFonts } from './text/fonts_store';
+import { forceLoadFonts, loadFontStatistics } from './text/fonts_store';
 import { defaultStyle } from './text/presets';
 import { useBlobUrl } from './utils';
+import { TextManager } from './text/manager';
 
 type TextureMeta = {
 	type: 'pattern' | 'image';
@@ -63,7 +64,8 @@ export class Memaker {
 		if (!gl) throw new Error('Failed to create WebGL2 context!');
 		this.gl = gl;
 		this.textures = new TextureManager(gl);
-		this.drawer = new FrameDrawer(gl, this.textures);
+		const fontMetrics = loadFontStatistics();
+		this.drawer = new FrameDrawer(gl, this.textures, new TextManager(fontMetrics.store));
 		this.runTask(
 			'Загрузка ресурсов',
 			Promise.all(
@@ -83,6 +85,7 @@ export class Memaker {
 				.then((patternTextures) => patternsNames.addPattern(...patternTextures))
 		);
 		this.runTask('Загрузка шрифтов', forceLoadFonts());
+		this.runTask('Загрузка метрик шрифтов', fontMetrics.then);
 		this.runTask(
 			'Загрузка плейсхолдеров',
 			Promise.all(

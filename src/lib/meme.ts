@@ -5,7 +5,7 @@ import { Graphics } from './graphics/graphics';
 import { TextStencilService } from './graphics/text_stencil_service';
 import type { TextureManager } from './graphics/textures';
 import { MaterialShaders } from './material';
-import type { TextDrawInfo } from './text/manager';
+import type { TextDrawInfo, TextManager } from './text/manager';
 import type { TextBaseline, TextStyle } from './text/text';
 
 export type TextContent = {
@@ -44,8 +44,12 @@ import type * as twgl from 'twgl.js';
 export class FrameDrawer {
 	private textService: TextStencilService;
 	private graphics: Graphics;
-	constructor(readonly gl: WebGL2RenderingContext, readonly textures: TextureManager) {
-		this.textService = new TextStencilService(gl);
+	constructor(
+		readonly gl: WebGL2RenderingContext,
+		readonly textures: TextureManager,
+		textManager: TextManager
+	) {
+		this.textService = new TextStencilService(gl, textManager);
 		this.graphics = new Graphics(gl, textures, MaterialShaders(patternsNames), EffectShaders());
 	}
 	clear() {

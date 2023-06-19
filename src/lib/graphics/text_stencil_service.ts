@@ -1,21 +1,20 @@
 import { fontSettingsToCSS } from '$lib/text/font';
-import { TextManager, type TextDrawInfo } from '$lib/text/manager';
+import type { TextManager, TextDrawInfo } from '$lib/text/manager';
 import type { TextStyle } from '$lib/text/text';
 import * as twgl from 'twgl.js';
 
 export class TextStencilService {
 	constructor(
 		readonly gl: WebGL2RenderingContext,
+		private readonly textManager: TextManager,
 		ctx = document.createElement('canvas').getContext('2d')
 	) {
 		if (!ctx) throw new Error('TextStencilService require not null ctx: CanvasRenderingContext2D.');
 		this.ctx = ctx;
-		this.textManager = new TextManager();
 		const texture = gl.createTexture();
 		if (!texture) throw new Error('Failed to create WebGL texture in TextStencilService.');
 		this.stencilTexture = texture;
 	}
-	private textManager: TextManager;
 	// TODO: cache textures
 	private stencilTexture: WebGLTexture;
 	private ctx: CanvasRenderingContext2D;
@@ -64,6 +63,17 @@ export class TextStencilService {
 			ctx.fillText(line.text, line.x, line.y);
 		}
 		if (debug) {
+			ctx.lineWidth = 3;
+			ctx.strokeStyle = '#aaaaaa';
+			ctx.strokeRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+			ctx.beginPath();
+			ctx.moveTo(ctx.canvas.width / 2, 0);
+			ctx.lineTo(ctx.canvas.width / 2, ctx.canvas.height);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(0, ctx.canvas.height / 2);
+			ctx.lineTo(ctx.canvas.width, ctx.canvas.height / 2);
+			ctx.stroke();
 			ctx.strokeStyle = '#ffffff';
 			ctx.lineWidth = 1;
 			for (let i = 0; i < lines.length; i++) {
@@ -73,12 +83,17 @@ export class TextStencilService {
 				const metrics = ctx.measureText(line.text);
 				console.debug(line);
 				console.debug(metrics);
+				ctx.beginPath();
 				ctx.moveTo(0, cy);
 				ctx.lineTo(ctx.canvas.width, cy);
+				ctx.strokeStyle = '#ff0000';
 				ctx.stroke();
+				ctx.beginPath();
 				ctx.moveTo(cx, cy - metrics.actualBoundingBoxAscent);
 				ctx.lineTo(cx, cy + metrics.actualBoundingBoxDescent);
+				ctx.strokeStyle = '#00ff00';
 				ctx.stroke();
+				ctx.strokeStyle = '#0000ff';
 
 				ctx.strokeRect(
 					cx - metrics.actualBoundingBoxLeft,
@@ -87,8 +102,6 @@ export class TextStencilService {
 					metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
 				);
 			}
-			ctx.lineWidth = 3;
-			ctx.strokeRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 		}
 	}
 }

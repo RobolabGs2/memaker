@@ -1,22 +1,11 @@
 import { fontSettingsToCSS, type FontSettings } from './font';
+import {
+	type TextMeasurer,
+	type TextMeasurements,
+	interpolateX,
+	FontMetricsStore
+} from './metrics';
 import { textToCase, type TextAlign, type TextBaseline, type TextStyle } from './text';
-
-export interface TextMeasurements {
-	advancedWidth: number;
-	width: number;
-	height: number;
-	boundingBox: {
-		top: number;
-		bottom: number;
-		left: number;
-		right: number;
-	};
-}
-export interface TextMeasurer {
-	baseline: TextBaseline;
-	align: TextAlign;
-	measureText(text: string, font: FontSettings, fontSize: number): TextMeasurements;
-}
 
 export class CanvasTextMeasurer implements TextMeasurer {
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -35,9 +24,7 @@ export class CanvasTextMeasurer implements TextMeasurer {
 		return this.ctx.textAlign;
 	}
 	measureText(text: string, font: FontSettings, fontSize: number): TextMeasurements {
-		if (fontSize && font) {
-			this.ctx.font = fontSettingsToCSS(font, fontSize);
-		}
+		this.ctx.font = fontSettingsToCSS(font, fontSize);
 		const metrics = this.ctx.measureText(text);
 		return {
 			advancedWidth: metrics.width,
@@ -58,8 +45,8 @@ export class TextManager {
 		'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZzАаБбВвГгДдЕеЁёЖжЗзИиЙйКкЛлМмНнОоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЫыЬьЭэЮюЯя';
 
 	constructor(
-		private measurer: TextMeasurer = new CanvasTextMeasurer(),
-		public interpolationPoint = 100
+		private statistics: FontMetricsStore,
+		private measurer: TextMeasurer = new CanvasTextMeasurer()
 	) {
 		measurer.baseline = 'bottom';
 	}
@@ -79,14 +66,14 @@ export class TextManager {
 		return drawInfo;
 	}
 
-	private fontSize(
+	fontSize(
 		width: number,
 		height: number,
 		text: string[],
 		font: FontSettings,
 		strokeWidth: number,
-		dx: number,
-		spacing: number
+		spacing: number,
+		dx = 100
 	) {
 		if (width < 2 || height < 2) return Math.min(width, height);
 		const widestLine = text
@@ -98,23 +85,17 @@ export class TextManager {
 
 		const maxLineWidth = strokeWidth * dx;
 
-		const lineHeight = this.measureHeight(font, dx) + maxLineWidth / 2;
-		const yHeight = this.linesHeight(lineHeight, text.length, spacing) + maxLineWidth / 2;
-		const kHeight = yHeight / dx;
-
 		const metrics = this.measurer.measureText(widestLine, font, dx);
 		const yWidth = metrics.width + maxLineWidth;
 		const kWidth = yWidth / dx;
 
 		const xWidthCandidate = width / kWidth;
-		const xHeightCandidate = height / kHeight;
-
+		const n = text.length;
+		const lineHeight = height / (n + spacing * (n - 1)) / (1 + strokeWidth);
+		const xHeightCandidate = interpolateX(lineHeight, this.statistics.get(font));
 		return Math.min(xHeightCandidate, xWidthCandidate);
 	}
 	heightMeasuresCache = new Map<string, TextMeasurements>();
-	private measureHeight(font: FontSettings, fontSize: number): number {
-		return this.measureReference(font, fontSize).height;
-	}
 	private measureReference(font: FontSettings, fontSize: number): TextMeasurements {
 		const cacheKey = fontSettingsToCSS(font, fontSize);
 		const cached = this.heightMeasuresCache.get(cacheKey);
@@ -136,15 +117,7 @@ export class TextManager {
 		width: number,
 		height: number
 	) {
-		const fontSize = this.fontSize(
-			width - 2,
-			height - 2,
-			text,
-			font,
-			strokeWidth,
-			this.interpolationPoint,
-			spacing
-		);
+		const fontSize = this.fontSize(width - 2, height - 2, text, font, strokeWidth, spacing);
 		const lineWidth = strokeWidth * fontSize;
 		const halfLineWidth = lineWidth / 2;
 		const baseX =

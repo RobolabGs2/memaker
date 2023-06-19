@@ -24,7 +24,7 @@ export default defineConfig(() => {
 					})
 			})
 		],
-		assetsInclude: ['**/*.meme'],
+		assetsInclude: ['**/*.meme', '**/*.zip'],
 		test: {
 			include: ['src/**/*.{test,spec}.{js,ts}']
 		}

@@ -1,4 +1,11 @@
+import JSZip from 'jszip';
 import { writable } from 'svelte/store';
+import fontStatisticsZip from './fonts_metrics.zip';
+import {
+	FontMetricsStore,
+	fontStatisticsFromCSV,
+	fontStatisticsToInterpolationData
+} from './metrics';
 
 export const fontsNames = writable([
 	'Impact',
@@ -10,6 +17,59 @@ export const fontsNames = writable([
 	'Caveat',
 	'Comforter'
 ]);
+
+export function loadFontStatisticsCSV(url: string) {
+	const store = new FontMetricsStore();
+	return {
+		store,
+		then: fetch(url)
+			.then((r) => r.blob())
+			.then((blob) => JSZip.loadAsync(blob))
+			.then((zip) => {
+				return Promise.all(
+					Object.entries(zip.files).map(([name, zip]) => {
+						return zip
+							.async('string')
+							.then(
+								(csv) =>
+									[name.substring(0, name.length - '.csv'.length), preprocessCSV(csv)] as const
+							);
+					})
+				);
+			})
+			.then((pairs) => (store.data = new Map(pairs)))
+	};
+}
+export function loadFontStatistics() {
+	return loadFontStatisticsJSON(fontStatisticsZip);
+}
+export function loadFontStatisticsJSON(url: string) {
+	const store = new FontMetricsStore();
+	return {
+		store,
+		then: fetch(url)
+			.then((r) => r.blob())
+			.then((blob) => JSZip.loadAsync(blob))
+			.then((zip) => {
+				return Promise.all(
+					Object.entries(zip.files).map(([name, zip]) => {
+						return zip
+							.async('string')
+							.then(
+								(json) =>
+									[name.substring(0, name.length - '.json'.length), JSON.parse(json)] as const
+							);
+					})
+				);
+			})
+			.then((pairs) => (store.data = new Map(pairs)))
+	};
+}
+
+function preprocessCSV(statisticsCSV: string) {
+	const s = fontStatisticsFromCSV(statisticsCSV);
+	return fontStatisticsToInterpolationData(s);
+}
 
 export function forceLoadFonts(fontsSet = document.fonts): Promise<FontFace[]> {
 	const fontsPromises = new Array<Promise<FontFace>>();
