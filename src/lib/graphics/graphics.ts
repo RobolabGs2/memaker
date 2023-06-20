@@ -274,6 +274,7 @@ export class Graphics<T = unknown> {
 		reuseSourceBuffer: boolean
 	) {
 		const gl = this.gl;
+		gl.disable(gl.BLEND);
 		const temp1 = this.buffersPull.get(destination.width, destination.height);
 		const temp2 = reuseSourceBuffer
 			? source
@@ -293,6 +294,7 @@ export class Graphics<T = unknown> {
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, dest.framebuffer);
 			if (dest !== destination) gl.clear(gl.COLOR_BUFFER_BIT);
+			else gl.enable(gl.BLEND);
 
 			gl.useProgram(shader.info.program);
 			twgl.setUniforms(shader.info, uniforms);
