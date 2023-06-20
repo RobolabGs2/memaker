@@ -56,7 +56,7 @@ export class TextManager {
 		const drawInfo = this.drawLinesInfo(
 			formattedText,
 			style.font,
-			style.strokeWidth / 100,
+			style.stroke.settings.type == 'disabled' ? 0 : style.strokeWidth / 100,
 			style.align,
 			style.baseline,
 			style.lineSpacing,
