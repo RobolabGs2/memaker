@@ -54,6 +54,7 @@ export class Memaker {
 			block: StateStore<Block>;
 			previews: StateStore<Record<string, (canvas: HTMLCanvasElement) => void>>;
 			busy: Writable<string>;
+			error: Writable<unknown>;
 		},
 		canvas: HTMLCanvasElement,
 		defaultPatterns: { name: string; url: string }[],
@@ -125,6 +126,10 @@ export class Memaker {
 	private runTask<T>(description: string, task: Promise<T>): Promise<T> {
 		this.backgroundTasks.set(task, description);
 		this.stores.busy.set(this.currentTask);
+		task.catch((err) => {
+			this.stores.error.set(err);
+			throw err;
+		});
 		task.finally(() => {
 			this.backgroundTasks.delete(task);
 			this.stores.busy.set(this.currentTask);

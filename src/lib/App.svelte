@@ -60,23 +60,28 @@
 	let canvasUI: HTMLCanvasElement;
 	let updatePreview = new StateStore({} as Record<string, (canvas: HTMLCanvasElement) => void>);
 	let busy = writable('Собираем интерфейс...');
+	let error = writable<unknown>(undefined);
 	let skinKey = 'default';
 	onMount(() => {
-		skinKey = new URL(location.href).searchParams.get('skin') ?? skinKey;
-		memaker = new Memaker(
-			{ block: activeBlock, frame: activeFrame, meme, busy, previews: updatePreview },
-			canvasWebgl,
-			patternUrls,
-			placeholdersUrls,
-			skinKey
-		);
-		new RectangleEditor(canvasUI, canvasWebgl, meme, activeFrame, activeBlock);
+		try {
+			skinKey = new URL(location.href).searchParams.get('skin') ?? skinKey;
+			memaker = new Memaker(
+				{ block: activeBlock, frame: activeFrame, meme, busy, previews: updatePreview, error },
+				canvasWebgl,
+				patternUrls,
+				placeholdersUrls,
+				skinKey
+			);
+			new RectangleEditor(canvasUI, canvasWebgl, meme, activeFrame, activeBlock);
 
-		if (memeURL) {
-			tick()
-				.then(() => fetch(memeURL!))
-				.then((resp) => resp.blob())
-				.then((blob) => memaker.openMeme(blob));
+			if (memeURL) {
+				tick()
+					.then(() => fetch(memeURL!))
+					.then((resp) => resp.blob())
+					.then((blob) => memaker.openMeme(blob));
+			}
+		} catch (e: unknown) {
+			$error = e;
 		}
 
 		return () => memaker.clear();
@@ -97,6 +102,12 @@
 	<Modal open={$busy !== ''} closable={false}>
 		<article>
 			{$busy}
+		</article>
+	</Modal>
+	<Modal open={$error !== undefined}>
+		<svelte:fragment slot="title">У нас проблемы</svelte:fragment>
+		<article>
+			Произошла ошибка: {$error}.
 		</article>
 	</Modal>
 	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
