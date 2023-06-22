@@ -29,8 +29,37 @@
 	<Modal bind:open={showInfo}>
 		<svelte:fragment slot="title">О проекте</svelte:fragment>
 		<p>
-			Мемейкер — это онлайн-редактор интернет-мемов. Первоочерёдной задачей является удобное
-			наложения текста на изображение.
+			Мемейкер – редактор мемов прямо в браузере. В первую очередь он разрабатывался как простое
+			средство наложения текста с обводкой на картинку. С его помощью можно быстро создать типичный
+			мем с импактом и обводкой, обыграть постиронию лобстером с тенью или набросать
+			многокартиночный мем, не мучаясь со слоями или кучей разных файлов в графическом редакторе.
+		</p>
+		<p>
+			Стабильная версия доступна по адресу <a
+				href="https://robolabgs2.github.io/memaker/"
+				target="_blank"
+				rel="noreferrer"
+				title="Стабильная версия">https://robolabgs2.github.io/memaker/</a
+			>
+			Самая же свежая версия доступна здесь:
+			<a
+				href="https://robolabgs2.github.io/memaker-prerelease/"
+				target="_blank"
+				rel="noreferrer"
+				title="Последняя версия">https://robolabgs2.github.io/memaker-prerelease/</a
+			>. Нулевая версия редактора увидела свет 24 августа 2022 года, с тех пор редактор
+			разрабатывается одним человеком в свободное время. Пожаловаться на баги или запросить фичу
+			можно в обсуждениях
+			<a target="_blank" rel="noreferrer" title="Группа ВК" href="https://vk.com/memaker_app"
+				>в группе ВК</a
+			>
+			или через issue
+			<a
+				target="_blank"
+				rel="noreferrer"
+				title="GitHub репозиторий"
+				href="https://github.com/RobolabGs2/memaker">на гитхабе</a
+			>.
 		</p>
 		<p>Версия: {version}</p>
 	</Modal>

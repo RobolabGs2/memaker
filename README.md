@@ -2,9 +2,16 @@
 
 Онлайн-редактор интернет-мемов.
 
-## Developing
+- Стабильную версию можно открыть по адресу: https://robolabgs2.github.io/memaker/
+- Самую свежую версию можно увидеть здесь: https://robolabgs2.github.io/memaker-prerelease/
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Разработка
+
+Основной стек: SvelteKit, Typescript, WebGL2.
+
+Установка зависимостей: `npm install`.
+
+Запуск dev сервера:
 
 ```bash
 npm run dev
@@ -13,14 +20,22 @@ npm run dev
 npm run dev -- --open
 ```
 
-## Building
+### Сборка
 
-To create a production version of your app:
+Сборка осуществляется командой:
 
 ```bash
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+### CI/CD
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+Коммиты в main разворачиваются [в GitHub Pages](https://robolabgs2.github.io/memaker-prerelease/) через [репозиторий для пререлизов](https://github.com/RobolabGs2/memaker-prerelease).
+
+При публикации тега вида `v*` разворачивается [релизная версия](https://robolabgs2.github.io/memaker/).
+
+### Архитектура
+
+Структура мема:
+
+![Структура мема](docs/Memaker.drawio.png)

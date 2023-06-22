@@ -32,12 +32,14 @@
 		container.type = 'rectangle';
 		return;
 	}
+
+	const containerTypes = ['global', 'rectangle'] as const;
 </script>
 
 <article>
 	<Select
 		value={container.type}
-		items={['global', 'rectangle']}
+		items={containerTypes}
 		on:change={(ev) => changeType(ev.detail.value)}
 		let:item
 	>
