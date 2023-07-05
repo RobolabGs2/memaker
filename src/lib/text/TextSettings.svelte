@@ -69,7 +69,7 @@
 	>
 		<svelte:fragment slot="header"><IconLineHeight /></svelte:fragment>
 		<section slot="content" class="spacing-values">
-			<NumberInput bind:value={spacing} min={-1} step={0.125} />
+			<NumberInput bind:value={spacing} min={-1} step={0.125} precision={3} />
 			{#each [0, 0.5, 1, 1.25] as value}
 				<label>
 					<input type="radio" bind:group={spacing} {value} style="display: none;" />

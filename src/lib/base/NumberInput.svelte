@@ -9,6 +9,7 @@
 	export let step = 1;
 	export let ctrlMultiplier = 2;
 	export let shiftMultiplier = 5;
+	export let precision = 2;
 	// TODO: change event on finish button clicks
 	const dispatch = createEventDispatcher<{ input: number; change: number }>();
 
@@ -27,7 +28,7 @@
 		return m;
 	}
 	function deltaChange(delta: number) {
-		value = +Math.min(max, Math.max(min, value + delta)).toFixed(2);
+		value = +Math.min(max, Math.max(min, value + delta)).toFixed(precision);
 		dispatch('input', value);
 		dispatch('change', value);
 	}
@@ -48,11 +49,11 @@
 
 <main>
 	<input
-		value={value.toString()}
+		value={+value.toFixed(precision)}
 		on:input={(ev) => {
 			const rawValue = Number(ev.currentTarget.value);
 			if (Number.isNaN(rawValue)) {
-				ev.currentTarget.value = value.toString();
+				ev.currentTarget.valueAsNumber = +value.toFixed(precision);
 				return;
 			}
 			value = Math.min(max, Math.max(min, rawValue));
