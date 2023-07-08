@@ -1,21 +1,43 @@
-import type { Point } from '$lib/geometry/point';
-import type { RawShader } from '$lib/graphics/graphics';
+import { NumberLayout } from '$lib/graphics/inputs';
+import type { RawShader, ShaderInputDesc } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
-export interface PinchSettings {
-	type: 'pinch';
-	center: Point;
-	radius: number;
-	strength: number;
-}
-
-export const PinchShader: RawShader<PinchSettings> = {
-	fragment,
-	uniforms(settings: PinchSettings) {
-		return {
-			center: [settings.center.x, settings.center.y],
-			radius: settings.radius,
-			strength: settings.strength
-		};
+const inputs: ShaderInputDesc[] = [
+	{
+		name: 'strength',
+		default: 0.5,
+		title: 'Сила',
+		input: {
+			type: 'float',
+			min: 0,
+			max: 1.5,
+			step: 0.05,
+			layout: NumberLayout.RANGE
+		}
+	},
+	{
+		name: 'radius',
+		default: 50,
+		title: 'Радиус',
+		input: {
+			type: 'float',
+			min: 0,
+			step: 1
+		}
+	},
+	{
+		name: 'center',
+		default: { x: 100, y: 100 },
+		title: 'Центр',
+		input: {
+			type: 'point',
+			color: '#ff00ff'
+		}
 	}
+];
+
+export const PinchShader: RawShader = {
+	title: 'Вогнутость',
+	fragment,
+	inputs
 };

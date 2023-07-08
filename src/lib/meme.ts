@@ -1,10 +1,8 @@
-import { patternsNames } from '$lib/material/pattern/store';
-import { EffectShaders, type Effect } from './effect';
+import type { Effect } from './effect';
 import type { Rectangle } from './geometry/rectangle';
-import { Graphics } from './graphics/graphics';
+import type { Graphics } from './graphics/graphics';
 import { TextStencilService } from './graphics/text_stencil_service';
 import type { TextureManager } from './graphics/textures';
-import { MaterialShaders } from './material';
 import type { TextDrawInfo, TextManager } from './text/manager';
 import type { TextBaseline, TextStyle } from './text/text';
 
@@ -43,14 +41,13 @@ export type Meme<F = Frame> = {
 import type * as twgl from 'twgl.js';
 export class FrameDrawer {
 	private textService: TextStencilService;
-	private graphics: Graphics;
 	constructor(
 		readonly gl: WebGL2RenderingContext,
 		readonly textures: TextureManager,
-		textManager: TextManager
+		textManager: TextManager,
+		readonly graphics: Graphics
 	) {
 		this.textService = new TextStencilService(gl, textManager);
-		this.graphics = new Graphics(gl, textures, MaterialShaders(patternsNames), EffectShaders());
 	}
 	clear() {
 		this.graphics.clear();

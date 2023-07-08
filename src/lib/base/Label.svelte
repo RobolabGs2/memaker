@@ -15,6 +15,7 @@
 	label {
 		position: relative;
 		padding: 4px;
+		margin-bottom: 4px;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -22,6 +23,12 @@
 		&.error {
 			border-radius: 4px 0px 4px 4px;
 			border: 1px var(--text-error) solid;
+		}
+		& > :global(:nth-child(1)) {
+			width: 50%;
+		}
+		& > :global(:nth-child(2)) {
+			width: 50%;
 		}
 	}
 

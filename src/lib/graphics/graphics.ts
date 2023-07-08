@@ -10,21 +10,7 @@ import baseVertShader from './base.vert?raw';
 import baseFragShader from './base.frag?raw';
 import type { TextureManager } from './textures';
 import type { Effect } from '$lib/effect';
-
-export function parseColor(color: string) {
-	const raw = parseInt(color.slice(1), 16);
-	return [(raw >> (2 * 8)) / 255, ((raw >> 8) & 0xff) / 255, (raw & 0xff) / 255];
-}
-
-export interface RawShader<T = unknown> {
-	vertex?: string;
-	fragment?: string;
-	uniforms(settings: T, rectangle: Rectangle, ctx: GraphicsContext): Record<string, unknown>;
-}
-
-export interface GraphicsContext {
-	textures: TextureManager<unknown>;
-}
+import { type RawShader, type GraphicsContext, parseColor, inputToUniform } from './shader';
 
 class FrameBuffersPull {
 	constructor(
@@ -78,6 +64,14 @@ interface TargetFrameBuffer {
 	readonly framebuffer: WebGLFramebuffer | null;
 }
 
+function materialShaderSources({ vertex, fragment }: RawShader): [string, string] {
+	return [vertex || baseVertShader, (fragment || baseFragShader) + libGlsl];
+}
+
+function effectShaderSources({ vertex, fragment }: RawShader): [string, string] {
+	return [vertex || fullscreenShader, (fragment || baseFragShader) + libGlsl];
+}
+
 export class Graphics<T = unknown> {
 	constructor(
 		private readonly gl: WebGL2RenderingContext,
@@ -89,15 +83,9 @@ export class Graphics<T = unknown> {
 		gl.enable(gl.BLEND);
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 		const shaderSources = Object.entries(materials)
-			.map(([name, { vertex, fragment }]) => [
-				name,
-				[vertex || baseVertShader, (fragment || baseFragShader) + libGlsl]
-			])
+			.map(([name, raw]) => [name, materialShaderSources(raw)])
 			.concat(
-				Object.entries(mods).map(([name, { vertex, fragment }]) => [
-					name,
-					[vertex || fullscreenShader, (fragment || baseFragShader) + libGlsl]
-				]),
+				Object.entries(mods).map(([name, raw]) => [name, effectShaderSources(raw)]),
 				[
 					['__shadow__', [fullscreenShader, shadowFragShader + libGlsl]],
 					['__image__', [baseVertShader, textureFragShader + libGlsl]]
@@ -107,7 +95,20 @@ export class Graphics<T = unknown> {
 		this.shaders = Object.fromEntries(
 			Object.entries({ ...materials, ...mods }).map(([name, raw]) => [
 				name,
-				{ uniforms: (s, b, ctx) => raw.uniforms(s, b, ctx), info: shaderInfos[name] }
+				{
+					uniforms: (s, b, ctx) => {
+						if (raw.uniforms) return raw.uniforms(s, b, ctx);
+						if (raw.inputs) {
+							const uniforms = {} as Record<string, unknown>;
+							for (const input of raw.inputs) {
+								inputToUniform(input, s, uniforms);
+							}
+							return uniforms;
+						}
+						return {};
+					},
+					info: shaderInfos[name]
+				}
 			])
 		);
 		this.shadowProgram = shaderInfos['__shadow__'];
@@ -134,7 +135,14 @@ export class Graphics<T = unknown> {
 	}
 	private shaders: Record<
 		string,
-		{ info: twgl.ProgramInfo; uniforms: RawShader<unknown>['uniforms'] }
+		{
+			info: twgl.ProgramInfo;
+			uniforms: (
+				settings: Record<string, unknown>,
+				rectangle: Rectangle,
+				ctx: GraphicsContext
+			) => Record<string, unknown>;
+		}
 	>;
 	public buffersPull: FrameBuffersPull;
 	private shadowProgram: twgl.ProgramInfo;
@@ -258,7 +266,7 @@ export class Graphics<T = unknown> {
 			channel,
 			channels,
 			alpha: material.alpha,
-			...shader.uniforms(material.settings as unknown, rectangle, this)
+			...shader.uniforms(material.settings as unknown as Record<string, unknown>, rectangle, this)
 		};
 		gl.useProgram(shader.info.program);
 		twgl.setUniforms(shader.info, uniforms);
@@ -285,11 +293,11 @@ export class Graphics<T = unknown> {
 			const dest = i === modifications.length - 1 ? destination : tmp;
 
 			const mod = modifications[i];
-			const shader = this.shaders[mod.settings.type];
+			const shader = this.shaders[mod.type];
 			const uniforms = {
 				layer: src.attachments[0],
 				resolution: [this.size.width, this.size.height],
-				...shader.uniforms(mod.settings as unknown, rectangle, this)
+				...shader.uniforms(mod.settings, rectangle, this)
 			};
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, dest.framebuffer);

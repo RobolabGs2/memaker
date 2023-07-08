@@ -43,7 +43,14 @@
 		</Button>
 	</Label>
 	<Label>
-		Поворот <NumberInput min={-360} max={360} step={0.5} bind:value={value.rotate} on:change />
+		Поворот <NumberInput
+			withRange
+			min={-360}
+			max={360}
+			step={0.5}
+			bind:value={value.rotate}
+			on:change
+		/>
 	</Label>
 	<Label>Сдвиг<PointInput bind:value={value.shift} on:change /></Label>
 	<Label>
@@ -57,7 +64,10 @@
 		</ToggleButton>
 	</Label>
 	{#if value.scale !== 'font'}
-		<InputGroup><PointInput bind:value={value.scale} step={0.1} on:change /></InputGroup>
+		<Label
+			><div />
+			<PointInput bind:value={value.scale} step={0.1} on:change /></Label
+		>
 	{/if}
 
 	<AddPatternModal {validateName} bind:open={openAddModal} on:submit={addPattern} />

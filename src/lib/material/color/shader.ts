@@ -1,4 +1,4 @@
-import { parseColor } from '$lib/graphics/graphics';
+import { parseColor } from '$lib/graphics/shader';
 import fragmentShader from './color.frag?raw';
 
 export type Color = string;

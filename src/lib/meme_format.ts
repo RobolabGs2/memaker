@@ -25,7 +25,6 @@ interface MemeDataV0_2_1 {
 	meme: Meme<FrameV0_2_0>;
 	resources: { images: { id: string; blob: Blob }[]; patterns: { name: string; blob: Blob }[] };
 }
-
 /**
  * -1 -> a < b
  *  0 -> a = b
@@ -46,7 +45,7 @@ function compareMemeVersions(a: string, b: string | undefined): -1 | 0 | 1 {
 }
 
 export class MemeFormat {
-	static FormatVersion = '0.2.2';
+	static FormatVersion = '0.2.3';
 	static EditorVersion = import.meta.env.VITE_APP_VERSION;
 	static fromFile(file: Blob): Promise<MemeData> {
 		const zip = new JSZip();
@@ -55,7 +54,8 @@ export class MemeFormat {
 			if (!index)
 				return MemeFormat.zeroVersion(zip)
 					.then(MemeFormat.fromV0_2_0ToV0_2_1)
-					.then(MemeFormat.fromV0_2_1ToV0_2_2);
+					.then(MemeFormat.fromV0_2_1ToV0_2_2)
+					.then(MemeFormat.fromV0_2_2ToV0_2_3);
 			return index.async('string').then((json) => {
 				const index = JSON.parse(json, (key, value) => {
 					if (key === 'container' && value.type === 'global') {
@@ -85,6 +85,8 @@ export class MemeFormat {
 				]).then(([images, patterns]) => ({ meme: index.meme, resources: { images, patterns } }));
 				if (compareMemeVersions(index.formatVersion, '0.2.2') === -1)
 					res = res.then(this.fromV0_2_1ToV0_2_2);
+				if (compareMemeVersions(index.formatVersion, '0.2.3') === -1)
+					res = res.then(this.fromV0_2_2ToV0_2_3);
 				return res;
 			});
 		});
@@ -101,6 +103,27 @@ export class MemeFormat {
 			meme: {
 				frames: data.meme.frames.map((f) => {
 					return { ...f, blocks: f.blocks.map((b) => ({ ...b, effects: [] })) };
+				})
+			}
+		};
+	}
+	private static fromV0_2_2ToV0_2_3(data: MemeData): MemeData {
+		return {
+			...data,
+			meme: {
+				frames: data.meme.frames.map((f) => {
+					return {
+						...f,
+						blocks: f.blocks.map((b) => ({
+							...b,
+							effects: b.effects.map((oldEffect) => {
+								const settings = oldEffect.settings;
+								const type = settings.type as string;
+								delete settings['type'];
+								return { type, settings };
+							})
+						}))
+					};
 				})
 			}
 		};

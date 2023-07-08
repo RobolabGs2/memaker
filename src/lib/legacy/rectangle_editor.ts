@@ -16,8 +16,9 @@ import {
 	circleArrowPolygon,
 	DragAndDropCalculatedPolygon
 } from './sprites/sprite';
-import type { Effect, EffectSettings, EffectType } from '$lib/effect';
+import type { Effect } from '$lib/effect';
 import { RingSprite } from './sprites/circle_sprite';
+import type { RawShader, ShaderInputDesc } from '$lib/graphics/shader';
 
 export class RectangleEditor {
 	private readonly ctx: CanvasRenderingContext2D;
@@ -38,7 +39,8 @@ export class RectangleEditor {
 		mainCanvas: HTMLCanvasElement,
 		activeMeme: StateStore<Meme>,
 		activeFrame: StateStore<Frame>,
-		activeBlock: StateStore<Block>
+		activeBlock: StateStore<Block>,
+		private readonly effectsShaders: Record<string, RawShader>
 	) {
 		this.ctx = uiCanvas.getContext('2d')!;
 		let updating = false;
@@ -130,44 +132,50 @@ export class RectangleEditor {
 	}
 	setupEffect(effect: Effect) {
 		const uiUnit = 8 * this.cursor.scale;
-		const e = effect.settings;
-		function hasCircle(
-			e: EffectSettings<EffectType>
-		): e is EffectSettings<'bugle' | 'swirl' | 'pinch'> {
-			return e.type === 'bugle' || e.type === 'swirl' || e.type === 'pinch';
+		const shader = this.effectsShaders[effect.type];
+		if (!shader || !shader.inputs) return;
+		let center: ShaderInputDesc | undefined;
+		const points: ShaderInputDesc[] = [];
+		let radius: ShaderInputDesc | undefined;
+		for (const uniform of shader.inputs) {
+			if (uniform.input.type == 'point') {
+				points.push(uniform);
+				if (uniform.name == 'center') center = uniform;
+			} else if (uniform.name == 'radius' && uniform.input.type == 'float') radius = uniform;
 		}
-		if (!hasCircle(e)) return;
-		const colorMap = {
-			bugle: '#0fff00',
-			pinch: '#ff00f0',
-			swirl: '#0aaaa0'
-		};
-		this.addEffectModifier(
-			new DragAndDropPolygon(
-				createRectangle(uiUnit * 2, uiUnit * 2),
-				new DynamicTransform(
-					() => (hasCircle(effect.settings) ? effect.settings.center.x : -100),
-					() => (hasCircle(effect.settings) ? effect.settings.center.y : -100),
-					() => Math.PI / 4
+		const e = effect.settings;
+		for (const point of points) {
+			this.addEffectModifier(
+				new DragAndDropPolygon(
+					createRectangle(uiUnit * 2, uiUnit * 2),
+					new DynamicTransform(
+						() => (effect.settings[point.name] as Point).x,
+						() => (effect.settings[point.name] as Point).y,
+						() => Math.PI / 4
+					),
+					true,
+					alphaGradient(point.input.type == 'point' ? point.input.color : '#000000')
 				),
+				effect,
+				() => (from: Point, to: Point) => {
+					(effect.settings[point.name] as Point).x = to.x | 0;
+					(effect.settings[point.name] as Point).y = to.y | 0;
+					return true;
+				}
+			);
+		}
+		if (!(center && radius)) return;
+		this.addEffectModifier(
+			new RingSprite(
+				e as { center: Point; radius: number },
+				uiUnit,
 				true,
-				alphaGradient(colorMap[e.type])
+				alphaGradient(center.input.type == 'point' ? center.input.color : '#000000')
 			),
 			effect,
 			() => (from: Point, to: Point) => {
-				if (!hasCircle(effect.settings)) return false;
-				effect.settings.center.x = to.x | 0;
-				effect.settings.center.y = to.y | 0;
-				return true;
-			}
-		);
-		this.addEffectModifier(
-			new RingSprite(e, uiUnit, true, alphaGradient(colorMap[e.type])),
-			effect,
-			() => (from: Point, to: Point) => {
-				if (!hasCircle(effect.settings)) return false;
-				const dx = to.x - effect.settings.center.x;
-				const dy = to.y - effect.settings.center.y;
+				const dx = to.x - (effect.settings.center as Point).x;
+				const dy = to.y - (effect.settings.center as Point).y;
 				const dist = Math.sqrt(dx * dx + dy * dy);
 				effect.settings.radius = dist | 0;
 				return true;

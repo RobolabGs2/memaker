@@ -2,14 +2,18 @@
 	import { IconMinus, IconPlus } from '@tabler/icons-svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import Button from './Button.svelte';
+	import RangeInput from './RangeInput.svelte';
 
 	export let value: number;
 	export let min = -Infinity;
 	export let max = Infinity;
+	export let rangeMin: number | undefined = undefined;
+	export let rangeMax: number | undefined = undefined;
 	export let step = 1;
 	export let ctrlMultiplier = 2;
 	export let shiftMultiplier = 5;
-	export let precision = 2;
+	export let precision = 4;
+	export let withRange = false;
 	// TODO: change event on finish button clicks
 	const dispatch = createEventDispatcher<{ input: number; change: number }>();
 
@@ -48,12 +52,15 @@
 </script>
 
 <main>
+	{#if withRange}
+		<RangeInput bind:value min={rangeMin ?? min} max={rangeMax ?? max} {step} on:input on:change />
+	{/if}
 	<input
 		value={+value.toFixed(precision)}
 		on:input={(ev) => {
 			const rawValue = Number(ev.currentTarget.value);
 			if (Number.isNaN(rawValue)) {
-				ev.currentTarget.valueAsNumber = +value.toFixed(precision);
+				ev.currentTarget.value = (+value.toFixed(precision)).toString();
 				return;
 			}
 			value = Math.min(max, Math.max(min, rawValue));

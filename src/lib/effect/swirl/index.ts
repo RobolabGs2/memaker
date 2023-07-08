@@ -1,21 +1,39 @@
-import type { Point } from '$lib/geometry/point';
-import type { RawShader } from '$lib/graphics/graphics';
+import { AngleShaderMode } from '$lib/graphics/inputs';
+import type { RawShader } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
-export interface SwirlSettings {
-	type: 'swirl';
-	center: Point;
-	radius: number;
-	angle: number;
-}
-
-export const SwirlShader: RawShader<SwirlSettings> = {
+export const SwirlShader: RawShader = {
+	title: 'Закрученность',
 	fragment,
-	uniforms(settings: SwirlSettings) {
-		return {
-			center: [settings.center.x, settings.center.y],
-			radius: settings.radius,
-			angle: (settings.angle / 180) * Math.PI
-		};
-	}
+	inputs: [
+		{
+			name: 'angle',
+			title: 'Угол',
+			default: 180,
+			input: {
+				type: 'angle',
+				mode: AngleShaderMode.RADIAN,
+				step: 0.5
+			}
+		},
+		{
+			name: 'radius',
+			title: 'Радиус',
+			default: 50,
+			input: {
+				type: 'float',
+				min: 0,
+				step: 1
+			}
+		},
+		{
+			name: 'center',
+			title: 'Центр',
+			default: { x: 100, y: 100 },
+			input: {
+				type: 'point',
+				color: '#0aaaa0'
+			}
+		}
+	]
 };

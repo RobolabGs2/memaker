@@ -11,6 +11,8 @@ import { forceLoadFonts, loadFontStatistics } from './text/fonts_store';
 import { defaultStyle } from './text/presets';
 import { useBlobUrl } from './utils';
 import { TextManager } from './text/manager';
+import { Graphics } from './graphics/graphics';
+import type { RawShader } from './graphics/shader';
 
 type TextureMeta = {
 	type: 'pattern' | 'image';
@@ -59,14 +61,19 @@ export class Memaker {
 		canvas: HTMLCanvasElement,
 		defaultPatterns: { name: string; url: string }[],
 		placeholdersUrls: SkinsMap,
-		skinKey: string
+		skinKey: string,
+		shaders: {
+			materials: Record<string, RawShader>;
+			effects: Record<string, RawShader>;
+		}
 	) {
 		const gl = canvas.getContext('webgl2', { premultipliedAlpha: false });
 		if (!gl) throw new Error('Failed to create WebGL2 context!');
 		this.gl = gl;
 		this.textures = new TextureManager(gl);
 		const fontMetrics = loadFontStatistics();
-		this.drawer = new FrameDrawer(gl, this.textures, new TextManager(fontMetrics.store));
+		const graphics = new Graphics(gl, this.textures, shaders.materials, shaders.effects);
+		this.drawer = new FrameDrawer(gl, this.textures, new TextManager(fontMetrics.store), graphics);
 		this.runTask(
 			'Загрузка ресурсов',
 			Promise.all(

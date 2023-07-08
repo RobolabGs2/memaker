@@ -60,9 +60,12 @@
 			<Label>Высота <NumberInput bind:value={container.value.height} /></Label>
 			<Label>
 				Поворот <NumberInput
+					withRange
+					rangeMin={-359}
+					rangeMax={359}
 					step={1}
 					value={Math.round((container.value.rotation / Math.PI) * 180)}
-					on:change={(ev) => {
+					on:input={(ev) => {
 						if (container.type !== 'rectangle') return;
 						container.value.rotation = ((ev.detail % 360) / 180) * Math.PI;
 					}}
@@ -76,8 +79,9 @@
 					min={0}
 					max={100}
 					step={0.5}
+					withRange={true}
 					value={container.value.maxWidth * 100}
-					on:change={(ev) => {
+					on:input={(ev) => {
 						if (container.type !== 'global') return;
 						container.value.maxWidth = ev.detail / 100;
 					}}
@@ -88,8 +92,9 @@
 					min={0}
 					max={100}
 					step={0.5}
+					withRange={true}
 					value={container.value.maxHeight * 100}
-					on:change={(ev) => {
+					on:input={(ev) => {
 						if (container.type !== 'global') return;
 						container.value.maxHeight = ev.detail / 100;
 					}}
@@ -100,8 +105,9 @@
 					min={0}
 					max={100}
 					step={0.5}
+					withRange={true}
 					value={container.value.minHeight * 100}
-					on:change={(ev) => {
+					on:input={(ev) => {
 						if (container.type !== 'global') return;
 						container.value.minHeight = ev.detail / 100;
 					}}

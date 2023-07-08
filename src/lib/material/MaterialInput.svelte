@@ -61,6 +61,7 @@
 			<div transition:slide|local>
 				<Label>
 					Прозрачность (%) <NumberInput
+						withRange
 						min={0}
 						max={100}
 						step={1}

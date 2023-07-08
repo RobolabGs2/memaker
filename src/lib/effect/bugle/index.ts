@@ -1,21 +1,41 @@
-import type { Point } from '$lib/geometry/point';
-import type { RawShader } from '$lib/graphics/graphics';
+import { NumberLayout } from '$lib/graphics/inputs';
+import type { RawShader } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
-export interface BugleSettings {
-	type: 'bugle';
-	center: Point;
-	radius: number;
-	strength: number;
-}
-
-export const BugleShader: RawShader<BugleSettings> = {
+export const BugleShader: RawShader = {
+	title: 'Выпуклость',
 	fragment,
-	uniforms(settings: BugleSettings) {
-		return {
-			center: [settings.center.x, settings.center.y],
-			radius: settings.radius,
-			strength: settings.strength
-		};
-	}
+	inputs: [
+		{
+			name: 'strength',
+			default: 0.5,
+			title: 'Сила',
+			input: {
+				type: 'float',
+				min: 0,
+				max: 1.5,
+				step: 0.05,
+				layout: NumberLayout.RANGE
+			}
+		},
+		{
+			name: 'radius',
+			default: 50,
+			title: 'Радиус',
+			input: {
+				type: 'float',
+				min: 0,
+				step: 1
+			}
+		},
+		{
+			name: 'center',
+			default: { x: 100, y: 100 },
+			title: 'Центр',
+			input: {
+				type: 'point',
+				color: '#0fff00'
+			}
+		}
+	]
 };

@@ -1,18 +1,34 @@
-import type { RawShader } from '$lib/graphics/graphics';
+import { NumberLayout } from '$lib/graphics/inputs';
+import type { RawShader } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
-export interface TemperatureSettings {
-	type: 'temperature';
-	temperature: number;
-	strength: number;
-}
-
-export const TemperatureShader: RawShader<TemperatureSettings> = {
+export const TemperatureShader: RawShader = {
+	title: 'Температура',
 	fragment,
-	uniforms(settings: TemperatureSettings) {
-		return {
-			temperature: settings.temperature,
-			strength: settings.strength
-		};
-	}
+	inputs: [
+		{
+			name: 'temperature',
+			title: 'Температура',
+			default: 6550,
+			input: {
+				type: 'float',
+				min: 1000,
+				max: 20000,
+				step: 100,
+				layout: NumberLayout.RANGE
+			}
+		},
+		{
+			name: 'strength',
+			default: 1,
+			title: 'Сила',
+			input: {
+				type: 'float',
+				min: -1,
+				max: 1,
+				step: 0.05,
+				layout: NumberLayout.RANGE
+			}
+		}
+	]
 };

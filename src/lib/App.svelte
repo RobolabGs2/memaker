@@ -12,6 +12,9 @@
 	import { StateStore } from './state';
 	import { defaultStyle } from './text/presets';
 	import { saveBlob } from './utils';
+	import { EffectShaders } from './effect';
+	import { MaterialShaders } from './material';
+	import { patternsNames } from './material/pattern/store';
 
 	export let patternUrls: FileImport[];
 	export let placeholdersUrls: SkinsMap;
@@ -62,17 +65,23 @@
 	let busy = writable('Собираем интерфейс...');
 	let error = writable<unknown>(undefined);
 	let skinKey = 'default';
+	const shaders = {
+		materials: MaterialShaders(patternsNames),
+		effects: EffectShaders()
+	};
 	onMount(() => {
 		try {
 			skinKey = new URL(location.href).searchParams.get('skin') ?? skinKey;
+
 			memaker = new Memaker(
 				{ block: activeBlock, frame: activeFrame, meme, busy, previews: updatePreview, error },
 				canvasWebgl,
 				patternUrls,
 				placeholdersUrls,
-				skinKey
+				skinKey,
+				shaders
 			);
-			new RectangleEditor(canvasUI, canvasWebgl, meme, activeFrame, activeBlock);
+			new RectangleEditor(canvasUI, canvasWebgl, meme, activeFrame, activeBlock, shaders.effects);
 
 			if (memeURL) {
 				tick()
@@ -112,6 +121,7 @@
 	</Modal>
 	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
 	<MemeEditor
+		effectsShaders={shaders.effects}
 		version={import.meta.env.VITE_APP_VERSION}
 		{memeExampleURL}
 		bind:meme={$meme}

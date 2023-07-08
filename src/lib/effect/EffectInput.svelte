@@ -2,26 +2,30 @@
 	import PreviewActions from '$lib/PreviewActions.svelte';
 	import PreviewsContainer from '$lib/PreviewsContainer.svelte';
 	import Select from '$lib/base/Select.svelte';
-	import JsonView from '$lib/debug/JsonView.svelte';
 	import { slide } from 'svelte/transition';
-	import type { Effect, EffectSettings, EffectType } from '.';
-	import BrightnessContrastSettings from './brightness_contrast/BrightnessContrastSettings.svelte';
-	import BugleSettings from './bugle/BugleSettings.svelte';
-	import NoiseSettings from './noise/NoiseSettings.svelte';
-	import PinchSettings from './pinch/PinchSettings.svelte';
-	import SwirlSettings from './swirl/SwirlSettings.svelte';
-	import TemperatureSettings from './temperature/TemperatureSettings.svelte';
+	import type { Effect, EffectSettings } from '.';
+	import InputGroup from '$lib/base/InputGroup.svelte';
+	import ShaderInput from './ShaderInput.svelte';
+	import type { RawShader } from '$lib/graphics/shader';
 	export let value: Effect[];
-	export let defaults: (type: EffectType) => EffectSettings<EffectType>;
+	export let shaders: Record<string, RawShader>;
 
 	function addNewEffect(ev: CustomEvent<{ value: string }>) {
 		selectorValue = placeholderKey;
 		if (ev.detail.value === placeholderKey) return;
-		const defaultValue = defaults(ev.detail.value as EffectType);
-		if (!defaultValue) {
+		const shader = shaders[ev.detail.value];
+		if (!shader) {
 			return;
 		}
-		const i = value.push({ settings: structuredClone(defaultValue) }) - 1;
+		const defaultValue: EffectSettings = {};
+		for (const input of shader.inputs || []) {
+			defaultValue[input.name] = structuredClone(input.default);
+		}
+		const i =
+			value.push({
+				type: ev.detail.value,
+				settings: defaultValue
+			}) - 1;
 		value = value;
 		active = { id: value[i], value: value[i] };
 	}
@@ -60,17 +64,7 @@
 	const downEffect = makeShiftEffectHandler(-1);
 
 	const placeholderKey = '__add__' as const;
-	const modeNames: Record<EffectType | typeof placeholderKey, string> = {
-		bugle: 'Выпуклость',
-		pinch: 'Вогнутость',
-		swirl: 'Закрученность',
-		grayscale: 'Оттенки серого',
-		brightness_contrast: 'Яркость и контраст',
-		temperature: 'Температура',
-		noise: 'Шум',
-		[placeholderKey]: 'Добавить эффект'
-	};
-	const effectKeys = Object.keys(modeNames) as (keyof typeof modeNames)[];
+	const effectKeys = [...Object.keys(shaders), placeholderKey];
 
 	let active = { id: value[0], value: value[0] };
 	$: {
@@ -94,7 +88,7 @@
 			let:item
 			on:change
 		>
-			{modeNames[item]}
+			{shaders[item]?.title || 'Добавить эффект'}
 		</Select>
 	</header>
 
@@ -109,7 +103,7 @@
 			let:item
 		>
 			<section class="preview" transition:slide|local>
-				{modeNames[item.value.settings.type]}
+				{shaders[item.value.type].title}
 				<PreviewActions
 					value={item.value}
 					up
@@ -121,34 +115,15 @@
 				/>
 			</section>
 			{#if item.id === active.id}
-				{@const type = active.value.settings.type}
-				{#if type === 'brightness_contrast'}
+				{@const type = active.value.type}
+				{@const shader = shaders[type]}
+				{#if shader.inputs}
 					<div transition:slide>
-						<BrightnessContrastSettings bind:value={active.value.settings} />
-					</div>
-				{:else if type === 'temperature'}
-					<div transition:slide>
-						<TemperatureSettings bind:value={active.value.settings} />
-					</div>
-				{:else if type === 'bugle'}
-					<div transition:slide>
-						<BugleSettings bind:value={active.value.settings} />
-					</div>
-				{:else if type === 'pinch'}
-					<div transition:slide>
-						<PinchSettings bind:value={active.value.settings} />
-					</div>
-				{:else if type === 'swirl'}
-					<div transition:slide>
-						<SwirlSettings bind:value={active.value.settings} />
-					</div>
-				{:else if type === 'noise'}
-					<div transition:slide>
-						<NoiseSettings bind:value={active.value.settings} />
-					</div>
-				{:else if type !== 'grayscale'}
-					<div transition:slide>
-						<JsonView bind:value={active.value.settings} />
+						<InputGroup>
+							{#each shader.inputs as input (input)}
+								<ShaderInput desc={input} name={input.name} bind:value={active.value.settings} />
+							{/each}
+						</InputGroup>
 					</div>
 				{/if}
 			{/if}

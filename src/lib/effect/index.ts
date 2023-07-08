@@ -1,40 +1,31 @@
-import type { RawShader } from '$lib/graphics/graphics';
-import { BrightnessContrastShader, type BrightnessContrastSettings } from './brightness_contrast';
-import { BugleShader, type BugleSettings } from './bugle';
+import { BrightnessContrastShader } from './brightness_contrast';
+import { BugleShader } from './bugle';
 import grayscaleShader from './grayscale.frag?raw';
-import { NoiseShader, type NoiseSettings } from './noise';
-import { PinchShader, type PinchSettings } from './pinch';
-import { SwirlShader, type SwirlSettings } from './swirl';
-import { TemperatureShader, type TemperatureSettings } from './temperature';
+import { NoiseShader } from './noise';
+import { PinchShader } from './pinch';
+import { SwirlShader } from './swirl';
+import { TemperatureShader } from './temperature';
+import type { RawShader } from '$lib/graphics/shader';
+import { PixelationShader } from './pixelation';
 
-interface EffectTypes {
-	noise: NoiseSettings;
-	bugle: BugleSettings;
-	pinch: PinchSettings;
-	swirl: SwirlSettings;
-	grayscale: { type: 'grayscale' };
-	brightness_contrast: BrightnessContrastSettings;
-	temperature: TemperatureSettings;
-}
-export type EffectType = keyof EffectTypes;
-export type EffectSettings<T extends EffectType> = EffectTypes[T];
-export interface Effect<T extends EffectType = EffectType> {
-	settings: EffectSettings<T>;
+export type EffectSettings = Record<string, unknown>;
+export interface Effect {
+	type: string;
+	settings: EffectSettings;
 }
 
-export function EffectShaders(): Record<EffectType, RawShader<unknown>> {
+export function EffectShaders(): Record<string, RawShader> {
 	return {
 		noise: NoiseShader,
 		bugle: BugleShader,
 		pinch: PinchShader,
 		swirl: SwirlShader,
 		grayscale: {
-			fragment: grayscaleShader,
-			uniforms() {
-				return {};
-			}
+			title: 'Оттенки серого',
+			fragment: grayscaleShader
 		},
 		brightness_contrast: BrightnessContrastShader,
-		temperature: TemperatureShader
-	} as const;
+		temperature: TemperatureShader,
+		pixelation: PixelationShader
+	};
 }

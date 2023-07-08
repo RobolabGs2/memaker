@@ -1,18 +1,34 @@
-import type { RawShader } from '$lib/graphics/graphics';
+import { NumberLayout } from '$lib/graphics/inputs';
+import type { RawShader } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
-export interface BrightnessContrastSettings {
-	type: 'brightness_contrast';
-	brightness: number;
-	contrast: number;
-}
-
-export const BrightnessContrastShader: RawShader<BrightnessContrastSettings> = {
+export const BrightnessContrastShader: RawShader = {
+	title: 'Яркость и контраст',
 	fragment,
-	uniforms(settings: BrightnessContrastSettings) {
-		return {
-			brightness: settings.brightness,
-			contrast: settings.contrast
-		};
-	}
+	inputs: [
+		{
+			name: 'brightness',
+			title: 'Яркость',
+			default: 0,
+			input: {
+				type: 'float',
+				min: -1,
+				max: 1,
+				step: 0.05,
+				layout: NumberLayout.RANGE
+			}
+		},
+		{
+			name: 'contrast',
+			title: 'Контраст',
+			default: 0,
+			input: {
+				type: 'float',
+				min: -1,
+				max: 1,
+				step: 0.05,
+				layout: NumberLayout.RANGE
+			}
+		}
+	]
 };

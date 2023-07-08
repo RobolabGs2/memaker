@@ -1,4 +1,4 @@
-import { parseColor } from '$lib/graphics/graphics';
+import { parseColor } from '$lib/graphics/shader';
 import type { Color } from '../color/shader';
 import fragmentShader from './gradient.frag?raw';
 
