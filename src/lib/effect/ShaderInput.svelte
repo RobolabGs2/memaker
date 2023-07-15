@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ColorInput from '$lib/base/ColorInput.svelte';
 	import Label from '$lib/base/Label.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
 	import PointInput from '$lib/base/PointInput.svelte';
@@ -45,7 +46,7 @@
 			step={desc.input.step ?? 0.5}
 		/>
 	{:else if desc.input.type == 'color'}
-		<input type="color" bind:value={value[name]} />
+		<ColorInput bind:value={value[name]} />
 	{:else if desc.input.type == 'point'}
 		<PointInput bind:value={value[name]} />
 	{/if}

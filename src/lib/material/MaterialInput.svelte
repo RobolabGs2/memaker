@@ -10,6 +10,7 @@
 	import PatternSettings from './pattern/PatternSettings.svelte';
 	import GradientSettings from './gradient/GradientSettings.svelte';
 	import JsonView from '$lib/debug/JsonView.svelte';
+	import Checkbox from '$lib/base/Checkbox.svelte';
 	export let value: Material<MaterialType>;
 	export let defaults: MaterialSettings<MaterialType>[];
 
@@ -73,11 +74,10 @@
 					/>
 				</Label>
 				<Label>
-					Тень <input
-						type="checkbox"
-						checked={value.shadow !== undefined}
+					Тень <Checkbox
+						value={value.shadow !== undefined}
 						on:change={(ev) => {
-							value.shadow = ev.currentTarget.checked
+							value.shadow = ev.detail
 								? { blur: 10, color: '#000000', offset: { x: 0, y: 0 } }
 								: undefined;
 						}}

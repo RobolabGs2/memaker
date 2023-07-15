@@ -34,13 +34,15 @@ export const defaultStyle: TextStyle = {
 export type StylePresetType = Omit<
 	TextStyle,
 	'align' | 'baseline' | 'lineSpacing' | 'strokeWidth' | 'experimental'
->;
+> & { lineSpacing?: number; strokeWidth?: number };
 
 export function applyStylePreset(preset: StylePresetType, style: TextStyle): TextStyle {
 	style.case = preset.case;
 	style.fill = deepCopy(preset.fill);
 	style.stroke = deepCopy(preset.stroke);
 	style.font = deepCopy(preset.font);
+	if (preset.lineSpacing !== undefined) style.lineSpacing = preset.lineSpacing;
+	if (preset.strokeWidth !== undefined) style.strokeWidth = preset.strokeWidth;
 	return style;
 }
 
@@ -187,6 +189,26 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 		font: {
 			bold: true,
 			family: 'Arial',
+			italic: false,
+			smallCaps: false
+		}
+	},
+	{
+		name: 'Helvetica bold',
+		case: 'lower',
+		fill: {
+			alpha: 1,
+			settings: { type: 'color', value: '#ffffff' }
+		},
+		stroke: {
+			alpha: 1,
+			settings: { type: 'color', value: '#000000' }
+		},
+		lineSpacing: -0.15,
+		strokeWidth: 16.85,
+		font: {
+			bold: true,
+			family: 'Helvetica',
 			italic: false,
 			smallCaps: false
 		}

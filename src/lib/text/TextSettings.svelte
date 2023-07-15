@@ -8,15 +8,16 @@
 		IconAlignLeft,
 		IconAlignCenter,
 		IconAlignRight,
-		IconAlignBoxBottomCenter,
-		IconAlignBoxCenterMiddle,
-		IconAlignBoxTopCenter,
+		IconArrowBarToUp,
+		IconArrowBarToDown,
 		IconItalic,
 		IconBold,
 		IconLineHeight
 	} from '@tabler/icons-svelte';
+	import { mdiFormatAlignMiddle } from '@mdi/js';
 	import DropDown from '$lib/base/DropDown.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
+	import SvgIcon from '$lib/base/SvgIcon.svelte';
 
 	export let font: FontSettings;
 	export let textCase: TextCase;
@@ -27,12 +28,14 @@
 
 <article>
 	<ToggleButton title="Курсив" bind:value={font.italic} on:change>
-		<IconItalic size={16} />
+		<IconItalic size={20} />
 	</ToggleButton>
 	<ToggleButton title="Жирный" bind:value={font.bold} on:change>
-		<IconBold size={16} />
+		<IconBold size={20} />
 	</ToggleButton>
-	<ToggleButton title="Капитель" bind:value={font.smallCaps} on:change>Small Caps</ToggleButton>
+	<ToggleButton title="Капитель" bind:value={font.smallCaps} on:change
+		><span style="font-size: 20px;font-variant: small-caps;">Аа</span></ToggleButton
+	>
 	<Select
 		title="Выравнивание"
 		bind:value={align}
@@ -56,11 +59,11 @@
 		let:item
 	>
 		{#if item == 'top'}
-			<IconAlignBoxTopCenter />
+			<IconArrowBarToUp />
 		{:else if item == 'middle'}
-			<IconAlignBoxCenterMiddle />
+			<SvgIcon type="mdi" path={mdiFormatAlignMiddle} />
 		{:else if item == 'bottom'}
-			<IconAlignBoxBottomCenter />
+			<IconArrowBarToDown />
 		{/if}
 	</Select>
 	<DropDown
@@ -88,7 +91,13 @@
 		on:change
 		let:item
 	>
-		{item}
+		{#if item === 'As is'}
+			Как есть
+		{:else if item === 'UPPER'}
+			КАПС
+		{:else if item === 'lower'}
+			строчные
+		{/if}
 	</Select>
 </article>
 

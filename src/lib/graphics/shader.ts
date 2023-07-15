@@ -8,7 +8,7 @@ import type { Point } from '$lib/geometry/point';
 import type { Rectangle } from '$lib/geometry/rectangle';
 import type { TextureManager } from './textures';
 
-export function parseColor(color: string) {
+export function parseColor(color: string): [number, number, number] {
 	const raw = parseInt(color.slice(1), 16);
 	return [(raw >> (2 * 8)) / 255, ((raw >> 8) & 0xff) / 255, (raw & 0xff) / 255];
 }

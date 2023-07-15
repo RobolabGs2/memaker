@@ -1,5 +1,5 @@
 import type { Point } from '$lib/geometry/point';
-import type { RawShader } from '$lib/graphics/graphics';
+import type { RawShader } from '$lib/graphics/shader';
 import { ColorShader, type ColorSettings } from './color/shader';
 import { Gradient4Shader, type Gradient4Settings } from './gradient/shader';
 import { PatternShader, type PatternSettings } from './pattern/shader';
