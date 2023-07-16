@@ -132,7 +132,7 @@
 			padding-right: 8px;
 			color: var(--text-secondary);
 			&:hover {
-				color: blue;
+				color: lime;
 				cursor: pointer;
 			}
 		}
@@ -141,6 +141,9 @@
 		margin-bottom: 16px;
 		a {
 			color: wheat;
+			&:hover {
+				color: lime;
+			}
 		}
 	}
 </style>
