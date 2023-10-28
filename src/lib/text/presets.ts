@@ -100,6 +100,26 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 		}
 	},
 	{
+		name: 'Helvetica bold subtitles',
+		case: 'As is',
+		fill: {
+			alpha: 1,
+			settings: { type: 'color', value: '#ffffff' }
+		},
+		stroke: {
+			alpha: 1,
+			settings: { type: 'color', value: '#000000' }
+		},
+		lineSpacing: -0.15,
+		strokeWidth: 16.85,
+		font: {
+			bold: true,
+			family: 'Helvetica',
+			italic: false,
+			smallCaps: false
+		}
+	},
+	{
 		name: 'Arial subtitles',
 		case: 'As is',
 		fill: {
@@ -194,15 +214,20 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 		}
 	},
 	{
-		name: 'Helvetica bold',
-		case: 'lower',
+		name: 'Black Helvetica bold',
+		case: 'As is',
 		fill: {
-			alpha: 1,
-			settings: { type: 'color', value: '#ffffff' }
+			settings: {
+				type: 'color',
+				value: '#000000'
+			},
+			alpha: 1
 		},
 		stroke: {
-			alpha: 1,
-			settings: { type: 'color', value: '#000000' }
+			settings: {
+				type: 'disabled'
+			},
+			alpha: 1
 		},
 		lineSpacing: -0.15,
 		strokeWidth: 16.85,
