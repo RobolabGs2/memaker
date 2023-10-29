@@ -11,6 +11,7 @@ import baseFragShader from './base.frag?raw';
 import type { TextureManager } from './textures';
 import type { Effect } from '$lib/effect';
 import { type RawShader, type GraphicsContext, parseColor, inputToUniform } from './shader';
+import type { Point } from '$lib/geometry/point';
 
 class FrameBuffersPull {
 	constructor(
@@ -57,7 +58,7 @@ class FrameBuffersPull {
 	}
 }
 
-interface TargetFrameBuffer {
+export interface TargetFrameBuffer {
 	readonly width: number;
 	readonly height: number;
 	// null => canvas
@@ -318,7 +319,12 @@ export class Graphics<T = unknown> {
 		if (!reuseSourceBuffer) this.buffersPull.free(temp2);
 	}
 
-	drawRectImage(image: WebGLTexture, rectangle: Rectangle, dest: TargetFrameBuffer) {
+	drawRectImage(
+		image: WebGLTexture,
+		rectangle: Rectangle,
+		texCoords: Point[],
+		dest: TargetFrameBuffer
+	) {
 		const gl = this.gl;
 		const shader = this.imageProgram;
 
@@ -335,8 +341,32 @@ export class Graphics<T = unknown> {
 		};
 		gl.useProgram(shader.program);
 		twgl.setUniforms(shader, uniforms);
-		twgl.setBuffersAndAttributes(gl, shader, this.rectangleBuffer);
+		const buffer = twgl.createBufferInfoFromArrays(
+			gl,
+			{
+				textureCoordinate: pointsToTriangles(texCoords)
+			},
+			this.rectangleBuffer
+		);
+		twgl.setBuffersAndAttributes(gl, shader, buffer);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, dest.framebuffer);
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 	}
+}
+
+function pointsToTriangles(p: Point[]): number[] {
+	return [
+		p[0].x,
+		p[0].y,
+		p[1].x,
+		p[1].y,
+		p[2].x,
+		p[2].y,
+		p[2].x,
+		p[2].y,
+		p[3].x,
+		p[3].y,
+		p[0].x,
+		p[0].y
+	];
 }

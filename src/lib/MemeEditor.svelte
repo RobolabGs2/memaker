@@ -4,7 +4,9 @@
 		shiftFrame: { frame: Frame; shift: -1 | 1 };
 		deleteFrame: { frame: Frame };
 
-		createBlock: { origin: Block } | undefined;
+		createTextBlock: { origin: Block } | undefined;
+		createImageBlock: { file?: File };
+		modifyImageBlock: { block: Block; file: File };
 		shiftBlock: { block: Block; shift: -1 | 1 };
 		deleteBlock: { block: Block };
 		convertBlock: { block: Block; type: 'Top' | 'Bottom' | 'Free' };
@@ -49,6 +51,11 @@
 	import Button from './base/Button.svelte';
 	import EffectInput from './effect/EffectInput.svelte';
 	import type { RawShader } from './graphics/shader';
+	import FrameSettings from './FrameSettings.svelte';
+	import EditorModes from './EditorModes.svelte';
+	import type { BlockEditorState } from './legacy/rectangle_editor';
+	import ImageContentPreview from './image/ImageContentPreview.svelte';
+	import ImageContentSettings from './image/ImageContentSettings.svelte';
 
 	export let meme: Meme;
 	export let frame: Frame;
@@ -59,6 +66,7 @@
 	export let version: string;
 	export let memeExampleURL: string;
 	export let effectsShaders: Record<string, RawShader>;
+	export let editorState: BlockEditorState;
 
 	const dispatch = createEventDispatcher<EventsMap>();
 
@@ -68,27 +76,30 @@
 	function onPaste(event: ClipboardEvent) {
 		const inFocus = document.activeElement;
 		if (inFocus instanceof HTMLInputElement || inFocus instanceof HTMLTextAreaElement) return;
+		console.log(event);
 		const items = event.clipboardData?.items;
 		if (!items) return;
 		for (let index = 0; index < items.length; index++) {
 			const item = items[index];
+			console.log(item);
 			if (!item.type?.match(/^image/)) continue;
 			const file = item.getAsFile();
-			if (file) onChangeBackground(file);
-			else new Error('Failed to paste file');
+			if (file) {
+				dispatch('modifyImageBlock', { block, file });
+			} else new Error('Failed to paste file');
 			return;
 		}
 	}
 	function preventDefault(ev: Event) {
 		ev.preventDefault();
 	}
-	function onDrop(callback: (images: File[]) => void) {
+	function onDrop(callback: (images: File[], keys: { ctrlKey: boolean }) => void) {
 		return (ev: DragEvent) => {
 			ev.preventDefault();
 			const items = ev.dataTransfer?.files;
 			if (!items) return;
 			const images = Array.from(items).filter((file) => file.type?.match(/^image/));
-			if (images.length) callback(images);
+			if (images.length) callback(images, ev);
 		};
 	}
 	onMount(() => {
@@ -175,20 +186,49 @@
 			>
 				<IconCopy /><span>Копировать</span>
 			</Button>
+			<EditorModes bind:available={editorState.available} bind:current={editorState.mode} />
 		</header>
 		<header class="canvas">
 			<Canvas
 				bind:webgl={canvasWebgl}
 				bind:ui={canvasUI}
-				on:drop={onDrop((images) => dispatch('changeBackground', { file: images[0] }))}
+				on:drop={onDrop((images, keys) =>
+					dispatch(keys.ctrlKey ? 'createImageBlock' : 'changeBackground', { file: images[0] })
+				)}
 			/>
 		</header>
+		<!-- <section> -->
+		<FrameSettings bind:value={frame} />
+		<!-- </section> -->
 	</section>
 	<section>
-		<Button type="primary" justifyContent="flex-start" on:click={() => dispatch('createBlock')}>
-			<IconNewSection /> <span>Новый блок</span>
-		</Button>
-		<PreviewsContainer height="25%" reverse items={frame.blocks} bind:active={block} let:item>
+		<header style="display: flex;">
+			<Button
+				type="primary"
+				justifyContent="flex-start"
+				on:click={() => dispatch('createTextBlock')}
+			>
+				<IconNewSection /> <span>Новый блок</span>
+			</Button>
+			<Button
+				type="primary"
+				width="64px"
+				disablePadding
+				on:click={() => dispatch('createImageBlock', {})}
+			>
+				<IconPhoto />
+			</Button>
+		</header>
+		<PreviewsContainer
+			height="25%"
+			reverse
+			items={frame.blocks}
+			bind:active={block}
+			let:item
+			on:drop={onDrop((images) =>
+				images.forEach((img) => dispatch('createImageBlock', { file: img }))
+			)}
+		>
 			{#if item.content.type == 'text'}
 				{#if item.id == block.id && block.content.type == 'text'}
 					<TextContentPreview content={block.content.value}>
@@ -213,18 +253,40 @@
 				{:else}
 					<TextContentPreview content={item.content.value} />
 				{/if}
-			{:else}
-				<div class="image-preview"><IconPhoto /> <span>Фон</span></div>
+			{:else if item.content.type == 'image'}
+				{#if item.id == block.id && block.content.type == 'image'}
+					<ImageContentPreview content={block.content.value}>
+						<PreviewActions
+							up
+							down
+							remove
+							value={item}
+							on:up={() => dispatch('shiftBlock', { block: item, shift: 1 })}
+							on:down={() => dispatch('shiftBlock', { block: item, shift: -1 })}
+							on:remove={() => dispatch('deleteBlock', { block: item })}
+							iconSize={20}
+						/>
+					</ImageContentPreview>
+				{:else}
+					<ImageContentPreview content={item.content.value} />
+				{/if}
 			{/if}
 		</PreviewsContainer>
 		<TabsContainer
-			tabs={block.content.type === 'text' ? ['Текст', 'Контейнер', 'Эффекты'] : ['Эффекты']}
+			tabs={block.content.type === 'text'
+				? ['Текст', 'Контейнер', 'Эффекты']
+				: ['Изображение', 'Контейнер', 'Эффекты']}
 			let:tab
 		>
 			<span>{tab}</span>
 			<div slot="content">
 				{#if tab === 'Текст' && block.content.type == 'text'}
 					<TextContentSettings bind:content={block.content.value} on:change on:addPattern />
+				{:else if tab === 'Изображение' && block.content.type == 'image'}
+					<ImageContentSettings
+						bind:content={block.content.value}
+						on:change={(ev) => dispatch('modifyImageBlock', { file: ev.detail[0], block })}
+					/>
 				{:else if tab === 'Контейнер'}
 					<ContainerSettings
 						frameHeight={frame.height}
@@ -293,13 +355,5 @@
 		padding-left: 8px;
 		padding-right: 8px;
 		text-align: left;
-	}
-	.image-preview {
-		width: 100%;
-		display: flex;
-		justify-content: flex-start;
-		align-items: center;
-		margin: 4px;
-		padding-left: 12px;
 	}
 </style>

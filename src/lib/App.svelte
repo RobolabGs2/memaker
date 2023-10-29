@@ -6,7 +6,8 @@
 	import Modal from './base/Modal.svelte';
 	import ThemeContext from './base/ThemeContext.svelte';
 	import { theme } from './base/theme_store';
-	import { RectangleEditor } from './legacy/rectangle_editor';
+	import type { BlockEditorState } from './legacy/rectangle_editor';
+	import { BlockEditorMode, RectangleEditor } from './legacy/rectangle_editor';
 	import { ClipboardItemError, Memaker, type FileImport, type SkinsMap } from './memaker';
 	import type { Block, Frame, Meme } from './meme';
 	import { StateStore } from './state';
@@ -26,6 +27,8 @@
 			{
 				height: 300,
 				width: 600,
+				backgroundColor: '#ffffff',
+				backgroundAlpha: 1,
 				id: 'loading-placeholder',
 				blocks: [
 					{
@@ -58,6 +61,11 @@
 		activeBlock.set(frame.blocks.find((b) => b.content.type == 'text')!);
 	});
 
+	const editorState = new StateStore<BlockEditorState>({
+		available: [BlockEditorMode.Cursor],
+		mode: BlockEditorMode.Cursor
+	});
+
 	let memaker: Memaker;
 	let canvasWebgl: HTMLCanvasElement;
 	let canvasUI: HTMLCanvasElement;
@@ -81,7 +89,15 @@
 				skinKey,
 				shaders
 			);
-			new RectangleEditor(canvasUI, canvasWebgl, meme, activeFrame, activeBlock, shaders.effects);
+			new RectangleEditor(
+				canvasUI,
+				canvasWebgl,
+				meme,
+				activeFrame,
+				activeBlock,
+				editorState,
+				shaders.effects
+			);
 
 			if (memeURL) {
 				tick()
@@ -127,6 +143,7 @@
 		bind:meme={$meme}
 		bind:frame={$activeFrame}
 		bind:block={$activeBlock}
+		bind:editorState={$editorState}
 		bind:canvasUI
 		bind:canvasWebgl
 		bind:previews={$updatePreview}
@@ -136,7 +153,9 @@
 			memaker?.renderMeme()?.then(({ ext, blob }) => saveBlob(`meme.${ext}`)(blob))}
 		on:changeBackground={(ev) => memaker?.setBackground(ev.detail.file)}
 		on:frameToClipboard={frameToClipboard}
-		on:createBlock={(ev) => memaker?.addBlock(ev.detail?.origin)}
+		on:createTextBlock={(ev) => memaker?.addTextBlock(ev.detail?.origin)}
+		on:createImageBlock={(ev) => memaker?.addImageBlock(ev.detail.file)}
+		on:modifyImageBlock={(ev) => memaker?.modifyImageBlock(ev.detail.block, ev.detail.file)}
 		on:shiftBlock={(ev) => memaker?.shiftBlock(ev.detail.block, ev.detail.shift)}
 		on:deleteBlock={(ev) => memaker?.deleteBlock(ev.detail.block)}
 		on:createFrame={(ev) => memaker?.addFrame(ev.detail?.origin)}

@@ -2,8 +2,8 @@ import fragmentShader from './pattern.frag?raw';
 import { m4 } from 'twgl.js';
 import type { Rectangle } from '$lib/geometry/rectangle';
 import type { PatternsManager } from './store';
-import type { GraphicsContext } from '$lib/graphics/graphics';
 import type { Point } from '$lib/geometry/point';
+import type { GraphicsContext } from '$lib/graphics/shader';
 
 export interface PatternSettings {
 	type: 'pattern';

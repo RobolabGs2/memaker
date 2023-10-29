@@ -13,6 +13,7 @@ import { useBlobUrl } from './utils';
 import { TextManager } from './text/manager';
 import { Graphics } from './graphics/graphics';
 import type { RawShader } from './graphics/shader';
+import type { ImageContent } from './image';
 
 type TextureMeta = {
 	type: 'pattern' | 'image';
@@ -187,14 +188,8 @@ export class Memaker {
 	shiftBlock(block: Block, dir: -1 | 1) {
 		const blocks = this.activeFrame.blocks;
 		const curIndex = blocks.indexOf(block);
-		let nextIndex = -1;
-		const blockCount = blocks.length;
-		for (let i = curIndex + dir; i > 0 && i < blockCount; i += dir) {
-			if (blocks[i].content.type != 'text') continue;
-			nextIndex = i;
-			break;
-		}
-		if (nextIndex == -1) return;
+		const nextIndex = curIndex + dir;
+		if (nextIndex < 0 || blocks.length <= nextIndex) return;
 		blocks[curIndex] = blocks[nextIndex];
 		blocks[nextIndex] = block;
 		this.frameUpdated();
@@ -203,13 +198,13 @@ export class Memaker {
 		const frames = this.meme.frames;
 		const curIndex = frames.indexOf(block);
 		const nextIndex = curIndex + dir;
-		if (nextIndex < 0 || nextIndex >= frames.length) return;
+		if (nextIndex < 0 || frames.length <= nextIndex) return;
 		frames[curIndex] = frames[nextIndex];
 		frames[nextIndex] = block;
 		this.memeUpdated();
 	}
 	blockIdGenerator = new IdGenerator('v.0.2.0-' + Date.now().toString() + '-');
-	addBlock(newBlock = this.activeBlock) {
+	addTextBlock(newBlock = this.activeBlock) {
 		// temporary crutch
 		if (newBlock.content.type !== 'text') {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -242,6 +237,156 @@ export class Memaker {
 		this.activeBlock = newBlock;
 		this.blockUpdated();
 	}
+	newImageBlock(name: string, texture: Texture) {
+		const frame = this.activeFrame;
+		let width = texture.width;
+		let height = texture.height;
+		const ratio = width / height;
+		if (width > frame.width * 0.6) {
+			width = frame.width * 0.6;
+			height = width / ratio;
+		}
+		if (height > frame.height * 0.6) {
+			height = frame.height * 0.6;
+			width = height * ratio;
+		}
+
+		const newBlock: Block = {
+			id: this.blockIdGenerator.generate(),
+			effects: [],
+			container: {
+				type: 'rectangle',
+				value: {
+					height,
+					width,
+					position: { x: frame.width / 2, y: frame.height / 2 },
+					rotation: 0
+				}
+			},
+			content: {
+				type: 'image',
+				value: {
+					name: name,
+					id: texture.id,
+					crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
+				}
+			}
+		};
+		this.addImageUsage(newBlock);
+
+		this.activeFrame.blocks.push(newBlock);
+		this.frameUpdated();
+		this.activeBlock = newBlock;
+		this.blockUpdated();
+	}
+	addImageBlock(file?: File) {
+		if (!file) {
+			this.newImageBlock(
+				'Картинка',
+				this.placeholdersTextures[Math.floor(Math.random() * this.placeholdersTextures.length)]
+			);
+			return;
+		}
+		const reader = new FileReader();
+		const promise = new Promise<string>((resolve, reject) => {
+			reader.addEventListener('load', () => resolve(reader.result as string));
+			reader.addEventListener('error', () => reject(reader.error));
+		});
+		reader.readAsDataURL(file);
+		this.runTask(
+			'Создаём блок с картинкой',
+			promise.then((url) =>
+				this.textures
+					.downloadImage(url, { meta: { source: 'user', type: 'image' } })
+					.then((texture) => {
+						const frame = this.activeFrame;
+						let width = texture.width;
+						let height = texture.height;
+						const ratio = width / height;
+						if (width > frame.width * 0.6) {
+							width = frame.width * 0.6;
+							height = width / ratio;
+						}
+						if (height > frame.height * 0.6) {
+							height = frame.height * 0.6;
+							width = height * ratio;
+						}
+
+						const newBlock: Block = {
+							id: this.blockIdGenerator.generate(),
+							effects: [],
+							container: {
+								type: 'rectangle',
+								value: {
+									height,
+									width,
+									position: { x: frame.width / 2, y: frame.height / 2 },
+									rotation: 0
+								}
+							},
+							content: {
+								type: 'image',
+								value: {
+									name: file.name,
+									id: texture.id,
+									crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
+								}
+							}
+						};
+						this.addImageUsage(newBlock);
+
+						this.activeFrame.blocks.push(newBlock);
+						this.frameUpdated();
+						this.activeBlock = newBlock;
+						this.blockUpdated();
+					})
+			)
+		);
+	}
+	modifyImageBlock(block: Block, file: File) {
+		const content = block.content;
+		if (content.type === 'text' || block === this.activeFrame.blocks[0]) {
+			this.setBackground(file);
+			return;
+		}
+		const reader = new FileReader();
+		const promise = new Promise<string>((resolve, reject) => {
+			reader.addEventListener('load', () => resolve(reader.result as string));
+			reader.addEventListener('error', () => reject(reader.error));
+		});
+		reader.readAsDataURL(file);
+		this.runTask(
+			'Меняем картинку',
+			promise.then((url) => {
+				this.textures
+					.downloadImage(url, { meta: { source: 'user', type: 'image' } })
+					.then((texture) => {
+						const value = content.value;
+						this.removeImageUsage(block);
+						value.id = texture.id;
+						this.addImageUsage(block);
+						const container = block.container;
+						if (container.type === 'rectangle') {
+							const frame = this.activeFrame;
+							let width = texture.width;
+							let height = texture.height;
+							const ratio = width / height;
+							if (width > frame.width * 0.6) {
+								width = frame.width * 0.6;
+								height = width / ratio;
+							}
+							if (height > frame.height * 0.6) {
+								height = frame.height * 0.6;
+								width = height * ratio;
+							}
+							container.value.height = height;
+							container.value.width = width;
+						}
+						this.frameUpdated();
+					});
+			})
+		);
+	}
 	newFrame(background: Texture): Frame {
 		const textStyle = {
 			...deepCopy(
@@ -267,7 +412,9 @@ export class Memaker {
 					content: {
 						type: 'image',
 						value: {
-							id: background.id
+							name: 'Фон',
+							id: background.id,
+							crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
 						}
 					},
 					effects: []
@@ -293,7 +440,9 @@ export class Memaker {
 				}
 			],
 			height: background.height,
-			width: background.width
+			width: background.width,
+			backgroundAlpha: 1,
+			backgroundColor: '#ffffff'
 		};
 	}
 	copyFrame(frame: Frame) {
@@ -324,7 +473,7 @@ export class Memaker {
 				this.activeBlock = nextForSelection;
 				this.blockUpdated();
 			} else {
-				this.addBlock();
+				this.addTextBlock();
 			}
 		}
 		this.removeImageUsage(block);
@@ -358,11 +507,42 @@ export class Memaker {
 				this.textures
 					.downloadImage(url, { meta: { source: 'user', type: 'image' } })
 					.then((texture) => {
-						this.removeImageUsage(this.activeFrame.blocks[0]);
-						this.activeFrame.blocks[0].content = { type: 'image', value: { id: texture.id } };
+						let backgroundBlock =
+							this.activeFrame.blocks[0].content.type === 'image' &&
+							this.activeFrame.blocks[0].container.type === 'global'
+								? this.activeFrame.blocks[0]
+								: null;
+						if (backgroundBlock) {
+							const value = this.activeFrame.blocks[0].content.value as ImageContent;
+							this.removeImageUsage(this.activeFrame.blocks[0]);
+							backgroundBlock.content = {
+								type: 'image',
+								value: {
+									name: value.name,
+									id: texture.id,
+									crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
+								}
+							};
+						} else {
+							backgroundBlock = {
+								id: this.blockIdGenerator.generate(),
+								effects: [],
+								container: { type: 'global', value: { maxHeight: 1, maxWidth: 1, minHeight: 1 } },
+								content: {
+									type: 'image',
+									value: {
+										name: 'Фон',
+										id: texture.id,
+										crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
+									}
+								}
+							};
+							this.activeFrame.blocks.unshift(backgroundBlock);
+						}
+
 						this.activeFrame.width = texture.width;
 						this.activeFrame.height = texture.height;
-						this.addImageUsage(this.activeFrame.blocks[0]);
+						this.addImageUsage(backgroundBlock);
 						this.frameUpdated();
 					})
 			)

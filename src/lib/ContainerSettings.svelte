@@ -44,7 +44,7 @@
 		let:item
 	>
 		{#if item == 'global'}
-			Глобальный
+			Фиксированный
 		{:else if item == 'rectangle'}
 			Прямоугольник
 		{:else}
