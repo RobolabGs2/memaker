@@ -3,7 +3,7 @@ name: prerelease
 on:
   push:
     branches:
-      - main
+      - dev
 
 jobs:
   deploy-pages-prerelease:
