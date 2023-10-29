@@ -242,7 +242,6 @@ class ImageContentRenderer implements ContentRenderer<ImageContent> {
 			const v = twgl.m4.transformPoint(transform, p, p);
 			return { x: v[0], y: v[1] };
 		});
-		console.debug(texCoords.map(({ x, y }) => `{${x.toFixed(3)}, ${y.toFixed(3)}}`).join(', '));
 		return { rectangle: destination, texCoords };
 	}
 }

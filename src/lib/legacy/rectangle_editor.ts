@@ -637,8 +637,10 @@ function resizePatchByUI(dir: Point) {
 			const vh = Matrix.Rotation(origin.rotation).Transform({ x: dir.x, y: 0 });
 			let lv = (dx * vv.x + dy * vv.y) | 0;
 			let lh = (dx * vh.x + dy * vh.y) | 0;
+			const ratio = origin.width / origin.height;
 			if (cursor.shift) {
-				lv = lh = Math.max(lv, lh);
+				lh = Math.max(lv * ratio, lh);
+				lv = lh / ratio;
 			}
 			if (!cursor.ctrl)
 				return { ...origin, height: origin.height + 2 * lv, width: origin.width + 2 * lh };
@@ -741,8 +743,10 @@ function cropPatchByUI(dir: Point) {
 			const vw = posRotation.Transform({ x: dir.x, y: 0 });
 			let lh = (dx * vh.x + dy * vh.y) | 0;
 			let lw = (dx * vw.x + dy * vw.y) | 0;
+			const ratio = posOrigin.height / posOrigin.width;
 			if (cursor.shift) {
-				lh = lw = Math.max(lh, lw);
+				lh = Math.max(lw * ratio, lh);
+				lw = lh / ratio;
 			}
 			const sx = texOrigin.width / posOrigin.width;
 			const sy = texOrigin.height / posOrigin.height;
@@ -841,7 +845,6 @@ function rotationCrop(
 	return (texOrigin: Rectangle, posOrigin: Rectangle) => {
 		const { rotation } = texOrigin;
 		const center = centerTransform.matrix().Transform({ x: 0, y: 0 });
-		console.log(center);
 		return (from: Point, to: Point, cursor: CanvasCursor) => {
 			const v1 = PointUtils.vector(center, from);
 			const v2 = PointUtils.vector(center, to);

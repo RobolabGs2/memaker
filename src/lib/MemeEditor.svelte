@@ -81,7 +81,6 @@
 		if (!items) return;
 		for (let index = 0; index < items.length; index++) {
 			const item = items[index];
-			console.log(item);
 			if (!item.type?.match(/^image/)) continue;
 			const file = item.getAsFile();
 			if (file) {

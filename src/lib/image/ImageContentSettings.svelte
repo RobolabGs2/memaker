@@ -14,7 +14,7 @@
 	<FileReceiver accept="image/*" typeFilter={/^image\//} on:change />
 	<br />
 	Настройки текстурных координат (не стабильно)
-	<Label>Центр<PointInput bind:value={content.crop.position} /></Label>
+	<Label>Центр<PointInput bind:value={content.crop.position} step={0.01} /></Label>
 	<Label
 		>Поворот<NumberInput
 			withRange
