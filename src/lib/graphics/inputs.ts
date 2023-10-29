@@ -42,7 +42,10 @@ interface ShaderInputTypesMap {
 		};
 	};
 	point: {
-		default: Point;
+		default: {
+			type: 'frame' | 'absolute';
+			value: Point;
+		};
 		input: {
 			type: 'point';
 			color: string;
@@ -61,3 +64,23 @@ export type UniformInputDefault<T extends UniformInputType = UniformInputType> =
 	ShaderInputTypesMap[T]['default'];
 export type UniformInput<T extends UniformInputType = UniformInputType> =
 	ShaderInputTypesMap[T]['input'];
+
+export function getDefaultValue<T extends UniformInputType>(
+	type: T,
+	defaultSettings: UniformInputDefault<T>,
+	context: { frame: { width: number; height: number } }
+) {
+	if (type === 'point') {
+		const settings = defaultSettings as UniformInputDefault<'point'>;
+		const { x, y } = settings.value;
+		switch (settings.type) {
+			case 'absolute':
+				return { x, y };
+			case 'frame':
+				return { x: Math.round(context.frame.width * x), y: Math.round(context.frame.height * y) };
+			default:
+				throw new Error(`Unexpected type of default point for uniform input: ${settings.type}`);
+		}
+	}
+	return structuredClone(defaultSettings);
+}

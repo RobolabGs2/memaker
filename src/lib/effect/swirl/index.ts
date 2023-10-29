@@ -29,7 +29,10 @@ export const SwirlShader: RawShader = {
 		{
 			name: 'center',
 			title: 'Центр',
-			default: { x: 100, y: 100 },
+			default: {
+				type: 'frame',
+				value: { x: 0.5, y: 0.5 }
+			},
 			input: {
 				type: 'point',
 				color: '#0aaaa0'

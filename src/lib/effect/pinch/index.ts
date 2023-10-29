@@ -27,7 +27,10 @@ const inputs: ShaderInputDesc[] = [
 	},
 	{
 		name: 'center',
-		default: { x: 100, y: 100 },
+		default: {
+			type: 'frame',
+			value: { x: 0.5, y: 0.5 }
+		},
 		title: 'Центр',
 		input: {
 			type: 'point',

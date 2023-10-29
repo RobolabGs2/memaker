@@ -7,8 +7,10 @@
 	import InputGroup from '$lib/base/InputGroup.svelte';
 	import ShaderInput from './ShaderInput.svelte';
 	import type { RawShader } from '$lib/graphics/shader';
+	import { getDefaultValue } from '$lib/graphics/inputs';
 	export let value: Effect[];
 	export let shaders: Record<string, RawShader>;
+	export let context: { frame: { width: number; height: number } };
 
 	function addNewEffect(ev: CustomEvent<{ value: string }>) {
 		selectorValue = placeholderKey;
@@ -19,7 +21,7 @@
 		}
 		const defaultValue: EffectSettings = {};
 		for (const input of shader.inputs || []) {
-			defaultValue[input.name] = structuredClone(input.default);
+			defaultValue[input.name] = getDefaultValue(input.input.type, input.default, context);
 		}
 		const i =
 			value.push({
@@ -121,7 +123,12 @@
 					<div transition:slide>
 						<InputGroup>
 							{#each shader.inputs as input (input)}
-								<ShaderInput desc={input} name={input.name} bind:value={active.value.settings} />
+								<ShaderInput
+									desc={input}
+									name={input.name}
+									{context}
+									bind:value={active.value.settings}
+								/>
 							{/each}
 						</InputGroup>
 					</div>

@@ -3,15 +3,17 @@
 	import Label from '$lib/base/Label.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
 	import PointInput from '$lib/base/PointInput.svelte';
-	import { NumberLayout } from '$lib/graphics/inputs';
+	import { NumberLayout, getDefaultValue } from '$lib/graphics/inputs';
 	import type { ShaderInputDesc } from '$lib/graphics/shader';
 
 	export let desc: ShaderInputDesc;
 	export let value: Record<string, any>;
 	export let name: string;
+	export let context: { frame: { width: number; height: number } };
 
 	$: {
-		if (value[name] === undefined) value[name] = structuredClone(desc.default);
+		if (value[name] === undefined)
+			value[name] = getDefaultValue(desc.input.type, desc.default, context);
 	}
 </script>
 

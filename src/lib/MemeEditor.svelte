@@ -232,7 +232,7 @@
 						bind:container={block.container}
 					/>
 				{:else if tab === 'Эффекты'}
-					<EffectInput shaders={effectsShaders} bind:value={block.effects} />
+					<EffectInput shaders={effectsShaders} context={{ frame }} bind:value={block.effects} />
 				{/if}
 			</div>
 		</TabsContainer>
