@@ -30,7 +30,7 @@ npm run build
 
 ### CI/CD
 
-Коммиты в main разворачиваются [в GitHub Pages](https://robolabgs2.github.io/memaker-prerelease/) через [репозиторий для пререлизов](https://github.com/RobolabGs2/memaker-prerelease).
+Коммиты в dev разворачиваются [в GitHub Pages](https://robolabgs2.github.io/memaker-prerelease/) через [репозиторий для пререлизов](https://github.com/RobolabGs2/memaker-prerelease).
 
 При публикации тега вида `v*` разворачивается [релизная версия](https://robolabgs2.github.io/memaker/).
 

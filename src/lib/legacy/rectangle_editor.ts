@@ -212,8 +212,6 @@ export class RectangleEditor {
 			this.activeBlockId = activeBlock.id;
 			this.activeContainerType = activeBlock.container.type;
 			this.setup(activeFrame.value.blocks, activeBlock);
-
-			activeBlock.effects.forEach((effect) => this.setupEffect(effect));
 		});
 		state.subscribe(() => {
 			if (innerStateUpdating) return;
@@ -288,6 +286,16 @@ export class RectangleEditor {
 		this.handlers.clear();
 		this.sprites.clear();
 	}
+	setupBlock(activeBlock: Block) {
+		if (this.state.value.mode === BlockEditorMode.Move) {
+			if (activeBlock.container.type === 'rectangle') this.setupMoveRectangle(activeBlock);
+			return;
+		}
+		if (this.state.value.mode === BlockEditorMode.Crop) {
+			if (activeBlock.container.type === 'rectangle') this.setupCropRectangle(activeBlock);
+			return;
+		}
+	}
 	setup(blocks: Block[], activeBlock: Block) {
 		const canvas = this.ctx.canvas;
 		const sizes = this.cursor.realSize;
@@ -298,15 +306,8 @@ export class RectangleEditor {
 			if (block === activeBlock || block.container.type !== 'rectangle') return;
 			this.addSelector(block.id, block.container.value);
 		});
-
-		if (this.state.value.mode === BlockEditorMode.Move) {
-			if (activeBlock.container.type === 'rectangle') this.setupMoveRectangle(activeBlock);
-			return;
-		}
-		if (this.state.value.mode === BlockEditorMode.Crop) {
-			if (activeBlock.container.type === 'rectangle') this.setupCropRectangle(activeBlock);
-			return;
-		}
+		this.setupBlock(activeBlock);
+		activeBlock.effects.forEach((effect) => this.setupEffect(effect));
 	}
 	private setupCropRectangle(activeBlock: Block) {
 		const uiUnit = 8 * this.cursor.scale;
