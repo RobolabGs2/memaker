@@ -4,6 +4,7 @@
 		shiftFrame: { frame: Frame; shift: -1 | 1 };
 		deleteFrame: { frame: Frame };
 
+		cloneBlock: { block: Block };
 		createTextBlock: { origin: Block } | undefined;
 		createImageBlock: { file?: File };
 		modifyImageBlock: { block: Block; file: File };
@@ -211,11 +212,11 @@
 			</Button>
 			<Button
 				type="primary"
-				width="64px"
+				width="256px"
 				disablePadding
 				on:click={() => dispatch('createImageBlock', {})}
 			>
-				<IconPhoto />
+				<IconPhoto /> <span>С картинкой</span>
 			</Button>
 		</header>
 		<PreviewsContainer
@@ -235,10 +236,12 @@
 							up
 							down
 							remove
+							copy
 							value={item}
 							on:up={() => dispatch('shiftBlock', { block: item, shift: 1 })}
 							on:down={() => dispatch('shiftBlock', { block: item, shift: -1 })}
 							on:remove={() => dispatch('deleteBlock', { block: item })}
+							on:copy={() => dispatch('cloneBlock', { block: item })}
 							iconSize={20}
 						>
 							<BlockConverter
@@ -259,10 +262,12 @@
 							up
 							down
 							remove
+							copy
 							value={item}
 							on:up={() => dispatch('shiftBlock', { block: item, shift: 1 })}
 							on:down={() => dispatch('shiftBlock', { block: item, shift: -1 })}
 							on:remove={() => dispatch('deleteBlock', { block: item })}
+							on:copy={() => dispatch('cloneBlock', { block: item })}
 							iconSize={20}
 						/>
 					</ImageContentPreview>

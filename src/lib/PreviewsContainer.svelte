@@ -5,6 +5,19 @@
 	export let active: Item;
 	export let reverse = false;
 	export let height = '100%';
+
+	const scrollSettings = { behavior: 'smooth', block: 'center' } as const;
+	function scrollIntoView(node: HTMLElement, { isActive }: { isActive: boolean }) {
+		const scroll = () => node.scrollIntoView(scrollSettings);
+		if (isActive) requestAnimationFrame(scroll);
+		let wasActive = isActive;
+		return {
+			update({ isActive }: { isActive: boolean }) {
+				if (wasActive == isActive) return;
+				if ((wasActive = isActive)) requestAnimationFrame(scroll);
+			}
+		};
+	}
 </script>
 
 <main
@@ -15,7 +28,12 @@
 >
 	{#each items as item, index (item.id)}
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<article class="item" class:active={item.id === active.id} on:click={() => (active = item)}>
+		<article
+			use:scrollIntoView={{ isActive: item.id === active.id }}
+			class="item"
+			class:active={item.id === active.id}
+			on:click={() => (active = item)}
+		>
 			<slot {item} {index} />
 		</article>
 	{/each}

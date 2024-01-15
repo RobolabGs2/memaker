@@ -153,6 +153,7 @@
 			memaker?.renderMeme()?.then(({ ext, blob }) => saveBlob(`meme.${ext}`)(blob))}
 		on:changeBackground={(ev) => memaker?.setBackground(ev.detail.file)}
 		on:frameToClipboard={frameToClipboard}
+		on:cloneBlock={(ev) => memaker?.cloneBlock(ev.detail.block)}
 		on:createTextBlock={(ev) => memaker?.addTextBlock(ev.detail?.origin)}
 		on:createImageBlock={(ev) => memaker?.addImageBlock(ev.detail.file)}
 		on:modifyImageBlock={(ev) => memaker?.modifyImageBlock(ev.detail.block, ev.detail.file)}

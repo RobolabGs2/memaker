@@ -31,7 +31,7 @@
 
 <footer style={`--buttons-height: ${iconSize + 16}px`}>
 	{#if copy}
-		<Button title="Создать копию фрейма" on:click={redirectEvent('copy')}
+		<Button title="Создать копию" on:click={redirectEvent('copy')}
 			><IconCopy size={iconSize} /></Button
 		>
 	{/if}
@@ -47,7 +47,7 @@
 	{/if}
 	<slot />
 	{#if remove}
-		<Button title="Удалить фрейм" type="danger" on:click={redirectEvent('remove')}
+		<Button title="Удалить" type="danger" on:click={redirectEvent('remove')}
 			><IconTrash size={iconSize} /></Button
 		>
 	{/if}

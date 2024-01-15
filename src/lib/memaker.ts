@@ -204,6 +204,19 @@ export class Memaker {
 		this.memeUpdated();
 	}
 	blockIdGenerator = new IdGenerator('v.0.2.0-' + Date.now().toString() + '-');
+	cloneBlock(block: Block) {
+		const newBlock = deepCopy(block);
+		newBlock.id = this.blockIdGenerator.generate();
+		this.addBlock(newBlock);
+	}
+	// newBlock should have correct id
+	private addBlock(newBlock: Block) {
+		this.addImageUsage(newBlock);
+		this.activeFrame.blocks.push(newBlock);
+		this.frameUpdated();
+		this.activeBlock = newBlock;
+		this.blockUpdated();
+	}
 	addTextBlock(newBlock = this.activeBlock) {
 		// temporary crutch
 		if (newBlock.content.type !== 'text') {
@@ -232,10 +245,7 @@ export class Memaker {
 				rotation: 0
 			}
 		};
-		this.activeFrame.blocks.push(newBlock);
-		this.frameUpdated();
-		this.activeBlock = newBlock;
-		this.blockUpdated();
+		this.addBlock(newBlock);
 	}
 	newImageBlock(name: string, texture: Texture) {
 		const frame = this.activeFrame;
@@ -272,12 +282,7 @@ export class Memaker {
 				}
 			}
 		};
-		this.addImageUsage(newBlock);
-
-		this.activeFrame.blocks.push(newBlock);
-		this.frameUpdated();
-		this.activeBlock = newBlock;
-		this.blockUpdated();
+		this.addBlock(newBlock);
 	}
 	addImageBlock(file?: File) {
 		if (!file) {
@@ -465,32 +470,34 @@ export class Memaker {
 		return frame;
 	}
 	deleteBlock(block: Block) {
+		const blockIndex = this.activeFrame.blocks.indexOf(block);
 		if (block.id == this.activeBlock.id) {
-			const nextForSelection = this.activeFrame.blocks.find(
-				(b) => b.id != block.id && b.content.type === 'text'
-			);
-			if (nextForSelection) {
-				this.activeBlock = nextForSelection;
+			const nextForSelection =
+				blockIndex == this.activeFrame.blocks.length - 1 ? blockIndex - 1 : blockIndex + 1;
+			if (nextForSelection >= 0) {
+				this.activeBlock = this.activeFrame.blocks[nextForSelection];
 				this.blockUpdated();
 			} else {
 				this.addTextBlock();
 			}
 		}
 		this.removeImageUsage(block);
-		this.activeFrame.blocks.splice(this.activeFrame.blocks.indexOf(block), 1);
+		this.activeFrame.blocks.splice(blockIndex, 1);
 		this.frameUpdated();
 	}
 	deleteFrame(frame: Frame) {
+		const frameIndex = this.meme.frames.indexOf(frame);
 		if (frame.id == this.activeFrame.id) {
-			const nextForSelection = this.meme.frames.find((b) => b.id != frame.id);
-			if (nextForSelection) {
-				this.activeFrame = nextForSelection;
+			const nextForSelection =
+				frameIndex == this.meme.frames.length - 1 ? frameIndex - 1 : frameIndex + 1;
+			if (nextForSelection >= 0) {
+				this.activeFrame = this.meme.frames[nextForSelection];
 				this.frameUpdated();
 			} else {
 				this.addFrame();
 			}
 		}
-		this.meme.frames.splice(this.meme.frames.indexOf(frame), 1);
+		this.meme.frames.splice(frameIndex, 1);
 		frame.blocks.forEach((b) => this.removeImageUsage(b));
 		this.memeUpdated();
 	}
