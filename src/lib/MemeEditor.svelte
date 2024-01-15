@@ -44,7 +44,7 @@
 		IconDeviceFloppy
 	} from '@tabler/icons-svelte';
 	import FileInput from './base/FileInput.svelte';
-	import type { Block, Frame, Meme } from './meme';
+	import type { Block, Frame, FrameDrawer, Meme } from './meme';
 	import { createEventDispatcher } from 'svelte';
 	import { onMount } from 'svelte';
 	import BlockConverter from './BlockConverter.svelte';
@@ -68,6 +68,7 @@
 	export let memeExampleURL: string;
 	export let effectsShaders: Record<string, RawShader>;
 	export let editorState: BlockEditorState;
+	export let frameDrawer: FrameDrawer;
 
 	const dispatch = createEventDispatcher<EventsMap>();
 
@@ -247,7 +248,8 @@
 							<BlockConverter
 								{frame}
 								bind:style={block.content.value.style}
-								bind:container={block.container}
+								bind:block
+								{frameDrawer}
 								iconSize={20}
 							/>
 						</PreviewActions>

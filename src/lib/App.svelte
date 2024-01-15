@@ -140,6 +140,7 @@
 		effectsShaders={shaders.effects}
 		version={import.meta.env.VITE_APP_VERSION}
 		{memeExampleURL}
+		frameDrawer={memaker?.drawer}
 		bind:meme={$meme}
 		bind:frame={$activeFrame}
 		bind:block={$activeBlock}

@@ -100,6 +100,13 @@ export class FrameDrawer {
 		if (block.effects.length === 0) return;
 		graphics.drawModifications(block.effects, rect, buf, graphics.canvasRenderBuffer, true);
 	}
+	measureBlock(frame: Frame, block: Block): Rectangle {
+		const { container, content } = block;
+		const renderer = this.contentRenderers[content.type];
+		return container.type === 'global'
+			? renderer.measureGlobalRectangle(content.value, frame, container.value)
+			: container.value;
+	}
 }
 
 interface ContentRenderer<T> {
@@ -116,28 +123,12 @@ interface ContentRenderer<T> {
 		frame: Frame,
 		global: GlobalContainer
 	): Rectangle;
+	measureGlobalRectangle(content: T, frame: Frame, global: GlobalContainer): Rectangle;
 }
 
 class TextContentRenderer implements ContentRenderer<TextContent> {
 	constructor(private textService: TextStencilService) {}
-	drawInRectangle(
-		graphics: Graphics,
-		destination: TargetFrameBuffer,
-		content: TextContent,
-		rect: Rectangle
-	): Rectangle {
-		const { text, style } = content;
-		const textStencil = this.textService.getTextStencil(text, style, rect.width, rect.height);
-		this.draw(graphics, destination, textStencil, rect, style);
-		return rect;
-	}
-	drawGlobal(
-		graphics: Graphics,
-		destination: TargetFrameBuffer,
-		content: TextContent,
-		frame: Frame,
-		global: GlobalContainer
-	): Rectangle {
+	private prepareRectangle(content: TextContent, frame: Frame<Block>, global: GlobalContainer) {
 		const { text, style } = content;
 		const lines = text.split('\n');
 		const linesCount = lines.length;
@@ -162,12 +153,43 @@ class TextContentRenderer implements ContentRenderer<TextContent> {
 				: baseline == 'middle'
 				? frame.height / 2
 				: frame.height - verticalShift;
-		const rect = {
-			width,
-			height,
-			rotation: 0,
-			position: { x: frame.width / 2, y }
+		return {
+			textStencil,
+			rect: {
+				width,
+				height,
+				rotation: 0,
+				position: { x: frame.width / 2, y }
+			}
 		};
+	}
+	measureGlobalRectangle(
+		content: TextContent,
+		frame: Frame<Block>,
+		global: GlobalContainer
+	): Rectangle {
+		return this.prepareRectangle(content, frame, global).rect;
+	}
+	drawInRectangle(
+		graphics: Graphics,
+		destination: TargetFrameBuffer,
+		content: TextContent,
+		rect: Rectangle
+	): Rectangle {
+		const { text, style } = content;
+		const textStencil = this.textService.getTextStencil(text, style, rect.width, rect.height);
+		this.draw(graphics, destination, textStencil, rect, style);
+		return rect;
+	}
+	drawGlobal(
+		graphics: Graphics,
+		destination: TargetFrameBuffer,
+		content: TextContent,
+		frame: Frame,
+		global: GlobalContainer
+	): Rectangle {
+		const { style } = content;
+		const { textStencil, rect } = this.prepareRectangle(content, frame, global);
 		this.draw(graphics, destination, textStencil, rect, style);
 		return rect;
 	}
@@ -190,6 +212,18 @@ class TextContentRenderer implements ContentRenderer<TextContent> {
 
 class ImageContentRenderer implements ContentRenderer<ImageContent> {
 	constructor(readonly textures: TextureManager) {}
+	measureGlobalRectangle(
+		_content: ImageContent,
+		frame: Frame<Block>,
+		global: GlobalContainer
+	): Rectangle {
+		return {
+			width: frame.width * global.maxWidth,
+			height: frame.height * global.maxHeight,
+			position: { x: frame.width / 2, y: frame.height / 2 },
+			rotation: 0
+		};
+	}
 	drawInRectangle(
 		graphics: Graphics,
 		destination: TargetFrameBuffer,
@@ -208,13 +242,7 @@ class ImageContentRenderer implements ContentRenderer<ImageContent> {
 		frame: Frame,
 		global: GlobalContainer
 	): Rectangle {
-		const size = graphics.size;
-		const rect = {
-			width: frame.width * global.maxWidth,
-			height: frame.height * global.maxHeight,
-			position: { x: size.width / 2, y: size.height / 2 },
-			rotation: 0
-		};
+		const rect = this.measureGlobalRectangle(content, frame, global);
 		return this.drawInRectangle(graphics, destination, content, rect);
 	}
 	private cropImage(

@@ -37,7 +37,7 @@ export function isSkinsMap(raw: Record<string, Record<string, FileImport[]>>): r
 
 export class Memaker {
 	private textures: TextureManager<TextureMeta>;
-	private drawer: FrameDrawer;
+	public readonly drawer: FrameDrawer;
 	public meme: Meme = { frames: [] };
 	public activeFrame!: Frame;
 	public activeBlock!: Block;
