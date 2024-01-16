@@ -221,7 +221,25 @@ export class Memaker {
 		// temporary crutch
 		if (newBlock.content.type !== 'text') {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			newBlock = this.activeFrame.blocks.find((b) => b.content.type === 'text')!;
+			newBlock = this.activeFrame.blocks.find((b) => b.content.type === 'text') || {
+				id: this.blockIdGenerator.generate(),
+				container: {
+					type: 'global',
+					value: {
+						maxWidth: 0.96,
+						maxHeight: 0.4,
+						minHeight: 0
+					}
+				},
+				content: {
+					type: 'text',
+					value: {
+						text: '',
+						style: defaultStyle
+					}
+				},
+				effects: []
+			};
 		}
 		newBlock = deepCopy(newBlock);
 		newBlock.id = this.blockIdGenerator.generate();
