@@ -238,7 +238,8 @@ export class Memaker {
 						style: defaultStyle
 					}
 				},
-				effects: []
+				effects: [],
+				layer: { blendMode: 'normal', composeMode: 'source_over' }
 			};
 		}
 		newBlock = deepCopy(newBlock);
@@ -298,7 +299,8 @@ export class Memaker {
 					id: texture.id,
 					crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
 				}
-			}
+			},
+			layer: { blendMode: 'normal', composeMode: 'source_over' }
 		};
 		this.addBlock(newBlock);
 	}
@@ -354,7 +356,8 @@ export class Memaker {
 									id: texture.id,
 									crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
 								}
-							}
+							},
+							layer: { blendMode: 'normal', composeMode: 'source_over' }
 						};
 						this.addImageUsage(newBlock);
 
@@ -440,7 +443,8 @@ export class Memaker {
 							crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
 						}
 					},
-					effects: []
+					effects: [],
+					layer: { blendMode: 'normal', composeMode: 'source_over' }
 				},
 				{
 					id: this.blockIdGenerator.generate(),
@@ -459,7 +463,8 @@ export class Memaker {
 							style: textStyle
 						}
 					},
-					effects: []
+					effects: [],
+					layer: { blendMode: 'normal', composeMode: 'source_over' }
 				}
 			],
 			height: background.height,
@@ -560,7 +565,8 @@ export class Memaker {
 										id: texture.id,
 										crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
 									}
-								}
+								},
+								layer: { blendMode: 'normal', composeMode: 'source_over' }
 							};
 							this.activeFrame.blocks.unshift(backgroundBlock);
 						}

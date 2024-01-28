@@ -182,6 +182,10 @@ export class RectangleEditor {
 		};
 		let innerStateUpdating = false;
 		activeBlock.subscribe((activeBlock) => {
+			if (!activeBlock) {
+				console.warn('Undefined active block');
+				return;
+			}
 			const modeSettings = modesSettings[activeBlock.container.type][activeBlock.content.type];
 			if (this.state.value.available !== modeSettings.available) {
 				innerStateUpdating = true;

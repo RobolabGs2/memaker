@@ -8,6 +8,7 @@ import textureFragShader from './texture.frag?raw';
 import libGlsl from './lib.glsl?raw';
 import baseVertShader from './base.vert?raw';
 import baseFragShader from './base.frag?raw';
+import blendFragShader from './blend.frag?raw';
 import type { TextureManager } from './textures';
 import type { Effect } from '$lib/effect';
 import { type RawShader, type GraphicsContext, parseColor, inputToUniform } from './shader';
@@ -40,6 +41,7 @@ class FrameBuffersPull {
 	free(buf: twgl.FramebufferInfo) {
 		if (!this.usedBuffers.delete(buf)) {
 			console.trace('FrameBuffersPull: free not used buffer!');
+			return;
 		}
 		this.freeBuffers.push(buf);
 	}
@@ -51,7 +53,6 @@ class FrameBuffersPull {
 				else this.gl.deleteRenderbuffer(tx);
 			});
 		});
-		console.log('FREEEE');
 		this.freeBuffers = [];
 		if (this.usedBuffers.size)
 			console.trace(`FrameBuffersPull: call clear with ${this.usedBuffers.size} buffers in use!`);
@@ -81,15 +82,16 @@ export class Graphics<T = unknown> {
 		mods: Record<string, RawShader<unknown>>
 	) {
 		gl.clearColor(0, 0, 0, 0);
-		gl.enable(gl.BLEND);
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+		gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_DST_ALPHA, gl.ONE, gl.ONE_MINUS_DST_ALPHA);
 		const shaderSources = Object.entries(materials)
 			.map(([name, raw]) => [name, materialShaderSources(raw)])
 			.concat(
 				Object.entries(mods).map(([name, raw]) => [name, effectShaderSources(raw)]),
 				[
 					['__shadow__', [fullscreenShader, shadowFragShader + libGlsl]],
-					['__image__', [baseVertShader, textureFragShader + libGlsl]]
+					['__image__', [baseVertShader, textureFragShader + libGlsl]],
+					['__blend__', [fullscreenShader, blendFragShader]]
 				]
 			);
 		const shaderInfos = twgl.createProgramInfos(gl, Object.fromEntries(shaderSources));
@@ -114,6 +116,7 @@ export class Graphics<T = unknown> {
 		);
 		this.shadowProgram = shaderInfos['__shadow__'];
 		this.imageProgram = shaderInfos['__image__'];
+		this.blendProgram = shaderInfos['__blend__'];
 		this.rectangleBuffer = twgl.createBufferInfoFromArrays(gl, {
 			position: [
 				[-0.5, -0.5, 0],
@@ -147,6 +150,7 @@ export class Graphics<T = unknown> {
 	>;
 	public buffersPull: FrameBuffersPull;
 	private shadowProgram: twgl.ProgramInfo;
+	private blendProgram: twgl.ProgramInfo;
 	private imageProgram: twgl.ProgramInfo;
 	private rectangleBuffer: twgl.BufferInfo;
 	public get canvasRenderBuffer(): TargetFrameBuffer {
@@ -197,8 +201,7 @@ export class Graphics<T = unknown> {
 				}
 			},
 			material,
-			shadowBufferOrigin,
-			false
+			shadowBufferOrigin
 		);
 
 		const uniforms = {
@@ -214,7 +217,7 @@ export class Graphics<T = unknown> {
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		twgl.setUniforms(this.shadowProgram, {
 			...uniforms,
-			stencilSampler: shadowBufferOrigin.attachments[0],
+			sourceSampler: shadowBufferOrigin.attachments[0],
 			dim: 0
 		});
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -222,7 +225,7 @@ export class Graphics<T = unknown> {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, destination.framebuffer);
 		twgl.setUniforms(this.shadowProgram, {
 			...uniforms,
-			stencilSampler: shadowBufferX.attachments[0],
+			sourceSampler: shadowBufferX.attachments[0],
 			dim: 1
 		});
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -237,22 +240,9 @@ export class Graphics<T = unknown> {
 		channels: number,
 		rectangle: Rectangle,
 		material: Material,
-		destination = this.canvasRenderBuffer,
-		drawShadow = true
+		destination: TargetFrameBuffer
 	) {
 		const gl = this.gl;
-		if (material.settings.type == 'disabled') return;
-		if (drawShadow && material.shadow) {
-			this.drawShadow(
-				textStencil,
-				channel,
-				channels,
-				rectangle,
-				material,
-				material.shadow,
-				destination
-			);
-		}
 		const shader = this.shaders[material.settings.type];
 		const uniforms = {
 			camera: twgl.m4.ortho(0, this.size.width, this.size.height, 0, -100, 100),
@@ -269,10 +259,10 @@ export class Graphics<T = unknown> {
 			alpha: material.alpha,
 			...shader.uniforms(material.settings as unknown as Record<string, unknown>, rectangle, this)
 		};
+		gl.bindFramebuffer(gl.FRAMEBUFFER, destination.framebuffer);
 		gl.useProgram(shader.info.program);
 		twgl.setUniforms(shader.info, uniforms);
 		twgl.setBuffersAndAttributes(gl, shader.info, this.rectangleBuffer);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, destination.framebuffer);
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 	}
 	drawModifications(
@@ -283,7 +273,6 @@ export class Graphics<T = unknown> {
 		reuseSourceBuffer: boolean
 	) {
 		const gl = this.gl;
-		gl.disable(gl.BLEND);
 		const temp1 = this.buffersPull.get(destination.width, destination.height);
 		const temp2 = reuseSourceBuffer
 			? source
@@ -302,8 +291,6 @@ export class Graphics<T = unknown> {
 			};
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, dest.framebuffer);
-			if (dest !== destination) gl.clear(gl.COLOR_BUFFER_BIT);
-			else gl.enable(gl.BLEND);
 
 			gl.useProgram(shader.info.program);
 			twgl.setUniforms(shader.info, uniforms);
@@ -339,6 +326,7 @@ export class Graphics<T = unknown> {
 			),
 			textureSampler: image
 		};
+		gl.bindFramebuffer(gl.FRAMEBUFFER, dest.framebuffer);
 		gl.useProgram(shader.program);
 		twgl.setUniforms(shader, uniforms);
 		const buffer = twgl.createBufferInfoFromArrays(
@@ -349,10 +337,68 @@ export class Graphics<T = unknown> {
 			this.rectangleBuffer
 		);
 		twgl.setBuffersAndAttributes(gl, shader, buffer);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, dest.framebuffer);
+		gl.drawArrays(gl.TRIANGLES, 0, 6);
+	}
+
+	blendTo(
+		blendMode: BlendMode,
+		composeMode: ComposeMode,
+		src: twgl.FramebufferInfo,
+		dst: WebGLTexture,
+		result: TargetFrameBuffer
+	) {
+		const gl = this.gl;
+		const shader = this.blendProgram;
+		const uniforms = {
+			srcSampler: src.attachments[0],
+			blendMode: BlendModeEnum[blendMode],
+			composeMode: ComposeModeEnum[composeMode],
+			dstSampler: dst
+		} as Record<string, unknown>;
+		gl.bindFramebuffer(gl.FRAMEBUFFER, result.framebuffer);
+		gl.useProgram(shader.program);
+		twgl.setUniforms(shader, uniforms);
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 	}
 }
+export type BlendMode = keyof typeof BlendModeEnum;
+export type ComposeMode = keyof typeof ComposeModeEnum;
+
+const BlendModeEnum = {
+	normal: 0,
+	multiply: 1,
+	screen: 2,
+	overlay: 3,
+	darken: 4,
+	lighten: 5,
+	color_dodge: 6,
+	color_burn: 7,
+	hard_light: 8,
+	soft_light: 9,
+	difference: 10,
+	exclusion: 11,
+	hue: 12,
+	saturation: 13,
+	color: 14,
+	luminosity: 15,
+	xor: 17
+};
+
+const ComposeModeEnum = {
+	clear: 0,
+	copy: 1,
+	destination: 2,
+	source_over: 3,
+	destination_over: 4,
+	source_in: 5,
+	destination_in: 6,
+	source_out: 7,
+	destination_out: 8,
+	source_atop: 9,
+	destination_atop: 10,
+	xor: 11,
+	lighter: 12
+};
 
 function pointsToTriangles(p: Point[]): number[] {
 	return [

@@ -35,6 +35,8 @@
 	import FramePreview from './FramePreview.svelte';
 	import ContainerSettings from './ContainerSettings.svelte';
 	import {
+		IconAbc,
+		IconBorderCorners,
 		IconNewSection,
 		IconPhoto,
 		IconPhotoUp,
@@ -57,6 +59,9 @@
 	import type { BlockEditorState } from './legacy/rectangle_editor';
 	import ImageContentPreview from './image/ImageContentPreview.svelte';
 	import ImageContentSettings from './image/ImageContentSettings.svelte';
+	import JsonView from './debug/JsonView.svelte';
+	import SvgIcon from './base/SvgIcon.svelte';
+	import LayerInput from './LayerInput.svelte';
 
 	export let meme: Meme;
 	export let frame: Frame;
@@ -279,12 +284,38 @@
 			{/if}
 		</PreviewsContainer>
 		<TabsContainer
-			tabs={block.content.type === 'text'
-				? ['Текст', 'Контейнер', 'Эффекты']
-				: ['Изображение', 'Контейнер', 'Эффекты']}
+			layout="horizontal"
+			tabs={[
+				block.content.type === 'text' ? 'Текст' : 'Изображение',
+				'Контейнер',
+				'Эффекты',
+				'Наложение'
+			]}
 			let:tab
 		>
-			<span>{tab}</span>
+			<div class="center" title={tab}>
+				{#if tab == 'Текст'}
+					<IconAbc size={24} />
+				{:else if tab == 'Изображение'}
+					<IconPhoto size={20} />
+				{:else if tab == 'Контейнер'}
+					<IconBorderCorners size={24} />
+				{:else if tab == 'Эффекты'}
+					<SvgIcon
+						size={20}
+						type="bootstrap"
+						path="M9.5 2.672a.5.5 0 1 0 1 0V.843a.5.5 0 0 0-1 0zm4.5.035A.5.5 0 0 0 13.293 2L12 3.293a.5.5 0 1 0 .707.707zM7.293 4A.5.5 0 1 0 8 3.293L6.707 2A.5.5 0 0 0 6 2.707zm-.621 2.5a.5.5 0 1 0 0-1H4.843a.5.5 0 1 0 0 1zm8.485 0a.5.5 0 1 0 0-1h-1.829a.5.5 0 0 0 0 1zM13.293 10A.5.5 0 1 0 14 9.293L12.707 8a.5.5 0 1 0-.707.707zM9.5 11.157a.5.5 0 0 0 1 0V9.328a.5.5 0 0 0-1 0zm1.854-5.097a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L8.646 5.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0l1.293-1.293Zm-3 3a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L.646 13.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0z"
+					/>
+				{:else if tab == 'Наложение'}
+					<SvgIcon
+						size={20}
+						type="bootstrap"
+						path="M8.235 1.559a.5.5 0 0 0-.47 0l-7.5 4a.5.5 0 0 0 0 .882L3.188 8 .264 9.559a.5.5 0 0 0 0 .882l7.5 4a.5.5 0 0 0 .47 0l7.5-4a.5.5 0 0 0 0-.882L12.813 8l2.922-1.559a.5.5 0 0 0 0-.882zm3.515 7.008L14.438 10 8 13.433 1.562 10 4.25 8.567l3.515 1.874a.5.5 0 0 0 .47 0zM8 9.433 1.562 6 8 2.567 14.438 6z"
+					/>
+				{:else}
+					<IconNewSection />
+				{/if}
+			</div>
 			<div slot="content">
 				{#if tab === 'Текст' && block.content.type == 'text'}
 					<TextContentSettings bind:content={block.content.value} on:change on:addPattern />
@@ -301,6 +332,10 @@
 					/>
 				{:else if tab === 'Эффекты'}
 					<EffectInput shaders={effectsShaders} context={{ frame }} bind:value={block.effects} />
+				{:else if tab === 'Наложение'}
+					<LayerInput bind:value={block.layer} />
+				{:else}
+					<JsonView bind:value={block} />
 				{/if}
 			</div>
 		</TabsContainer>
@@ -331,7 +366,7 @@
 	}
 	section:nth-of-type(3) {
 		flex: 5 1;
-		min-width: 300px;
+		min-width: 360px;
 		/* padding: 2px; */
 		/* overflow: auto; */
 		/* display: flex; */
@@ -361,5 +396,8 @@
 		padding-left: 8px;
 		padding-right: 8px;
 		text-align: left;
+	}
+	.center {
+		display: flex;
 	}
 </style>

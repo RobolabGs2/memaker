@@ -1,8 +1,8 @@
 import type { Effect } from './effect';
 import type { Point } from './geometry/point';
 import type { Rectangle } from './geometry/rectangle';
-import type { Graphics, TargetFrameBuffer } from './graphics/graphics';
-import { parseColor } from './graphics/shader';
+import type { BlendMode, ComposeMode, Graphics, TargetFrameBuffer } from './graphics/graphics';
+import { parseColorBytes } from './graphics/shader';
 import { TextStencilService } from './graphics/text_stencil_service';
 import type { TextureManager } from './graphics/textures';
 import type { ImageContent } from './image';
@@ -39,7 +39,19 @@ export type Content<TextT = TextContent, ImageT = ImageContent> =
 			value: ImageT;
 	  };
 
-export type Block = { id: string; container: Container; content: Content; effects: Effect[] };
+export type Block = {
+	id: string;
+	container: Container;
+	content: Content;
+	effects: Effect[];
+	layer: LayerSettings;
+};
+
+export type LayerSettings = {
+	blendMode: BlendMode;
+	composeMode: ComposeMode;
+};
+
 export type Frame<B = Block> = {
 	id: string;
 	blocks: B[];
@@ -54,6 +66,7 @@ export type Meme<F = Frame> = {
 import * as twgl from 'twgl.js';
 export class FrameDrawer {
 	private contentRenderers: Record<'text' | 'image', ContentRenderer<unknown>>;
+	private backgroundTexture: WebGLTexture;
 	constructor(
 		readonly gl: WebGL2RenderingContext,
 		textures: TextureManager,
@@ -64,42 +77,74 @@ export class FrameDrawer {
 			image: new ImageContentRenderer(textures),
 			text: new TextContentRenderer(new TextStencilService(gl, textManager))
 		};
+		this.backgroundTexture = twgl.createTexture(gl, { src: [255, 255, 255, 255] });
 	}
 	clear() {
 		this.graphics.clear();
 	}
 	drawFrame(frame: Frame) {
 		this.graphics.resize(frame.width, frame.height);
-		const buf = this.graphics.buffersPull.get(frame.width, frame.height);
 		const gl = this.gl;
-		const background = parseColor(frame.backgroundColor ?? '#ff0000');
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.clearColor(...background, frame.backgroundAlpha ?? 0.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.clearColor(0, 0, 0, 0);
-		frame.blocks.forEach((block) => {
-			this.drawBlock(frame, block, buf);
-		});
-		this.graphics.buffersPull.free(buf);
+		twgl.setTextureFromArray(gl, this.backgroundTexture, [
+			...parseColorBytes(frame.backgroundColor ?? '#ff0000'),
+			(frame.backgroundAlpha ?? 1.0) * 255
+		]);
+		let effectBuffer = this.graphics.buffersPull.get(frame.width, frame.height);
+		const layerBuffer = this.graphics.buffersPull.get(frame.width, frame.height);
+		let composedBuffer = this.graphics.buffersPull.get(frame.width, frame.height);
+
+		const blocksCount = frame.blocks.length;
+		const lastBlock = blocksCount - 1;
+		for (let i = 0; i < blocksCount; i++) {
+			const block = frame.blocks[i];
+			const layers = this.drawBlock(frame, block);
+			const layersCount = layers.length;
+			const lastLayer = layersCount - 1;
+			for (let j = 0; j < layersCount; j++) {
+				const draw = layers[j];
+				gl.bindFramebuffer(gl.FRAMEBUFFER, layerBuffer.framebuffer);
+				gl.clear(gl.COLOR_BUFFER_BIT);
+				draw(effectBuffer, layerBuffer);
+				this.graphics.blendTo(
+					block.layer.blendMode,
+					block.layer.composeMode,
+					layerBuffer,
+					i == 0 && j == 0 ? this.backgroundTexture : composedBuffer.attachments[0],
+					i == lastBlock && j == lastLayer ? this.graphics.canvasRenderBuffer : effectBuffer
+				);
+				const tmp = effectBuffer;
+				effectBuffer = composedBuffer;
+				composedBuffer = tmp;
+			}
+		}
+		this.graphics.buffersPull.free(effectBuffer);
+		this.graphics.buffersPull.free(layerBuffer);
+		this.graphics.buffersPull.free(composedBuffer);
 	}
-	drawBlock(frame: Frame, block: Block, buf: twgl.FramebufferInfo) {
+
+	drawBlock(
+		frame: Frame,
+		block: Block
+	): Array<(buffer: twgl.FramebufferInfo, destination: twgl.FramebufferInfo) => void> {
 		const { graphics } = this;
 		const { container, content } = block;
-
-		let destination = graphics.canvasRenderBuffer;
-		if (block.effects.length) {
-			destination = buf;
-			this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, buf.framebuffer);
-			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-		}
 		const renderer = this.contentRenderers[content.type];
-		const rect =
+		const { drawers, rectangle } =
 			container.type === 'global'
-				? renderer.drawGlobal(graphics, destination, content.value, frame, container.value)
-				: renderer.drawInRectangle(graphics, destination, content.value, container.value);
-		if (block.effects.length === 0) return;
-		graphics.drawModifications(block.effects, rect, buf, graphics.canvasRenderBuffer, true);
+				? renderer.drawGlobal(graphics, content.value, frame, container.value)
+				: renderer.drawInRectangle(graphics, content.value, container.value);
+		return drawers.map(
+			block.effects.length == 0
+				? (d) => (_buf: twgl.FramebufferInfo, dst: twgl.FramebufferInfo) => d(dst)
+				: (d) => (buf: twgl.FramebufferInfo, destination: twgl.FramebufferInfo) => {
+						this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, buf.framebuffer);
+						this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+						d(buf);
+						graphics.drawModifications(block.effects, rectangle, buf, destination, true);
+				  }
+		);
 	}
+
 	measureBlock(frame: Frame, block: Block): Rectangle {
 		const { container, content } = block;
 		const renderer = this.contentRenderers[content.type];
@@ -109,20 +154,19 @@ export class FrameDrawer {
 	}
 }
 
+type ContentDrawData = {
+	drawers: Array<(destination: TargetFrameBuffer) => void>;
+	rectangle: Rectangle;
+};
+
 interface ContentRenderer<T> {
-	drawInRectangle(
-		graphics: Graphics,
-		destination: TargetFrameBuffer,
-		content: T,
-		rectangle: Rectangle
-	): Rectangle;
+	drawInRectangle(graphics: Graphics, content: T, rectangle: Rectangle): ContentDrawData;
 	drawGlobal(
 		graphics: Graphics,
-		destination: TargetFrameBuffer,
 		content: T,
 		frame: Frame,
 		global: GlobalContainer
-	): Rectangle;
+	): ContentDrawData;
 	measureGlobalRectangle(content: T, frame: Frame, global: GlobalContainer): Rectangle;
 }
 
@@ -170,32 +214,29 @@ class TextContentRenderer implements ContentRenderer<TextContent> {
 	): Rectangle {
 		return this.prepareRectangle(content, frame, global).rect;
 	}
-	drawInRectangle(
-		graphics: Graphics,
-		destination: TargetFrameBuffer,
-		content: TextContent,
-		rect: Rectangle
-	): Rectangle {
+	drawInRectangle(graphics: Graphics, content: TextContent, rect: Rectangle): ContentDrawData {
 		const { text, style } = content;
 		const textStencil = this.textService.getTextStencil(text, style, rect.width, rect.height);
-		this.draw(graphics, destination, textStencil, rect, style);
-		return rect;
+		return {
+			drawers: this.draw(graphics, textStencil, rect, style),
+			rectangle: rect
+		};
 	}
 	drawGlobal(
 		graphics: Graphics,
-		destination: TargetFrameBuffer,
 		content: TextContent,
 		frame: Frame,
 		global: GlobalContainer
-	): Rectangle {
+	): ContentDrawData {
 		const { style } = content;
 		const { textStencil, rect } = this.prepareRectangle(content, frame, global);
-		this.draw(graphics, destination, textStencil, rect, style);
-		return rect;
+		return {
+			drawers: this.draw(graphics, textStencil, rect, style),
+			rectangle: rect
+		};
 	}
 	private draw(
 		graphics: Graphics,
-		destination: TargetFrameBuffer,
 		stencil: { stencil: WebGLTexture; info: TextDrawInfo },
 		rect: Rectangle,
 		style: TextStyle
@@ -203,10 +244,28 @@ class TextContentRenderer implements ContentRenderer<TextContent> {
 		const enableStroke = style.stroke.settings.type !== 'disabled';
 		const enableFill = style.fill.settings.type !== 'disabled';
 		const channels = (+enableStroke * 1) | (+enableFill * 2);
-		if (enableStroke)
-			graphics.drawStencilLayer(stencil.stencil, 1, channels, rect, style.stroke, destination);
-		if (enableFill)
-			graphics.drawStencilLayer(stencil.stencil, 2, channels, rect, style.fill, destination);
+		const drawers = new Array<(destination: TargetFrameBuffer) => void>();
+		if (enableStroke) {
+			const shadow = style.stroke.shadow;
+			if (shadow)
+				drawers.push((destination) =>
+					graphics.drawShadow(stencil.stencil, 1, channels, rect, style.stroke, shadow, destination)
+				);
+			drawers.push((destination) =>
+				graphics.drawStencilLayer(stencil.stencil, 1, channels, rect, style.stroke, destination)
+			);
+		}
+		if (enableFill) {
+			const shadow = style.fill.shadow;
+			if (shadow)
+				drawers.push((destination) =>
+					graphics.drawShadow(stencil.stencil, 2, channels, rect, style.fill, shadow, destination)
+				);
+			drawers.push((destination) =>
+				graphics.drawStencilLayer(stencil.stencil, 2, channels, rect, style.fill, destination)
+			);
+		}
+		return drawers;
 	}
 }
 
@@ -226,24 +285,32 @@ class ImageContentRenderer implements ContentRenderer<ImageContent> {
 	}
 	drawInRectangle(
 		graphics: Graphics,
-		destination: TargetFrameBuffer,
 		content: ImageContent,
 		rectangle: Rectangle
-	): Rectangle {
+	): ContentDrawData {
 		const image = this.textures.get(content.id);
 		const actualRect = this.cropImage(image, rectangle, content.crop);
-		graphics.drawRectImage(image.texture, actualRect.rectangle, actualRect.texCoords, destination);
-		return rectangle;
+		return {
+			drawers: [
+				(destination: TargetFrameBuffer) =>
+					graphics.drawRectImage(
+						image.texture,
+						actualRect.rectangle,
+						actualRect.texCoords,
+						destination
+					)
+			],
+			rectangle
+		};
 	}
 	drawGlobal(
 		graphics: Graphics,
-		destination: TargetFrameBuffer,
 		content: ImageContent,
 		frame: Frame,
 		global: GlobalContainer
-	): Rectangle {
+	): ContentDrawData {
 		const rect = this.measureGlobalRectangle(content, frame, global);
-		return this.drawInRectangle(graphics, destination, content, rect);
+		return this.drawInRectangle(graphics, content, rect);
 	}
 	private cropImage(
 		image: { width: number; height: number },

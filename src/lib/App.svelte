@@ -41,7 +41,8 @@
 								style: defaultStyle
 							}
 						},
-						effects: []
+						effects: [],
+						layer: { blendMode: 'normal', composeMode: 'source_over' }
 					}
 				]
 			}
@@ -58,7 +59,9 @@
 	activeFrame.subscribe((frame) => {
 		if (activeFrameId == frame.id) return;
 		activeFrameId = frame.id;
-		activeBlock.set(frame.blocks.find((b) => b.content.type == 'text')!);
+		activeBlock.set(
+			frame.blocks.find((b) => b.content.type == 'text') || frame.blocks[frame.blocks.length - 1]
+		);
 	});
 
 	const editorState = new StateStore<BlockEditorState>({

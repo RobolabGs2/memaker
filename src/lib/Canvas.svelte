@@ -1,10 +1,12 @@
 <script lang="ts">
+	import checkered from './resources/transparency_background.png';
+
 	export let webgl: HTMLCanvasElement;
 	export let ui: HTMLCanvasElement;
 </script>
 
 <article on:dragover on:drop>
-	<canvas bind:this={webgl} />
+	<canvas bind:this={webgl} style={`background-image: url(${checkered})`} />
 	<canvas bind:this={ui} />
 </article>
 

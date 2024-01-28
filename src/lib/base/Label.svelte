@@ -14,7 +14,8 @@
 <style lang="scss">
 	label {
 		position: relative;
-		padding: 4px;
+		padding-top: 4px;
+		padding-bottom: 4px;
 		margin-bottom: 4px;
 		display: flex;
 		justify-content: space-between;

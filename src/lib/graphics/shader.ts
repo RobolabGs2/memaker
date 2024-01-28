@@ -12,6 +12,10 @@ export function parseColor(color: string): [number, number, number] {
 	const raw = parseInt(color.slice(1), 16);
 	return [(raw >> (2 * 8)) / 255, ((raw >> 8) & 0xff) / 255, (raw & 0xff) / 255];
 }
+export function parseColorBytes(color: string): [number, number, number] {
+	const raw = parseInt(color.slice(1), 16);
+	return [raw >> (2 * 8), (raw >> 8) & 0xff, raw & 0xff];
+}
 
 export interface RawShader<T = unknown> {
 	title?: string;

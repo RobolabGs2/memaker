@@ -31,7 +31,7 @@
 	}
 	span {
 		position: absolute;
-		top: 0;
+		top: -5px;
 		left: 0;
 		height: 25px;
 		width: 25px;

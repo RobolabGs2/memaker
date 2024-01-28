@@ -1,12 +1,13 @@
 <script lang="ts">
 	import type { TextContent } from '$lib/meme';
 	import { fontSettingsToCSS } from './font';
-
+	import { IconAbc } from '@tabler/icons-svelte';
 	export let content: TextContent;
 </script>
 
 <article>
 	<main style="font:{fontSettingsToCSS(content.style.font, 16)};">
+		<IconAbc />
 		{content.text}
 	</main>
 	<slot />

@@ -2,17 +2,22 @@
 	type T = $$Generic;
 	export let tabs: T[];
 	export let activeTab: T = tabs[0];
+	export let layout: 'vertical' | 'horizontal' = 'vertical';
 
 	$: {
 		if (!tabs.includes(activeTab)) activeTab = tabs[0];
 	}
 </script>
 
-<article>
+<article class={layout}>
 	<header>
 		{#each tabs as tab}
 			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<section class="tab" on:click={() => (activeTab = tab)} class:active={activeTab === tab}>
+			<section
+				class={`tab ${layout}`}
+				on:click={() => (activeTab = tab)}
+				class:active={activeTab === tab}
+			>
 				<slot {tab} />
 			</section>
 		{/each}
@@ -25,21 +30,39 @@
 </article>
 
 <style lang="scss">
+	article.horizontal {
+		display: flex;
+		& > header {
+			background-color: #232323;
+			width: 38px;
+			padding-left: 4px;
+			flex-direction: column;
+			padding-top: 8px;
+		}
+	}
 	article {
 		padding-top: 4px;
-		background-color: #1e1f1c88;
-		overflow-y: auto;
+		background-color: #424242;
 		height: 70%;
 	}
 	header {
 		display: flex;
 	}
 	.content {
-		height: 90%;
-		padding: 4px;
-		/* border-left: var(--border-secondary-active); */
-		/* border-right: var(--border-secondary-active); */
-		/* border-bottom: var(--border-secondary-active); */
+		overflow-y: auto;
+		height: 100%;
+		width: 100%;
+		padding-left: 4px;
+		padding-right: 4px;
+		padding-top: 4px;
+		padding-bottom: 32px;
+		border: solid 1px #202020;
+		.horizontal > & {
+			border-left: none;
+		}
+		.vertical > & {
+			border-top: none;
+		}
 	}
 	.hide {
 		display: none;
@@ -52,22 +75,28 @@
 		align-items: center;
 		padding: 4px;
 		border-radius: 8px 8px 0 0;
-		background-color: var(--secondary);
+		border: solid 1px #202020;
+		background-color: #2b2b2b;
 		color: var(--text-secondary);
-		border: var(--border-secondary);
-		border-bottom: var(--border-secondary-active);
 		&:hover {
-			border: var(--border-secondary-hover);
-			border-bottom: var(--border-secondary-active);
 			background-color: var(--secondary-hover);
 		}
 		&.active,
 		&:active {
-			background-color: #1e1f1c;
+			background-color: #424242;
 		}
-		&.active {
-			border: var(--border-secondary-active);
+		&.horizontal {
+			border-right: none;
+		}
+		&.vertical {
 			border-bottom: none;
+		}
+		&.horizontal {
+			border-radius: 4px 0 0 4px;
+			overflow: hidden;
+			max-height: 32px;
+			justify-content: center;
+			align-items: center;
 		}
 	}
 </style>
