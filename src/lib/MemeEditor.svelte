@@ -15,6 +15,7 @@
 		renderMeme: { meme: Meme };
 		saveMeme: { meme: Meme };
 		openMeme: { file: Blob };
+		importMeme: { file: Blob };
 
 		changeBackground: { file: File };
 		frameToClipboard: { frame: Frame };
@@ -62,6 +63,7 @@
 	import JsonView from './debug/JsonView.svelte';
 	import SvgIcon from './base/SvgIcon.svelte';
 	import LayerInput from './LayerInput.svelte';
+	import IconUploadAdd from './base/IconUploadAdd.svelte';
 
 	export let meme: Meme;
 	export let frame: Frame;
@@ -163,7 +165,12 @@
 		</Button>
 		<FileInput accept=".meme" on:change={(ev) => dispatch('openMeme', { file: ev.detail[0] })}>
 			<Button type="primary" justifyContent="flex-start">
-				<IconUpload size={24} /><span>Открыть проект мема</span>
+				<IconUpload size={24} /><span>Открыть мем</span>
+			</Button>
+		</FileInput>
+		<FileInput accept=".meme" on:change={(ev) => dispatch('importMeme', { file: ev.detail[0] })}>
+			<Button type="primary" justifyContent="flex-start">
+				<IconUploadAdd /><span>Добавить фреймы из мема</span>
 			</Button>
 		</FileInput>
 		<Contacts
@@ -399,5 +406,8 @@
 	}
 	.center {
 		display: flex;
+	}
+	:global(.tabler-icon) {
+		min-width: 24px;
 	}
 </style>

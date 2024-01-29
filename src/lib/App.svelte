@@ -152,6 +152,7 @@
 		bind:canvasWebgl
 		bind:previews={$updatePreview}
 		on:openMeme={(ev) => memaker?.openMeme(ev.detail.file)}
+		on:importMeme={(ev) => memaker?.importMeme(ev.detail.file, 'add', 'append')}
 		on:saveMeme={() => memaker?.exportMeme()?.then(saveBlob('meme.meme'))}
 		on:renderMeme={() =>
 			memaker?.renderMeme()?.then(({ ext, blob }) => saveBlob(`meme.${ext}`)(blob))}

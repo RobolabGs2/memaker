@@ -691,30 +691,65 @@ export class Memaker {
 		);
 	}
 	openMeme(file: Blob) {
+		return this.importMeme(file, 'replace', 'replace');
+	}
+	importMeme(file: Blob, duplicatedPatterns: 'replace' | 'add', newFrames: 'replace' | 'append') {
+		const textureIdMapping = new Map<string, string>();
+		const patternNameMapping = new Map<string, string>();
 		return this.runTask(
 			'Распаковываем мем',
 			MemeFormat.fromFile(file).then((memeData) => {
-				// clean current meme
-				this.getImagesList().forEach((tex) => this.textures.delete(tex.id));
-				this.usedImages.clear();
+				if (newFrames == 'replace') {
+					this.getImagesList().forEach((tex) => this.textures.delete(tex.id));
+					this.usedImages.clear();
+				}
 				return Promise.all(
 					memeData.resources.images
-						.map(({ id, blob }) =>
-							useBlobUrl(
+						.map(({ id, blob }) => {
+							const oldId = id;
+							if (this.textures.has(id)) {
+								id = '';
+							}
+							return useBlobUrl(
 								blob,
 								(url) =>
-									this.textures.downloadImage(url, {
-										id,
-										meta: { source: 'user', type: 'image' }
-									}) as Promise<unknown>
-							)
-						)
+									this.textures
+										.downloadImage(url, {
+											id,
+											meta: { source: 'user', type: 'image' }
+										})
+										.then((texture) => {
+											if (texture.id != oldId) textureIdMapping.set(oldId, texture.id);
+										}) as Promise<unknown>
+							);
+						})
 						.concat(
 							memeData.resources.patterns.map(({ name, blob }) =>
 								useBlobUrl(blob, (url) => {
 									if (patternsNames.has(name)) {
-										this.textures.delete(patternsNames.getTexture(name));
-										patternsNames.delete(name);
+										switch (duplicatedPatterns) {
+											case 'replace': {
+												this.textures.delete(patternsNames.getTexture(name));
+												patternsNames.delete(name);
+												break;
+											}
+											case 'add': {
+												let i = 0;
+												let newName = name;
+												let namePrefix = name;
+												const number = /\((\d+)\)$/.exec(name);
+												if (number) {
+													i = +number[1];
+													namePrefix = name.substring(0, number.index);
+												}
+												do {
+													newName = `${namePrefix}(${++i})`;
+												} while (patternsNames.has(newName));
+												patternNameMapping.set(name, newName);
+												name = newName;
+												break;
+											}
+										}
 									}
 									return this.textures
 										.downloadImage(url, {
@@ -726,11 +761,43 @@ export class Memaker {
 						)
 				)
 					.then(() => {
-						this.meme = memeData.meme;
-						this.meme.frames
-							.flatMap((frame) => frame.blocks)
-							.forEach((block) => this.addImageUsage(block));
-						this.activeFrame = this.meme.frames[0];
+						memeData.meme.frames.forEach((frame) => {
+							frame.id = this.blockIdGenerator.generate();
+							frame.blocks.forEach((block) => {
+								block.id = this.blockIdGenerator.generate();
+								const content = block.content;
+								switch (content.type) {
+									case 'image': {
+										const newId = textureIdMapping.get(content.value.id);
+										if (newId) content.value.id = newId;
+										this.addImageUsage(block);
+										break;
+									}
+									case 'text': {
+										const materials = [
+											content.value.style.stroke.settings,
+											content.value.style.fill.settings
+										];
+										for (const m of materials) {
+											if (m.type !== 'pattern') continue;
+											const newName = patternNameMapping.get(m.name);
+											if (newName) m.name = newName;
+										}
+									}
+								}
+							});
+						});
+						let frameIndex = this.meme.frames.length;
+						switch (newFrames) {
+							case 'replace':
+								this.meme.frames = [];
+								frameIndex = 0;
+							// eslint-disable-next-line no-fallthrough
+							case 'append':
+								this.meme.frames.push(...memeData.meme.frames);
+								break;
+						}
+						this.activeFrame = this.meme.frames[frameIndex];
 						this.memeUpdated();
 						this.frameUpdated();
 						return tick();
@@ -742,6 +809,7 @@ export class Memaker {
 			})
 		);
 	}
+
 	framesFromImages(files: File[]) {
 		return this.runTask(
 			'Загружаем картинки',
