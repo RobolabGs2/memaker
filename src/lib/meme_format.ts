@@ -98,6 +98,7 @@ type BlockV0_2_4 = {
 type LayerSettingsV0_2_4 = {
 	blendMode: string;
 	composeMode: string;
+	alpha: number;
 };
 
 interface MemeDataV0_2_2 {
@@ -294,7 +295,7 @@ export class MemeFormat {
 						...f,
 						blocks: f.blocks.map((b) => ({
 							...b,
-							layer: { blendMode: 'normal', composeMode: 'source_over' }
+							layer: { blendMode: 'normal', composeMode: 'source_over', alpha: 1.0 }
 						}))
 					};
 				})

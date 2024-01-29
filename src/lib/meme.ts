@@ -50,6 +50,7 @@ export type Block = {
 export type LayerSettings = {
 	blendMode: BlendMode;
 	composeMode: ComposeMode;
+	alpha: number;
 };
 
 export type Frame<B = Block> = {
@@ -109,6 +110,7 @@ export class FrameDrawer {
 					block.layer.blendMode,
 					block.layer.composeMode,
 					layerBuffer,
+					block.layer.alpha,
 					i == 0 && j == 0 ? this.backgroundTexture : composedBuffer.attachments[0],
 					i == lastBlock && j == lastLayer ? this.graphics.canvasRenderBuffer : effectBuffer
 				);

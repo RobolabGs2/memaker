@@ -5,6 +5,7 @@
 	import Label from './base/Label.svelte';
 	import Checkbox from './base/Checkbox.svelte';
 	import { slide } from 'svelte/transition';
+	import NumberInput from './base/NumberInput.svelte';
 
 	export let value: LayerSettings;
 
@@ -45,7 +46,10 @@
 	};
 	const composeModes = Object.keys(composeModesMap) as ComposeMode[];
 
-	const layerPresets: Array<{ name: string; value: LayerSettings }> = [
+	const layerPresets: Array<{
+		name: string;
+		value: Pick<LayerSettings, 'blendMode' | 'composeMode'>;
+	}> = [
 		{ name: 'Нормальный', value: { blendMode: 'normal', composeMode: 'source_over' } },
 		{ name: 'Умножение', value: { blendMode: 'multiply', composeMode: 'source_over' } },
 		{ name: 'Добавление', value: { blendMode: 'normal', composeMode: 'lighter' } },
@@ -70,6 +74,19 @@
 </script>
 
 <main>
+	<Label>
+		Прозрачность (%) <NumberInput
+			withRange
+			min={0}
+			max={100}
+			step={1}
+			value={100 - value.alpha * 100}
+			on:change
+			on:input={(ev) => {
+				value.alpha = (100 - ev.detail) / 100;
+			}}
+		/>
+	</Label>
 	<article>
 		<section>Режим:</section>
 		<section>

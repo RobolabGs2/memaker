@@ -6,6 +6,7 @@ uniform sampler2D srcSampler;
 uniform sampler2D dstSampler;
 uniform uint blendMode;
 uniform uint composeMode;
+uniform float srcAlpha;
 
 in vec2 texCoord;
 out vec4 FragColor;
@@ -239,6 +240,7 @@ vec4 compose(uint mode, vec3 cs, float as, vec3 cb, float ab) {
 
 void main() {
     vec4 srcColor = texture(srcSampler, texCoord);
+    srcColor.a *= srcAlpha;
     vec4 dstColor = texture(dstSampler, texCoord);
     vec3 B = blend(blendMode, srcColor.rgb, dstColor.rgb);
     vec3 Cs = (1.f - dstColor.a) * srcColor.rgb + dstColor.a * B;

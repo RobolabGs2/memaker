@@ -344,6 +344,7 @@ export class Graphics<T = unknown> {
 		blendMode: BlendMode,
 		composeMode: ComposeMode,
 		src: twgl.FramebufferInfo,
+		srcAlpha: number,
 		dst: WebGLTexture,
 		result: TargetFrameBuffer
 	) {
@@ -353,7 +354,8 @@ export class Graphics<T = unknown> {
 			srcSampler: src.attachments[0],
 			blendMode: BlendModeEnum[blendMode],
 			composeMode: ComposeModeEnum[composeMode],
-			dstSampler: dst
+			dstSampler: dst,
+			srcAlpha
 		} as Record<string, unknown>;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, result.framebuffer);
 		gl.useProgram(shader.program);

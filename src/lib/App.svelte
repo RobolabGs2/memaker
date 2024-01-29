@@ -42,7 +42,7 @@
 							}
 						},
 						effects: [],
-						layer: { blendMode: 'normal', composeMode: 'source_over' }
+						layer: { blendMode: 'normal', composeMode: 'source_over', alpha: 1 }
 					}
 				]
 			}

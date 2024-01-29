@@ -35,6 +35,13 @@ export function isSkinsMap(raw: Record<string, Record<string, FileImport[]>>): r
 	return Object.values(raw).every(isSkin);
 }
 
+function defaultBlockSettings(): Omit<Block, 'id' | 'container' | 'content'> {
+	return {
+		effects: [],
+		layer: { blendMode: 'normal', composeMode: 'source_over', alpha: 1.0 }
+	};
+}
+
 export class Memaker {
 	private textures: TextureManager<TextureMeta>;
 	public readonly drawer: FrameDrawer;
@@ -222,6 +229,7 @@ export class Memaker {
 		if (newBlock.content.type !== 'text') {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			newBlock = this.activeFrame.blocks.find((b) => b.content.type === 'text') || {
+				...defaultBlockSettings(),
 				id: this.blockIdGenerator.generate(),
 				container: {
 					type: 'global',
@@ -237,9 +245,7 @@ export class Memaker {
 						text: '',
 						style: defaultStyle
 					}
-				},
-				effects: [],
-				layer: { blendMode: 'normal', composeMode: 'source_over' }
+				}
 			};
 		}
 		newBlock = deepCopy(newBlock);
@@ -281,8 +287,8 @@ export class Memaker {
 		}
 
 		const newBlock: Block = {
+			...defaultBlockSettings(),
 			id: this.blockIdGenerator.generate(),
-			effects: [],
 			container: {
 				type: 'rectangle',
 				value: {
@@ -299,8 +305,7 @@ export class Memaker {
 					id: texture.id,
 					crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
 				}
-			},
-			layer: { blendMode: 'normal', composeMode: 'source_over' }
+			}
 		};
 		this.addBlock(newBlock);
 	}
@@ -338,8 +343,8 @@ export class Memaker {
 						}
 
 						const newBlock: Block = {
+							...defaultBlockSettings(),
 							id: this.blockIdGenerator.generate(),
-							effects: [],
 							container: {
 								type: 'rectangle',
 								value: {
@@ -356,8 +361,7 @@ export class Memaker {
 									id: texture.id,
 									crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
 								}
-							},
-							layer: { blendMode: 'normal', composeMode: 'source_over' }
+							}
 						};
 						this.addImageUsage(newBlock);
 
@@ -426,6 +430,7 @@ export class Memaker {
 			id: this.blockIdGenerator.generate(),
 			blocks: [
 				{
+					...defaultBlockSettings(),
 					id: this.blockIdGenerator.generate(),
 					container: {
 						type: 'global',
@@ -442,11 +447,10 @@ export class Memaker {
 							id: background.id,
 							crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
 						}
-					},
-					effects: [],
-					layer: { blendMode: 'normal', composeMode: 'source_over' }
+					}
 				},
 				{
+					...defaultBlockSettings(),
 					id: this.blockIdGenerator.generate(),
 					container: {
 						type: 'global',
@@ -462,9 +466,7 @@ export class Memaker {
 							text: '',
 							style: textStyle
 						}
-					},
-					effects: [],
-					layer: { blendMode: 'normal', composeMode: 'source_over' }
+					}
 				}
 			],
 			height: background.height,
@@ -555,8 +557,8 @@ export class Memaker {
 							};
 						} else {
 							backgroundBlock = {
+								...defaultBlockSettings(),
 								id: this.blockIdGenerator.generate(),
-								effects: [],
 								container: { type: 'global', value: { maxHeight: 1, maxWidth: 1, minHeight: 1 } },
 								content: {
 									type: 'image',
@@ -565,8 +567,7 @@ export class Memaker {
 										id: texture.id,
 										crop: { position: { x: 0.5, y: 0.5 }, height: 1, rotation: 0, width: 1 }
 									}
-								},
-								layer: { blendMode: 'normal', composeMode: 'source_over' }
+								}
 							};
 							this.activeFrame.blocks.unshift(backgroundBlock);
 						}
