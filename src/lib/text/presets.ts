@@ -237,6 +237,33 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 			italic: false,
 			smallCaps: false
 		}
+	},
+	{
+		name: 'White Helvetica bold',
+		case: 'As is',
+		fill: {
+			settings: {
+				type: 'color',
+				value: '#ffffff'
+			},
+			alpha: 1,
+			shadow: {
+				color: '#000000',
+				blur: 40,
+				offset: { x: 0, y: 0 }
+			}
+		},
+		stroke: {
+			settings: { type: 'disabled' },
+			alpha: 1
+		},
+		lineSpacing: -0.15,
+		font: {
+			bold: true,
+			family: 'Helvetica',
+			italic: false,
+			smallCaps: false
+		}
 	}
 ];
 
