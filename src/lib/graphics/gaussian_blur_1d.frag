@@ -14,13 +14,11 @@ out vec4 FragColor;
 
 #define PI 3.1415926
 
-void main() {
-    if(blur <= 0.f) {
+float blurAlpha() {
+    if(blur <= 0.1f) {
         vec4 origin = texture(sourceSampler, texCoord);
-        FragColor = vec4(color, alpha * origin.a);
-        return;
+        return origin.a;
     }
-
     float sum = 0.0f;
     float r = blur * 0.5f;
     float scaleX = 1.f / resolution.x;
@@ -38,6 +36,15 @@ void main() {
         float g = exp(-(x * x + y * y) / C1) / C2;
         sum += origin.a * g;
     }
-    float srcA = alpha * sum;
+    return sum;
+}
+
+void main() {
+    float srcA = blurAlpha();
+    if(alpha > 0.f) {
+        srcA = min(1.0f, srcA / max(0.0001f, 1.f - alpha));
+    } else {
+        srcA *= 1.f + alpha;
+    }
     FragColor = vec4(color, srcA);
 }

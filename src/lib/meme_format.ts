@@ -293,10 +293,18 @@ export class MemeFormat {
 				frames: data.meme.frames.map((f) => {
 					return {
 						...f,
-						blocks: f.blocks.map((b) => ({
-							...b,
-							layer: { blendMode: 'normal', composeMode: 'source_over', alpha: 1.0 }
-						}))
+						blocks: f.blocks.map((b) => {
+							if (b.content.type == 'text') {
+								const m1 = b.content.value.style.fill;
+								const m2 = b.content.value.style.fill;
+								if (m1.shadow) m1.shadow.saturation = 0;
+								if (m2.shadow) m2.shadow.saturation = 0;
+							}
+							return {
+								...b,
+								layer: { blendMode: 'normal', composeMode: 'source_over', alpha: 1.0 }
+							};
+						})
 					};
 				})
 			}
@@ -506,7 +514,8 @@ function convertZeroZeroToActualStyle(
 		? {
 				blur: oldStyle.shadow.blur,
 				color: oldStyle.shadow.color,
-				offset: oldStyle.shadow.offset
+				offset: oldStyle.shadow.offset,
+				saturation: 0
 		  }
 		: undefined;
 	return {

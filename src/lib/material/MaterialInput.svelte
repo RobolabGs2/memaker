@@ -78,7 +78,7 @@
 						value={value.shadow !== undefined}
 						on:change={(ev) => {
 							value.shadow = ev.detail
-								? { blur: 10, color: '#000000', offset: { x: 0, y: 0 } }
+								? { blur: 10, color: '#000000', offset: { x: 0, y: 0 }, saturation: 0.0 }
 								: undefined;
 						}}
 						on:change

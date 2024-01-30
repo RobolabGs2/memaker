@@ -206,7 +206,7 @@ export class Graphics<T = unknown> {
 
 		const uniforms = {
 			color: parseColor(shadow.color),
-			alpha: 1,
+			alpha: shadow.saturation,
 			resolution: [this.size.width, this.size.height],
 			blur: Math.min(shadow.blur, 3600)
 		};

@@ -24,6 +24,7 @@ export type ShadowSettings = {
 	blur: number;
 	color: string;
 	offset: Point;
+	saturation: number;
 };
 
 export function MaterialShaders(

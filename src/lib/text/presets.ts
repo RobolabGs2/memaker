@@ -83,7 +83,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 			shadow: {
 				color: '#000000',
 				blur: 15,
-				offset: { x: 0, y: 0 }
+				offset: { x: 0, y: 0 },
+				saturation: 0
 			}
 		},
 		stroke: {
@@ -250,7 +251,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 			shadow: {
 				color: '#000000',
 				blur: 40,
-				offset: { x: 0, y: 0 }
+				offset: { x: 0, y: 0 },
+				saturation: 0
 			}
 		},
 		stroke: {
