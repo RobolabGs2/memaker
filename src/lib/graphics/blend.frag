@@ -79,17 +79,18 @@ float channelSoftLight(float s, float b) {
     return b + (s2 - 1.f) * (d - b);
 }
 
+bool isEqualColor(float a, float b) {
+    const float eps = 0.9f / 255.f;
+    return abs(a - b) <= eps;
+}
+
 float channelColorDodge(float s, float d) {
-    if(d == 0.f)
-        return 0.f;
-    if(s == 1.f)
+    if(isEqualColor(s, 1.f))
         return 1.f;
     return min(1.f, d / (1.f - s));
 }
 float channelColorBurn(float s, float d) {
-    if(d == 1.f)
-        return 1.f;
-    if(s == 0.f)
+    if(isEqualColor(s, 0.f))
         return 0.f;
     return 1.f - min(1.f, (1.f - d) / s);
 }

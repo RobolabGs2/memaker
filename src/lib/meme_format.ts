@@ -296,7 +296,7 @@ export class MemeFormat {
 						blocks: f.blocks.map((b) => {
 							if (b.content.type == 'text') {
 								const m1 = b.content.value.style.fill;
-								const m2 = b.content.value.style.fill;
+								const m2 = b.content.value.style.stroke;
 								if (m1.shadow) m1.shadow.saturation = 0;
 								if (m2.shadow) m2.shadow.saturation = 0;
 							}
@@ -328,7 +328,7 @@ export class MemeFormat {
 			}
 		};
 		zip.file('index.json', JSON.stringify(memeFile));
-		return zip.generateAsync({ type: 'blob' });
+		return zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
 	}
 	static imageFilepath(id: string): string {
 		return `resources/images/${id}.png`;
