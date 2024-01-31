@@ -7,20 +7,33 @@
 	$: {
 		if (!tabs.includes(activeTab)) activeTab = tabs[0];
 	}
+
+	let collapse = false;
 </script>
 
 <article class={layout}>
-	<header>
-		{#each tabs as tab}
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<section
-				class={`tab ${layout}`}
-				on:click={() => (activeTab = tab)}
-				class:active={activeTab === tab}
-			>
-				<slot {tab} />
-			</section>
-		{/each}
+	<header
+		class:collapse
+		class={layout}
+		title={layout == 'horizontal' ? 'Двойным кликом можно свернуть/развернуть вкладки' : ''}
+		on:dblclick={() => {
+			if (layout != 'horizontal') return;
+			collapse = !collapse;
+			console.log(collapse);
+		}}
+	>
+		{#if !collapse}
+			{#each tabs as tab}
+				<!-- svelte-ignore a11y-click-events-have-key-events -->
+				<section
+					class={`tab ${layout}`}
+					on:click={() => (activeTab = tab)}
+					class:active={activeTab === tab}
+				>
+					<slot {tab} />
+				</section>
+			{/each}
+		{/if}
 	</header>
 	{#each tabs as tab}
 		<section class:hide={activeTab !== tab} class="content">
@@ -33,7 +46,7 @@
 	article.horizontal {
 		display: flex;
 		& > header {
-			background-color: #232323;
+			background-color: #1a1a1a;
 			width: 38px;
 			padding-left: 4px;
 			flex-direction: column;
@@ -47,6 +60,13 @@
 	}
 	header {
 		display: flex;
+		cursor: pointer;
+		&.collapse {
+			&.horizontal {
+				background-color: #525252;
+				max-width: 8px;
+			}
+		}
 	}
 	.content {
 		overflow-y: auto;
@@ -94,7 +114,7 @@
 		&.horizontal {
 			border-radius: 4px 0 0 4px;
 			overflow: hidden;
-			max-height: 32px;
+			max-height: 100px;
 			justify-content: center;
 			align-items: center;
 		}

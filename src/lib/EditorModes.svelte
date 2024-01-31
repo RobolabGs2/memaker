@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from './base/Button.svelte';
-	import SvgIcon from './base/SvgIcon.svelte';
+	import SvgIcon from './base/icons/SvgIcon.svelte';
 	import { BlockEditorMode } from './legacy/rectangle_editor';
 
 	export let current: BlockEditorMode = BlockEditorMode.Cursor;

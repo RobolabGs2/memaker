@@ -1,12 +1,27 @@
 <script lang="ts">
-	import type { ImageContent } from '.';
+	import type { Block, Content } from './meme';
+	import { fontSettingsToCSS } from './text/font';
+	import IconText from './base/icons/IconText.svelte';
 	import { IconPhoto } from '@tabler/icons-svelte';
-	export let content: ImageContent;
+
+	export let value: Block;
+
+	let content: Content;
+	$: content = value.content;
 </script>
 
 <article>
 	<main>
-		<IconPhoto /> <span>{content.name}</span>
+		{#if content.type === 'text'}
+			<IconText />
+			<span style={`font:${fontSettingsToCSS(content.value.style.font, 16)};`}>
+				{content.value.text}
+			</span>
+		{:else if content.type === 'image'}
+			<IconPhoto /> <span>{content.value.name}</span>
+		{:else}
+			{value.content.type}
+		{/if}
 	</main>
 	<slot />
 </article>

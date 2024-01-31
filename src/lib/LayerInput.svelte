@@ -65,7 +65,7 @@
 		{ name: 'Xor', value: { blendMode: 'xor', composeMode: 'source_over' } }
 	];
 
-	let expertMode = true;
+	let expertMode = false;
 	const selectCss = {
 		height: '32px',
 		width: '100%',
@@ -110,7 +110,7 @@
 		</section>
 	</article>
 	<Label>
-		<span>Экспертный режим</span>
+		<span>Показать все настройки</span>
 		<Checkbox bind:value={expertMode} />
 	</Label>
 	{#if expertMode}

@@ -497,17 +497,20 @@ export class Memaker {
 	deleteBlock(block: Block) {
 		const blockIndex = this.activeFrame.blocks.indexOf(block);
 		if (block.id == this.activeBlock.id) {
-			const nextForSelection =
+			const nextIndex =
 				blockIndex == this.activeFrame.blocks.length - 1 ? blockIndex - 1 : blockIndex + 1;
-			if (nextForSelection >= 0) {
-				this.activeBlock = this.activeFrame.blocks[nextForSelection];
+			const nextForSelection = this.activeFrame.blocks[nextIndex];
+			this.activeFrame.blocks.splice(blockIndex, 1);
+			if (nextForSelection) {
+				this.activeBlock = nextForSelection;
 				this.blockUpdated();
 			} else {
 				this.addTextBlock();
 			}
+		} else {
+			this.activeFrame.blocks.splice(blockIndex, 1);
 		}
 		this.removeImageUsage(block);
-		this.activeFrame.blocks.splice(blockIndex, 1);
 		this.frameUpdated();
 	}
 	deleteFrame(frame: Frame) {

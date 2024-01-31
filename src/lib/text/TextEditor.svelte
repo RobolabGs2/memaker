@@ -2,7 +2,7 @@
 	import Label from '$lib/base/Label.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
 	import Select from '$lib/base/Select.svelte';
-	import SvgIcon from '$lib/base/SvgIcon.svelte';
+	import SvgIcon from '$lib/base/icons/SvgIcon.svelte';
 	import TabsContainer from '$lib/base/TabsContainer.svelte';
 	import MaterialInput from '$lib/material/MaterialInput.svelte';
 	import { fontSettingsToCSS } from './font';

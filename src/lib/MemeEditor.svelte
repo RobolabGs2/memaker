@@ -31,12 +31,10 @@
 	import PreviewsContainer from './PreviewsContainer.svelte';
 	import Canvas from './Canvas.svelte';
 	import TextContentSettings from './text/TextContentSettings.svelte';
-	import TextContentPreview from './text/TextContentPreview.svelte';
 	import PreviewActions from './PreviewActions.svelte';
 	import FramePreview from './FramePreview.svelte';
 	import ContainerSettings from './ContainerSettings.svelte';
 	import {
-		IconAbc,
 		IconBorderCorners,
 		IconNewSection,
 		IconPhoto,
@@ -58,12 +56,13 @@
 	import FrameSettings from './FrameSettings.svelte';
 	import EditorModes from './EditorModes.svelte';
 	import type { BlockEditorState } from './legacy/rectangle_editor';
-	import ImageContentPreview from './image/ImageContentPreview.svelte';
 	import ImageContentSettings from './image/ImageContentSettings.svelte';
 	import JsonView from './debug/JsonView.svelte';
-	import SvgIcon from './base/SvgIcon.svelte';
+	import SvgIcon from './base/icons/SvgIcon.svelte';
 	import LayerInput from './LayerInput.svelte';
-	import IconUploadAdd from './base/IconUploadAdd.svelte';
+	import IconUploadAdd from './base/icons/IconUploadAdd.svelte';
+	import IconText from './base/icons/IconText.svelte';
+	import PreviewBlock from './PreviewBlock.svelte';
 
 	export let meme: Meme;
 	export let frame: Frame;
@@ -242,21 +241,21 @@
 				images.forEach((img) => dispatch('createImageBlock', { file: img }))
 			)}
 		>
-			{#if item.content.type == 'text'}
-				{#if item.id == block.id && block.content.type == 'text'}
-					<TextContentPreview content={block.content.value}>
-						<PreviewActions
-							up
-							down
-							remove
-							copy
-							value={item}
-							on:up={() => dispatch('shiftBlock', { block: item, shift: 1 })}
-							on:down={() => dispatch('shiftBlock', { block: item, shift: -1 })}
-							on:remove={() => dispatch('deleteBlock', { block: item })}
-							on:copy={() => dispatch('cloneBlock', { block: item })}
-							iconSize={20}
-						>
+			{#if item.id == block.id}
+				<PreviewBlock value={block}>
+					<PreviewActions
+						up
+						down
+						remove
+						copy
+						value={block}
+						on:up={() => dispatch('shiftBlock', { block, shift: 1 })}
+						on:down={() => dispatch('shiftBlock', { block, shift: -1 })}
+						on:remove={() => dispatch('deleteBlock', { block })}
+						on:copy={() => dispatch('cloneBlock', { block })}
+						iconSize={20}
+					>
+						{#if block.content.type == 'text'}
 							<BlockConverter
 								{frame}
 								bind:style={block.content.value.style}
@@ -264,30 +263,11 @@
 								{frameDrawer}
 								iconSize={20}
 							/>
-						</PreviewActions>
-					</TextContentPreview>
-				{:else}
-					<TextContentPreview content={item.content.value} />
-				{/if}
-			{:else if item.content.type == 'image'}
-				{#if item.id == block.id && block.content.type == 'image'}
-					<ImageContentPreview content={block.content.value}>
-						<PreviewActions
-							up
-							down
-							remove
-							copy
-							value={item}
-							on:up={() => dispatch('shiftBlock', { block: item, shift: 1 })}
-							on:down={() => dispatch('shiftBlock', { block: item, shift: -1 })}
-							on:remove={() => dispatch('deleteBlock', { block: item })}
-							on:copy={() => dispatch('cloneBlock', { block: item })}
-							iconSize={20}
-						/>
-					</ImageContentPreview>
-				{:else}
-					<ImageContentPreview content={item.content.value} />
-				{/if}
+						{/if}
+					</PreviewActions>
+				</PreviewBlock>
+			{:else}
+				<PreviewBlock value={item} />
 			{/if}
 		</PreviewsContainer>
 		<TabsContainer
@@ -302,9 +282,9 @@
 		>
 			<div class="center" title={tab}>
 				{#if tab == 'Текст'}
-					<IconAbc size={24} />
+					<IconText size={24} />
 				{:else if tab == 'Изображение'}
-					<IconPhoto size={20} />
+					<IconPhoto size={24} />
 				{:else if tab == 'Контейнер'}
 					<IconBorderCorners size={24} />
 				{:else if tab == 'Эффекты'}
@@ -406,6 +386,10 @@
 	}
 	.center {
 		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100%;
+		width: 100%;
 	}
 	:global(.tabler-icon) {
 		min-width: 24px;

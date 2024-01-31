@@ -17,7 +17,7 @@
 	import { mdiFormatAlignMiddle } from '@mdi/js';
 	import DropDown from '$lib/base/DropDown.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
-	import SvgIcon from '$lib/base/SvgIcon.svelte';
+	import SvgIcon from '$lib/base/icons/SvgIcon.svelte';
 
 	export let font: FontSettings;
 	export let textCase: TextCase;
