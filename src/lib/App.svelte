@@ -112,7 +112,12 @@
 		} catch (e: unknown) {
 			$error = e;
 		}
-
+		window.addEventListener('keydown', (ev) => {
+			if (ev.key == 'F12') {
+				if (ev.ctrlKey) devMode = !devMode;
+				else if (ev.shiftKey) devTools = true;
+			}
+		});
 		return () => memaker.clear();
 	});
 
@@ -128,12 +133,6 @@
 
 	let devMode = false;
 	let devTools = false;
-	window.addEventListener('keydown', (ev) => {
-		if (ev.key == 'F12') {
-			if (ev.ctrlKey) devMode = !devMode;
-			else if (ev.shiftKey) devTools = true;
-		}
-	});
 </script>
 
 <ThemeContext bind:theme={$theme}>
