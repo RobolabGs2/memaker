@@ -3,8 +3,10 @@ import { writable } from 'svelte/store';
 import fontStatisticsZip from './fonts_metrics.zip';
 import {
 	FontMetricsStore,
+	fontFamilyStatistics,
 	fontStatisticsFromCSV,
-	fontStatisticsToInterpolationData
+	fontStatisticsToInterpolationData,
+	type TextMeasurer
 } from './metrics';
 
 export const fontsNames = writable([
@@ -15,7 +17,8 @@ export const fontsNames = writable([
 	'Next art',
 	'Pacifico',
 	'Caveat',
-	'Comforter'
+	'Comforter',
+	'Raleway'
 ]);
 
 export function loadFontStatisticsCSV(url: string) {
@@ -82,4 +85,12 @@ export function forceLoadFonts(fontsSet = document.fonts): Promise<FontFace[]> {
 		)
 	);
 	return Promise.all(fontsPromises);
+}
+
+export function prepareFontFamilyInterpolationDataZIP(measurer: TextMeasurer, family: string) {
+	const zip = JSZip();
+	fontFamilyStatistics(measurer, family).forEach((s) =>
+		zip.file(`${s.name}.json`, JSON.stringify(fontStatisticsToInterpolationData(s.data)))
+	);
+	return zip.generateAsync({ compression: 'DEFLATE', type: 'blob' });
 }

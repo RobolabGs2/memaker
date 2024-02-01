@@ -4,6 +4,7 @@
 	import ClipboardErrorModal from './ClipboardErrorModal.svelte';
 	import MemeEditor from './MemeEditor.svelte';
 	import Modal from './base/Modal.svelte';
+	import DevTools from './debug/DevTools.svelte';
 	import ThemeContext from './base/ThemeContext.svelte';
 	import { theme } from './base/theme_store';
 	import type { BlockEditorState } from './legacy/rectangle_editor';
@@ -124,6 +125,15 @@
 			else throw err;
 		});
 	}
+
+	let devMode = false;
+	let devTools = false;
+	window.addEventListener('keydown', (ev) => {
+		if (ev.key == 'F12') {
+			if (ev.ctrlKey) devMode = !devMode;
+			else if (ev.shiftKey) devTools = true;
+		}
+	});
 </script>
 
 <ThemeContext bind:theme={$theme}>
@@ -138,8 +148,13 @@
 			Произошла ошибка: {$error}.
 		</article>
 	</Modal>
+	<Modal bind:open={devTools}>
+		<svelte:fragment slot="title">Инструменты разработчика</svelte:fragment>
+		<DevTools />
+	</Modal>
 	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
 	<MemeEditor
+		{devMode}
 		effectsShaders={shaders.effects}
 		version={import.meta.env.VITE_APP_VERSION}
 		{memeExampleURL}

@@ -162,7 +162,7 @@ export class FontMetricsStore {
 	get(font: FontSettings): FontMetrics {
 		if (!this.data)
 			return {
-				k: 1,
+				k: 1 / 256,
 				metrics: {
 					height: [0, 1],
 					size: [0, 1]
