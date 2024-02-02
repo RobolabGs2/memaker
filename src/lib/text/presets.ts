@@ -48,7 +48,7 @@ export function applyStylePreset(preset: StylePresetType, style: TextStyle): Tex
 
 const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
-		name: 'TRUE IMPACT',
+		name: 'КАНОНИЧНЫЙ ИМПАКТ',
 		case: 'UPPER',
 		fill: {
 			settings: {
@@ -72,7 +72,7 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 		}
 	},
 	{
-		name: 'post-ironic lobster',
+		name: 'постироничный лобстер',
 		case: 'lower',
 		fill: {
 			settings: {
@@ -101,27 +101,7 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 		}
 	},
 	{
-		name: 'Helvetica bold subtitles',
-		case: 'As is',
-		fill: {
-			alpha: 1,
-			settings: { type: 'color', value: '#ffffff' }
-		},
-		stroke: {
-			alpha: 1,
-			settings: { type: 'color', value: '#000000' }
-		},
-		lineSpacing: -0.15,
-		strokeWidth: 16.85,
-		font: {
-			bold: true,
-			family: 'Helvetica',
-			italic: false,
-			smallCaps: false
-		}
-	},
-	{
-		name: 'Arial subtitles',
+		name: 'Субтитры',
 		case: 'As is',
 		fill: {
 			settings: {
@@ -135,31 +115,13 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 				type: 'color',
 				value: '#000000'
 			},
-			alpha: 1
-		},
-		font: {
-			bold: false,
-			family: 'Arial',
-			italic: false,
-			smallCaps: false
-		}
-	},
-	{
-		name: 'Arial bold subtitles',
-		case: 'As is',
-		fill: {
-			settings: {
-				type: 'color',
-				value: '#ffffff'
-			},
-			alpha: 1
-		},
-		stroke: {
-			settings: {
-				type: 'color',
-				value: '#000000'
-			},
-			alpha: 1
+			alpha: 1,
+			shadow: {
+				color: '#000000',
+				blur: 10,
+				offset: { x: 0, y: 5 },
+				saturation: 0
+			}
 		},
 		font: {
 			bold: true,
@@ -169,78 +131,7 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 		}
 	},
 	{
-		name: 'Black Arial',
-		case: 'As is',
-		fill: {
-			settings: {
-				type: 'color',
-				value: '#000000'
-			},
-			alpha: 1
-		},
-		stroke: {
-			settings: {
-				type: 'disabled'
-			},
-			alpha: 1
-		},
-		font: {
-			bold: false,
-			family: 'Arial',
-			italic: false,
-			smallCaps: false
-		}
-	},
-	{
-		name: 'Black Arial bold',
-		case: 'As is',
-		fill: {
-			settings: {
-				type: 'color',
-				value: '#000000'
-			},
-			alpha: 1
-		},
-		stroke: {
-			settings: {
-				type: 'disabled'
-			},
-			alpha: 1
-		},
-		font: {
-			bold: true,
-			family: 'Arial',
-			italic: false,
-			smallCaps: false
-		}
-	},
-	{
-		name: 'Black Helvetica bold',
-		case: 'As is',
-		fill: {
-			settings: {
-				type: 'color',
-				value: '#000000'
-			},
-			alpha: 1
-		},
-		stroke: {
-			settings: {
-				type: 'disabled'
-			},
-			alpha: 1
-		},
-		lineSpacing: -0.15,
-		strokeWidth: 16.85,
-		font: {
-			bold: true,
-			family: 'Helvetica',
-			italic: false,
-			smallCaps: false
-		}
-	},
-	{
-		name: 'White Helvetica bold',
+		name: 'подпись с тенью',
 		case: 'As is',
 		fill: {
 			settings: {
@@ -263,6 +154,53 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 		font: {
 			bold: true,
 			family: 'Helvetica',
+			italic: false,
+			smallCaps: false
+		}
+	},
+	{
+		name: 'Arial с обводкой',
+		case: 'As is',
+		fill: {
+			settings: {
+				type: 'color',
+				value: '#ffffff'
+			},
+			alpha: 1
+		},
+		stroke: {
+			settings: {
+				type: 'color',
+				value: '#000000'
+			},
+			alpha: 1
+		},
+		font: {
+			bold: false,
+			family: 'Arial',
+			italic: false,
+			smallCaps: false
+		}
+	},
+	{
+		name: 'Обычный текст',
+		case: 'As is',
+		fill: {
+			settings: {
+				type: 'color',
+				value: '#000000'
+			},
+			alpha: 1
+		},
+		stroke: {
+			settings: {
+				type: 'disabled'
+			},
+			alpha: 1
+		},
+		font: {
+			bold: false,
+			family: 'Arial',
 			italic: false,
 			smallCaps: false
 		}

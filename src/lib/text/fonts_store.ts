@@ -9,17 +9,26 @@ import {
 	type TextMeasurer
 } from './metrics';
 
-export const fontsNames = writable([
-	'Impact',
-	'Lobster',
-	'Arial',
-	'Helvetica',
-	'Next art',
-	'Pacifico',
-	'Caveat',
-	'Comforter',
-	'Raleway'
-]);
+export const fontsNames = writable(
+	[
+		'Arial', // Гротеск
+		'Impact', // Брусковый гротеск
+		'Lobster', // Рукописный
+		'Helvetica', // Гротеск
+		'Next art', // Гротеск?
+		'Pacifico', // Рукописный
+		'Caveat', // Рукописный
+		'Comforter', // Рукописный
+		'Raleway', // Гротеск
+		'Lora', // С засечками/антиква
+		'Marck Script', // Рукописный
+		'Bad Script', // Рукописный
+		'Tektur', // Гротеск?
+		'Unbounded',
+		'Press Start 2P', // Пиксельный
+		'JetBrains Mono' // Моноширинный гротеск?
+	].sort()
+);
 
 export function loadFontStatisticsCSV(url: string) {
 	const store = new FontMetricsStore();

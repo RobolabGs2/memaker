@@ -9,5 +9,5 @@ export function fontSettingsToCSS({ italic, smallCaps, bold, family }: FontSetti
 	const style = italic ? 'italic' : 'normal';
 	const variant = smallCaps ? 'small-caps' : 'normal';
 	const weight = bold ? 'bold' : 'normal';
-	return `${style} ${variant} ${weight} ${size}px ${family}`;
+	return `${style} ${variant} ${weight} ${size}px "${family}"`;
 }

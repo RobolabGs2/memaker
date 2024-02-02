@@ -149,7 +149,7 @@
 	</Modal>
 	<Modal bind:open={devTools}>
 		<svelte:fragment slot="title">Инструменты разработчика</svelte:fragment>
-		<DevTools />
+		<DevTools {memaker} />
 	</Modal>
 	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
 	<MemeEditor

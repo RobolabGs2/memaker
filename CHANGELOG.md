@@ -29,8 +29,35 @@
 
 ### Добавлено
 
-- Шрифт Raleway.
+- Шрифты:
+  - Bad Script
+  - JetBrains Mono
+  - Lora
+  - Marck Script
+  - Press Start 2P
+  - Raleway
+  - Tektur
+  - Unbounded
 - Инструменты разработчика (Ctrl+F12, Shift+F12).
+
+### Изменено
+
+- Переименованы пресеты
+  - `TRUE IMPACT` -> `КАНОНИЧНЫЙ ИМПАКТ`
+  - `post-ironic lobster` -> `постироничный лобстер`
+  - `Arial bold subtitles` -> `Субтитры`
+  - `White Helvetica bold` -> `подпись с тенью`
+  - `Arial subtitles` -> `Arial с обводкой`
+  - `Black Arial` -> `Обычный текст`
+- В персете `Субтитры` теперь тень.
+- Обновлены фреймы с демонстрацией шрифтов и пресетов.
+
+## Удалено
+
+- Пресеты
+  - `Helvetica bold subtitles`
+  - `Black Arial bold`
+  - `Black Helvetica bold`
 
 ## [0.2.7] - 2024-01-31
 

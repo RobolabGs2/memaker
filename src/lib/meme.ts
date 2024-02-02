@@ -86,9 +86,11 @@ export class FrameDrawer {
 	drawFrame(frame: Frame) {
 		this.graphics.resize(frame.width, frame.height);
 		const gl = this.gl;
+		const backgroundAlpha = frame.backgroundAlpha ?? 1.0;
+		const backgroundColor = parseColorBytes(frame.backgroundColor ?? '#ff0000').map((c) => c);
 		twgl.setTextureFromArray(gl, this.backgroundTexture, [
-			...parseColorBytes(frame.backgroundColor ?? '#ff0000'),
-			(frame.backgroundAlpha ?? 1.0) * 255
+			...backgroundColor,
+			backgroundAlpha * 255
 		]);
 		let effectBuffer = this.graphics.buffersPull.get(frame.width, frame.height);
 		const layerBuffer = this.graphics.buffersPull.get(frame.width, frame.height);

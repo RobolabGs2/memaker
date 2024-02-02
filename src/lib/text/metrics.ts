@@ -157,6 +157,14 @@ export function fontFamilyStatistics(measurer: TextMeasurer, family: string) {
 	return statistics;
 }
 
+export function fontVariations(family: string): FontSettings[] {
+	const variations = new Array<FontSettings>();
+	for (const italic of [false, true])
+		for (const smallCaps of [false, true])
+			for (const bold of [false, true]) variations.push({ family, italic, smallCaps, bold });
+	return variations;
+}
+
 export class FontMetricsStore {
 	data?: Map<string, FontMetrics>;
 	get(font: FontSettings): FontMetrics {

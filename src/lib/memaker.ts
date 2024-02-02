@@ -35,7 +35,7 @@ export function isSkinsMap(raw: Record<string, Record<string, FileImport[]>>): r
 	return Object.values(raw).every(isSkin);
 }
 
-function defaultBlockSettings(): Omit<Block, 'id' | 'container' | 'content'> {
+export function defaultBlockSettings(): Omit<Block, 'id' | 'container' | 'content'> {
 	return {
 		effects: [],
 		layer: { blendMode: 'normal', composeMode: 'source_over', alpha: 1.0 }
@@ -487,7 +487,12 @@ export class Memaker {
 			: this.newFrame(
 					this.placeholdersTextures[Math.floor(Math.random() * this.placeholdersTextures.length)]
 			  );
-		this.meme.frames.push(frame);
+		let index = this.meme.frames.length;
+		if (index) {
+			const currentIndex = this.meme.frames.findIndex((frame) => frame === this.activeFrame);
+			if (currentIndex != -1) index = currentIndex + 1;
+		}
+		this.meme.frames.splice(index, 0, frame);
 		this.activeFrame = frame;
 		frame.blocks.forEach((b) => this.addImageUsage(b));
 		this.memeUpdated();

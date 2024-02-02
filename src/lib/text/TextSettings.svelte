@@ -81,8 +81,19 @@
 			{/each}
 		</section>
 	</DropDown>
-	<Select title="Шрифт" bind:value={font.family} items={$fontsNames} on:change let:item>
-		<section style="font-family: {item}">{item}</section>
+	<Select
+		css={{
+			height: '48px',
+			width: '100%',
+			main: 'min-width: 128px;'
+		}}
+		title="Шрифт"
+		bind:value={font.family}
+		items={$fontsNames}
+		on:change
+		let:item
+	>
+		<section style="font-family: '{item}'">{item}</section>
 	</Select>
 	<Select
 		title="Регистр"
