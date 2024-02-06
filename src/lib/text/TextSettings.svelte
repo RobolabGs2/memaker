@@ -24,6 +24,11 @@
 	export let align: TextAlign;
 	export let baseline: TextBaseline;
 	export let spacing: number;
+
+	const fontFamilySize: Record<string, number> = {
+		'JetBrains Mono': 15,
+		'Press Start 2P': 9
+	};
 </script>
 
 <article>
@@ -33,9 +38,9 @@
 	<ToggleButton title="Жирный" bind:value={font.bold} on:change>
 		<IconBold size={20} />
 	</ToggleButton>
-	<ToggleButton title="Капитель" bind:value={font.smallCaps} on:change
-		><span style="font-size: 20px;font-variant: small-caps;">Аа</span></ToggleButton
-	>
+	<ToggleButton title="Капитель" bind:value={font.smallCaps} on:change>
+		<span style="font-size: 20px;font-variant: small-caps;">Аа</span>
+	</ToggleButton>
 	<Select
 		title="Выравнивание"
 		bind:value={align}
@@ -85,7 +90,7 @@
 		css={{
 			height: '48px',
 			width: '100%',
-			main: 'min-width: 128px;'
+			main: 'min-width: 148px;'
 		}}
 		title="Шрифт"
 		bind:value={font.family}
@@ -93,7 +98,11 @@
 		on:change
 		let:item
 	>
-		<section style="font-family: '{item}'">{item}</section>
+		<section
+			style="font-family: '{item}';font-size: {fontFamilySize[item] || 16}px"
+		>
+			{item}
+		</section>
 	</Select>
 	<Select
 		title="Регистр"

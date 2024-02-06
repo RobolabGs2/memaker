@@ -133,13 +133,13 @@ export function fontStatistics(
 	return { fontSize, height, meta };
 }
 
-export function fontSettingsToKey(font: FontSettings): string {
+export function fontSettingsToKey(font: FontSettings, separator = '_'): string {
 	const { family, italic, bold, smallCaps } = font;
 	const nameParts = [family];
 	if (italic) nameParts.push('italic');
 	if (bold) nameParts.push('bold');
 	if (smallCaps) nameParts.push('small-caps');
-	return nameParts.join('_');
+	return nameParts.join(separator);
 }
 
 export function fontFamilyStatistics(measurer: TextMeasurer, family: string) {

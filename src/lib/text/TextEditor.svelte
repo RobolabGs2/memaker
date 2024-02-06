@@ -10,6 +10,8 @@
 	import type { TextStyle } from './text';
 	import TextSettings from './TextSettings.svelte';
 	import { IconBrandTopbuzz } from '@tabler/icons-svelte';
+	import type { Material } from '$lib/material';
+	import { fontSettingsToKey } from './metrics';
 
 	export let style: TextStyle;
 	export let text: string;
@@ -42,6 +44,33 @@
 		style = applyStylePreset(preset, style);
 		presetName = choosePreset;
 	}
+	const colorNames: Record<string, string | undefined> = {
+		'#ffffff': 'белая',
+		'#000000': 'чёрная'
+	};
+	function textMaterialTooltip(material: Material) {
+		const res = [];
+		switch (material.settings.type) {
+			case 'disabled':
+				return 'отсутствует';
+			case 'color':
+				res.push(colorNames[material.settings.value] || `цвет: ${material.settings.value}`);
+				break;
+			case 'pattern':
+				res.push(`паттерн (${material.settings.name})`);
+				break;
+			case 'gradient4':
+				res.push(`градиент`);
+				break;
+		}
+		if (material.shadow) res.push('с тенью');
+		return res.join(' ');
+	}
+	function presetTooltip(preset: StylePresetType) {
+		return `Шрифт: ${fontSettingsToKey(preset.font, ' ')}
+Заливка: ${textMaterialTooltip(preset.fill)}
+Обводка: ${textMaterialTooltip(preset.stroke)}`;
+	}
 
 	// https://icons.getbootstrap.com/icons/paint-bucket/
 	const bootstrapFillSvg =
@@ -58,7 +87,10 @@
 		let:item
 	>
 		{#if item.preset}
-			<div style="font: {fontSettingsToCSS(item.preset.font, 16)}">
+			<div
+				style="font: {fontSettingsToCSS(item.preset.font, 16)}"
+				title={presetTooltip(item.preset)}
+			>
 				{item.name}
 			</div>
 		{:else}
