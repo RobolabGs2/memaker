@@ -17,6 +17,8 @@
 	import { EffectShaders } from './effect';
 	import { MaterialShaders } from './material';
 	import { patternsNames } from './material/pattern/store';
+	import FloatWindow from './base/FloatWindow.svelte';
+	import EffectEditor from './effect/EffectEditor.svelte';
 
 	export let patternUrls: FileImport[];
 	export let placeholdersUrls: SkinsMap;
@@ -136,6 +138,8 @@
 
 	let devMode = false;
 	let devTools = false;
+
+	let compilationError = '';
 </script>
 
 <ThemeContext bind:theme={$theme}>
@@ -154,6 +158,28 @@
 		<svelte:fragment slot="title">Инструменты разработчика</svelte:fragment>
 		<DevTools {memaker} />
 	</Modal>
+	<FloatWindow closable={false}>
+		<EffectEditor
+			{compilationError}
+			on:compile={(ev) => {
+				if (!memaker) return;
+				compilationError = 'START';
+				memaker.drawer.graphics
+					.compileShader('effect', ev.detail)
+					.then((compiled) => {
+						memaker.drawer.graphics.updateShader('effect', ev.detail.title, compiled);
+						shaders.effects[ev.detail.title] = ev.detail;
+						return tick().then(() => {
+							memaker.draw();
+							compilationError = 'OK';
+						});
+					})
+					.catch((err) => {
+						compilationError = err.message;
+					});
+			}}
+		/>
+	</FloatWindow>
 	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
 	<MemeEditor
 		{devMode}

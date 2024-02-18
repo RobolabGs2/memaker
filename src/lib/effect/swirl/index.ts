@@ -12,7 +12,7 @@ export const SwirlShader: RawShader = {
 			default: 180,
 			input: {
 				type: 'angle',
-				mode: AngleShaderMode.RADIAN,
+				mode: AngleShaderMode.DEGREE,
 				step: 0.5
 			}
 		},

@@ -66,7 +66,7 @@
 	const downEffect = makeShiftEffectHandler(-1);
 
 	const placeholderKey = '__add__' as const;
-	const effectKeys = [...Object.keys(shaders), placeholderKey];
+	let effectKeys = [...Object.keys(shaders), placeholderKey];
 
 	let active = { id: value[0], value: value[0] };
 	$: {
@@ -74,6 +74,7 @@
 			active.value = value[value.length - 1];
 			active.id = active.value;
 		}
+		effectKeys = [...Object.keys(shaders), placeholderKey];
 	}
 	let selectorValue = placeholderKey;
 </script>

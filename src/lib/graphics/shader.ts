@@ -1,5 +1,6 @@
 import {
 	AngleShaderMode,
+	getDefaultValue,
 	type UniformInput,
 	type UniformInputDefault,
 	type UniformInputType
@@ -44,9 +45,9 @@ export function inputToUniform(
 	uniforms: Record<string, unknown>
 ) {
 	const uniformName = input.name;
-	let value = src[input.name];
+	const value = src[input.name];
 	if (value === undefined) {
-		value = src[input.name] = structuredClone(input.default);
+		return;
 	}
 	const settings = input.input;
 	switch (settings.type) {
@@ -61,7 +62,7 @@ export function inputToUniform(
 			break;
 		case 'angle':
 			uniforms[uniformName] =
-				settings.mode == AngleShaderMode.DEGREE ? value : ((value as number) / 180) * Math.PI;
+				settings.mode == AngleShaderMode.RADIAN ? value : ((value as number) / 180) * Math.PI;
 			break;
 		case 'point': {
 			const { x, y } = value as Point;

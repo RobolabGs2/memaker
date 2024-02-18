@@ -13,51 +13,7 @@ import type { TextureManager } from './textures';
 import type { Effect } from '$lib/effect';
 import { type RawShader, type GraphicsContext, parseColor, inputToUniform } from './shader';
 import type { Point } from '$lib/geometry/point';
-
-class FrameBuffersPull {
-	constructor(
-		readonly gl: WebGL2RenderingContext,
-		readonly options: twgl.AttachmentOptions[] = [{ format: gl.RGBA }]
-	) {}
-
-	private freeBuffers: twgl.FramebufferInfo[] = [];
-	private usedBuffers = new Set<twgl.FramebufferInfo>();
-	get(width: number, height: number): twgl.FramebufferInfo {
-		const buf = this.freeBuffers.pop();
-		if (buf) {
-			if (buf.height !== height || buf.width !== width)
-				twgl.resizeFramebufferInfo(this.gl, buf, this.options, width, height);
-			this.usedBuffers.add(buf);
-			this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, buf.framebuffer);
-			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-			return buf;
-		}
-		const newBuf = twgl.createFramebufferInfo(this.gl, this.options, width, height);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-		this.usedBuffers.add(newBuf);
-		console.log(`Создан новый буфер, всего: ${this.usedBuffers.size}`);
-		return newBuf;
-	}
-	free(buf: twgl.FramebufferInfo) {
-		if (!this.usedBuffers.delete(buf)) {
-			console.trace('FrameBuffersPull: free not used buffer!');
-			return;
-		}
-		this.freeBuffers.push(buf);
-	}
-	clear() {
-		this.freeBuffers.forEach((buf) => {
-			this.gl.deleteFramebuffer(buf.framebuffer);
-			buf.attachments.forEach((tx) => {
-				if (this.gl.isTexture(tx)) this.gl.deleteTexture(tx);
-				else this.gl.deleteRenderbuffer(tx);
-			});
-		});
-		this.freeBuffers = [];
-		if (this.usedBuffers.size)
-			console.trace(`FrameBuffersPull: call clear with ${this.usedBuffers.size} buffers in use!`);
-	}
-}
+import { FrameBuffersPool } from './buffers_pool';
 
 export interface TargetFrameBuffer {
 	readonly width: number;
@@ -71,7 +27,30 @@ function materialShaderSources({ vertex, fragment }: RawShader): [string, string
 }
 
 function effectShaderSources({ vertex, fragment }: RawShader): [string, string] {
-	return [vertex || fullscreenShader, (fragment || baseFragShader) + libGlsl];
+	return [vertex || fullscreenShader, fragment || baseFragShader];
+}
+
+type CompiledShader = {
+	info: twgl.ProgramInfo;
+	uniforms: (
+		settings: Record<string, unknown>,
+		rectangle: Rectangle,
+		ctx: GraphicsContext
+	) => Record<string, unknown>;
+};
+
+export class ShaderCompilationError extends Error {
+	constructor(readonly sources: [string, string], msg: string) {
+		super(msg);
+	}
+}
+
+function effectShaderName(name: string) {
+	return `EFF_${name}`;
+}
+
+function materialShaderName(name: string) {
+	return `MAT_${name}`;
 }
 
 export class Graphics<T = unknown> {
@@ -85,9 +64,12 @@ export class Graphics<T = unknown> {
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 		gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_DST_ALPHA, gl.ONE, gl.ONE_MINUS_DST_ALPHA);
 		const shaderSources = Object.entries(materials)
-			.map(([name, raw]) => [name, materialShaderSources(raw)])
+			.map(([name, raw]) => [materialShaderName(name), materialShaderSources(raw)])
 			.concat(
-				Object.entries(mods).map(([name, raw]) => [name, effectShaderSources(raw)]),
+				Object.entries(mods).map(([name, raw]) => [
+					effectShaderName(name),
+					effectShaderSources(raw)
+				]),
 				[
 					['__shadow__', [fullscreenShader, shadowFragShader + libGlsl]],
 					['__image__', [baseVertShader, textureFragShader + libGlsl]],
@@ -96,23 +78,26 @@ export class Graphics<T = unknown> {
 			);
 		const shaderInfos = twgl.createProgramInfos(gl, Object.fromEntries(shaderSources));
 		this.shaders = Object.fromEntries(
-			Object.entries({ ...materials, ...mods }).map(([name, raw]) => [
-				name,
-				{
-					uniforms: (s, b, ctx) => {
-						if (raw.uniforms) return raw.uniforms(s, b, ctx);
-						if (raw.inputs) {
-							const uniforms = {} as Record<string, unknown>;
-							for (const input of raw.inputs) {
-								inputToUniform(input, s, uniforms);
+			Object.entries(materials)
+				.map(([name, raw]) => [materialShaderName(name), raw] as const)
+				.concat(Object.entries(mods).map(([name, raw]) => [effectShaderName(name), raw]))
+				.map(([name, raw]) => [
+					name,
+					{
+						uniforms: (s, b, ctx) => {
+							if (raw.uniforms) return raw.uniforms(s, b, ctx);
+							if (raw.inputs) {
+								const uniforms = {} as Record<string, unknown>;
+								for (const input of raw.inputs) {
+									inputToUniform(input, s, uniforms);
+								}
+								return uniforms;
 							}
-							return uniforms;
-						}
-						return {};
-					},
-					info: shaderInfos[name]
-				}
-			])
+							return {};
+						},
+						info: shaderInfos[name]
+					}
+				])
 		);
 		this.shadowProgram = shaderInfos['__shadow__'];
 		this.imageProgram = shaderInfos['__image__'];
@@ -135,20 +120,47 @@ export class Graphics<T = unknown> {
 				[0, 0]
 			].flat()
 		});
-		this.buffersPull = new FrameBuffersPull(this.gl);
+		this.buffersPull = new FrameBuffersPool(this.gl);
 	}
-	private shaders: Record<
-		string,
-		{
-			info: twgl.ProgramInfo;
-			uniforms: (
-				settings: Record<string, unknown>,
-				rectangle: Rectangle,
-				ctx: GraphicsContext
-			) => Record<string, unknown>;
+	updateShader(type: 'effect' | 'material', name: string, shader: CompiledShader) {
+		const mapKey = type === 'effect' ? effectShaderName(name) : materialShaderName(name);
+		const old = this.shaders[mapKey];
+		if (old) {
+			this.gl.deleteProgram(old.info.program);
 		}
-	>;
-	public buffersPull: FrameBuffersPull;
+		this.shaders[mapKey] = shader;
+	}
+	compileShader(type: 'effect' | 'material', raw: RawShader) {
+		const sources = type === 'effect' ? effectShaderSources(raw) : materialShaderSources(raw);
+		return new Promise<CompiledShader>((resolve, reject) => {
+			twgl.createProgramInfo(this.gl, sources, {
+				callback: (err, info) => {
+					if (err) {
+						reject(new ShaderCompilationError(sources, err));
+						return;
+					}
+					if (!info) {
+						reject(new ShaderCompilationError(sources, `Undefined program info`));
+						return;
+					}
+					const uniforms: CompiledShader['uniforms'] = (s, b, ctx) => {
+						if (raw.uniforms) return raw.uniforms(s, b, ctx);
+						if (raw.inputs) {
+							const uniforms = {} as Record<string, unknown>;
+							for (const input of raw.inputs) {
+								inputToUniform(input, s, uniforms);
+							}
+							return uniforms;
+						}
+						return {};
+					};
+					resolve({ info: info as twgl.ProgramInfo, uniforms });
+				}
+			});
+		});
+	}
+	private shaders: Record<string, CompiledShader>;
+	public buffersPull: FrameBuffersPool;
 	private shadowProgram: twgl.ProgramInfo;
 	private blendProgram: twgl.ProgramInfo;
 	private imageProgram: twgl.ProgramInfo;
@@ -243,7 +255,7 @@ export class Graphics<T = unknown> {
 		destination: TargetFrameBuffer
 	) {
 		const gl = this.gl;
-		const shader = this.shaders[material.settings.type];
+		const shader = this.shaders[materialShaderName(material.settings.type)];
 		const uniforms = {
 			camera: twgl.m4.ortho(0, this.size.width, this.size.height, 0, -100, 100),
 			transform: twgl.m4.scale(
@@ -283,7 +295,7 @@ export class Graphics<T = unknown> {
 			const dest = i === modifications.length - 1 ? destination : tmp;
 
 			const mod = modifications[i];
-			const shader = this.shaders[mod.type];
+			const shader = this.shaders[effectShaderName(mod.type)];
 			const uniforms = {
 				layer: src.attachments[0],
 				resolution: [this.size.width, this.size.height],

@@ -29,3 +29,24 @@ export function EffectShaders(): Record<string, RawShader> {
 		pixelation: PixelationShader
 	};
 }
+
+export interface ShaderResource {
+	name: string;
+	shader: RawShader;
+	source: 'default' | 'user';
+}
+
+const defaultShaders: ShaderResource[] = [
+	{ name: 'noise', shader: NoiseShader, source: "default" },
+	{ name: 'bugle', shader: BugleShader, source: "default" },
+	{ name: 'pinch', shader: PinchShader, source: "default" },
+	{ name: 'swirl', shader: SwirlShader, source: "default" },
+	{ name: 'grayscale', shader: { title: 'Оттенки серого', fragment: grayscaleShader}, source: "default" },
+	{ name: 'brightness_contrast', shader: BrightnessContrastShader, source: "default" },
+	{ name: 'temperature', shader: TemperatureShader, source: "default" },
+	{ name: 'pixelation', shader: PixelationShader, source: "default" }
+];
+
+export class ShadersManager {
+
+}

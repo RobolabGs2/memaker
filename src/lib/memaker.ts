@@ -851,6 +851,17 @@ export class Memaker {
 			})
 		).then(() => this.draw(this.activeFrame));
 	}
+	updateEffect(key: string, shader: RawShader) {
+		
+		this.meme.frames.forEach((frame) =>
+			frame.blocks.forEach((block) => {
+				block.effects.forEach((effect) => {
+					if (effect.type !== key) return;
+
+				});
+			})
+		);
+	}
 	clear() {
 		patternsNames.clear();
 		this.textures.clear();
