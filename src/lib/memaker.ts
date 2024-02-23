@@ -715,20 +715,15 @@ export class Memaker {
 				return Promise.all(
 					memeData.resources.images
 						.map(({ id, blob }) => {
-							const oldId = id;
-							if (this.textures.has(id)) {
-								id = '';
-							}
 							return useBlobUrl(
 								blob,
 								(url) =>
 									this.textures
 										.downloadImage(url, {
-											id,
 											meta: { source: 'user', type: 'image' }
 										})
 										.then((texture) => {
-											if (texture.id != oldId) textureIdMapping.set(oldId, texture.id);
+											textureIdMapping.set(id, texture.id);
 										}) as Promise<unknown>
 							);
 						})

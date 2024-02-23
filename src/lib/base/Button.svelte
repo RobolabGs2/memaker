@@ -7,7 +7,7 @@
 	export let disablePadding = false;
 	export let justifyContent = 'center';
 	export let border = true;
-	export let width = '100%';
+	export let width = '';
 	export let height = '';
 </script>
 
@@ -20,7 +20,9 @@
 	class:disablePadding
 	class:border
 	class={type}
-	style={`justify-content:${justifyContent};width:${width};${height ? `${height};` : ''}${style};`}
+	style="justify-content:{justifyContent};width:{width || '100%'};{width
+		? `min-width:${width};max-width:${width};`
+		: ''}{height ? `${height};` : ''}{style};"
 	on:click
 	on:mousemove
 	on:mouseout

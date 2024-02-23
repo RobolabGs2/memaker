@@ -226,7 +226,7 @@
 			</Button>
 			<Button
 				type="primary"
-				width="256px"
+				width="148px"
 				disablePadding
 				on:click={() => dispatch('createImageBlock', {})}
 			>

@@ -3,45 +3,66 @@
 	import Select from '$lib/base/Select.svelte';
 	import type { FontSettings } from './font';
 	import { fontsNames } from './fonts_store';
-	import type { TextAlign, TextBaseline, TextCase } from './text';
+	import type { TextAlign, TextBaseline, TextCase, TextFontSizeStrategy } from './text';
 	import {
 		IconAlignLeft,
 		IconAlignCenter,
 		IconAlignRight,
 		IconArrowBarToUp,
 		IconArrowBarToDown,
-		IconItalic,
 		IconBold,
+		IconItalic,
+		IconLetterCase,
+		IconLetterCaseLower,
+		IconLetterCaseUpper,
 		IconLineHeight
 	} from '@tabler/icons-svelte';
 	import { mdiFormatAlignMiddle } from '@mdi/js';
 	import DropDown from '$lib/base/DropDown.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
 	import SvgIcon from '$lib/base/icons/SvgIcon.svelte';
+	import IconLinesFont from '$lib/base/icons/IconLinesFont.svelte';
 
 	export let font: FontSettings;
 	export let textCase: TextCase;
 	export let align: TextAlign;
 	export let baseline: TextBaseline;
 	export let spacing: number;
+	export let fontSizeStrategy: TextFontSizeStrategy;
 
 	const fontFamilySize: Record<string, number> = {
 		'JetBrains Mono': 15,
 		'Press Start 2P': 9
 	};
+
+	const buttonWidth = '48px';
+	const selectCSS = {
+		height: '48px',
+		width: '100%',
+		main: 'min-width: 52px;max-width: 92px;'
+	};
 </script>
 
 <article>
-	<ToggleButton title="Курсив" bind:value={font.italic} on:change>
+	<ToggleButton title="Курсив" bind:value={font.italic} width={buttonWidth} on:change>
 		<IconItalic size={20} />
 	</ToggleButton>
-	<ToggleButton title="Жирный" bind:value={font.bold} on:change>
+	<ToggleButton title="Жирный" bind:value={font.bold} width={buttonWidth} on:change>
 		<IconBold size={20} />
 	</ToggleButton>
-	<ToggleButton title="Капитель" bind:value={font.smallCaps} on:change>
+	<ToggleButton title="Капитель" bind:value={font.smallCaps} width={buttonWidth} on:change>
 		<span style="font-size: 20px;font-variant: small-caps;">Аа</span>
 	</ToggleButton>
+	<ToggleButton
+		title="Отдельно вычислять высоту каждой строки так, чтобы они занимали максимальную ширину"
+		value={fontSizeStrategy === 'same-width'}
+		width={buttonWidth}
+		on:change={(ev) => (fontSizeStrategy = ev.detail ? 'same-width' : 'same-height')}
+	>
+		<IconLinesFont size={24} />
+	</ToggleButton>
 	<Select
+		css={selectCSS}
 		title="Выравнивание"
 		bind:value={align}
 		items={['left', 'center', 'right']}
@@ -49,14 +70,15 @@
 		let:item
 	>
 		{#if item == 'left'}
-			<IconAlignLeft />
+			<IconAlignLeft size={20} />
 		{:else if item == 'center'}
-			<IconAlignCenter />
+			<IconAlignCenter size={20} />
 		{:else if item == 'right'}
-			<IconAlignRight />
+			<IconAlignRight size={20} />
 		{/if}
 	</Select>
 	<Select
+		css={selectCSS}
 		title="Позиционирование"
 		bind:value={baseline}
 		items={['top', 'middle', 'bottom']}
@@ -64,11 +86,11 @@
 		let:item
 	>
 		{#if item == 'top'}
-			<IconArrowBarToUp />
+			<IconArrowBarToUp size={20} />
 		{:else if item == 'middle'}
-			<SvgIcon type="mdi" path={mdiFormatAlignMiddle} />
+			<SvgIcon type="mdi" path={mdiFormatAlignMiddle} size={20} />
 		{:else if item == 'bottom'}
-			<IconArrowBarToDown />
+			<IconArrowBarToDown size={20} />
 		{/if}
 	</Select>
 	<DropDown
@@ -98,13 +120,12 @@
 		on:change
 		let:item
 	>
-		<section
-			style="font-family: '{item}';font-size: {fontFamilySize[item] || 16}px"
-		>
+		<section style="font-family: '{item}';font-size: {fontFamilySize[item] || 16}px">
 			{item}
 		</section>
 	</Select>
 	<Select
+		css={selectCSS}
 		title="Регистр"
 		bind:value={textCase}
 		items={['As is', 'UPPER', 'lower']}
@@ -112,11 +133,11 @@
 		let:item
 	>
 		{#if item === 'As is'}
-			Как есть
+			<IconLetterCase size={20} />
 		{:else if item === 'UPPER'}
-			КАПС
+			<IconLetterCaseUpper size={20} />
 		{:else if item === 'lower'}
-			строчные
+			<IconLetterCaseLower size={20} />
 		{/if}
 	</Select>
 </article>
@@ -128,8 +149,6 @@
 		flex-wrap: wrap;
 		& > :global(*) {
 			flex: 1;
-			/* min-height: 48px; */
-			/* height: 100%; */
 			margin: 0;
 		}
 	}

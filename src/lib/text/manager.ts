@@ -53,17 +53,33 @@ export class TextManager {
 
 	drawTextInfo(text: string, style: TextStyle, width: number, height: number) {
 		const formattedText = textToCase(text, style.case).split('\n');
-		const drawInfo = this.drawLinesInfo(
-			formattedText,
-			style.font,
-			style.stroke.settings.type == 'disabled' ? 0 : style.strokeWidth / 100,
-			style.align,
-			style.baseline,
-			style.lineSpacing,
-			width,
-			height
+		switch (style.fontSizeStrategy) {
+			case 'same-height':
+				return this.drawLinesSameHeight(
+					formattedText,
+					style.font,
+					style.stroke.settings.type == 'disabled' ? 0 : style.strokeWidth / 100,
+					style.align,
+					style.baseline,
+					style.lineSpacing,
+					width,
+					height
+				);
+			case 'same-width':
+				return this.drawLinesSameWidth(
+					formattedText,
+					style.font,
+					style.stroke.settings.type == 'disabled' ? 0 : style.strokeWidth / 100,
+					style.align,
+					style.baseline,
+					style.lineSpacing,
+					width,
+					height
+				);
+		}
+		throw new Error(
+			`Unknown font size strategy ${style.fontSizeStrategy}: ${JSON.stringify(style, undefined, 2)}`
 		);
-		return drawInfo;
 	}
 
 	fontSize(
@@ -83,17 +99,25 @@ export class TextManager {
 			})
 			.reduce((max, current) => (current.width > max.width ? current : max)).line;
 
-		const maxLineWidth = strokeWidth * dx;
+		const xWidthCandidate = this.fillWidthFontSize(width, widestLine, font, strokeWidth, dx);
 
-		const metrics = this.measurer.measureText(widestLine, font, dx);
-		const yWidth = metrics.width + maxLineWidth;
-		const kWidth = yWidth / dx;
-
-		const xWidthCandidate = width / kWidth;
 		const n = text.length;
 		const lineHeight = height / (n + spacing * (n - 1)) / (1 + strokeWidth);
 		const xHeightCandidate = interpolateX(lineHeight, this.statistics.get(font));
 		return Math.min(xHeightCandidate, xWidthCandidate);
+	}
+	private fillWidthFontSize(
+		width: number,
+		text: string,
+		font: FontSettings,
+		strokeWidth: number,
+		dx: number
+	) {
+		const maxLineWidth = strokeWidth * dx;
+		const metrics = this.measurer.measureText(text, font, dx);
+		const yWidth = metrics.width + maxLineWidth;
+		const kWidth = yWidth / dx;
+		return width / kWidth;
 	}
 	heightMeasuresCache = new Map<string, TextMeasurements>();
 	private measureReference(font: FontSettings, fontSize: number): TextMeasurements {
@@ -107,7 +131,77 @@ export class TextManager {
 	private linesHeight(lineHeight: number, linesCount: number, spacing: number) {
 		return lineHeight * (linesCount + spacing * (linesCount - 1));
 	}
-	private drawLinesInfo(
+	private drawLinesSameWidth(
+		text: string[],
+		font: FontSettings,
+		strokeWidth: number,
+		align: TextAlign,
+		baseline: TextBaseline,
+		spacing: number,
+		maxWidth: number,
+		height: number
+	): TextDrawInfo {
+		let width = maxWidth;
+
+		const lines = new Array<TextLineDrawInfo>();
+		this.measurer.align = 'center';
+		let totalHeight = height;
+		do {
+			lines.length = 0;
+			width = (width / totalHeight) * height;
+			totalHeight = 0;
+			let y = 0;
+			for (let i = 0; i < text.length; i++) {
+				const line = text[i];
+				if (!line.length) continue;
+				const fontSize = this.fillWidthFontSize(width - 2, line, font, strokeWidth, 100);
+				if (!Number.isFinite(fontSize)) continue;
+				const lineMetrics = this.measurer.measureText(line, font, fontSize);
+				const lineWidth = strokeWidth * fontSize;
+				const halfLineWidth = lineWidth / 2;
+				const lineHeight = lineMetrics.height + lineWidth + spacing;
+				totalHeight += lineHeight;
+				const box = lineMetrics.boundingBox;
+				y += lineMetrics.boundingBox.top + lineWidth / 2;
+
+				let x = 0;
+				switch (align) {
+					case 'center':
+						x = (maxWidth + box.left - box.right) / 2;
+						break;
+					case 'left':
+						x = halfLineWidth + box.left;
+						break;
+					case 'right':
+						x = maxWidth - (halfLineWidth + box.right);
+						break;
+				}
+
+				lines.push({ text: line, x, y, fontSize, lineWidth, metrics: lineMetrics });
+				y += lineWidth / 2 + spacing + lineMetrics.boundingBox.bottom;
+			}
+		} while (totalHeight > height && height > 8);
+		const shift =
+			baseline == 'top'
+				? 0
+				: baseline == 'middle'
+				? ((height - totalHeight) / 2) | 0
+				: height - totalHeight;
+		let fontSizesSum = 0;
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+			fontSizesSum += line.fontSize;
+			line.y += shift;
+		}
+		return {
+			lines,
+			font,
+			fontSize: fontSizesSum / lines.length,
+			baseline: 'bottom',
+			align: 'center'
+		} as const;
+	}
+	private drawLinesSameHeight(
 		text: string[],
 		font: FontSettings,
 		strokeWidth: number,
@@ -116,7 +210,7 @@ export class TextManager {
 		spacing: number,
 		width: number,
 		height: number
-	) {
+	): TextDrawInfo {
 		const fontSize = this.fontSize(width - 2, height - 2, text, font, strokeWidth, spacing);
 		const lineWidth = strokeWidth * fontSize;
 		const halfLineWidth = lineWidth / 2;
@@ -134,11 +228,12 @@ export class TextManager {
 				: height - totalHeight;
 		const startY = lineHeight + shift - lineMetrics.boundingBox.bottom;
 
-		const lines = new Array<{ text: string; x: number; y: number }>();
+		const lines = new Array<TextLineDrawInfo>();
 		this.measurer.align = align;
 		for (let i = 0; i < text.length; i++) {
 			const line = text[i];
-			const box = this.measurer.measureText(line, font, fontSize).boundingBox;
+			const metrics = this.measurer.measureText(line, font, fontSize);
+			const box = metrics.boundingBox;
 			const y = startY + i * dy;
 			let x = baseX;
 			switch (align) {
@@ -152,19 +247,31 @@ export class TextManager {
 					x -= box.right;
 					break;
 			}
-			lines.push({ text: line, x, y });
+			lines.push({ text: line, x, y, lineWidth, fontSize, metrics });
 		}
 		return {
 			lines,
 			font,
 			fontSize,
-			lineWidth,
-			stringHeight: lineHeight,
-			totalHeight,
 			baseline: 'bottom',
 			align: align
 		} as const;
 	}
 }
 
-export type TextDrawInfo = ReturnType<TextManager['drawLinesInfo']>;
+export type TextLineDrawInfo = {
+	text: string;
+	x: number;
+	y: number;
+	fontSize: number;
+	lineWidth: number;
+	metrics: TextMeasurements;
+};
+
+export type TextDrawInfo = {
+	lines: TextLineDrawInfo[];
+	font: FontSettings;
+	fontSize: number;
+	baseline: TextBaseline;
+	align: TextAlign;
+};

@@ -4,6 +4,7 @@ import type { FontSettings } from './font';
 export type TextCase = 'As is' | 'UPPER' | 'lower';
 export type TextAlign = CanvasTextAlign;
 export type TextBaseline = CanvasTextBaseline;
+export type TextFontSizeStrategy = 'same-height' | 'same-width';
 
 export function textToCase(text: string, textCase: TextCase): string {
 	switch (textCase) {
@@ -27,6 +28,7 @@ export interface TextStyle {
 	stroke: Material;
 	// [0, 100] % от кегля
 	strokeWidth: number;
+	fontSizeStrategy: TextFontSizeStrategy;
 	experimental: Record<string, never>;
 }
 

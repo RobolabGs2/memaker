@@ -105,6 +105,7 @@
 		bind:align={style.align}
 		bind:baseline={style.baseline}
 		bind:spacing={style.lineSpacing}
+		bind:fontSizeStrategy={style.fontSizeStrategy}
 		on:change
 	/>
 	<textarea

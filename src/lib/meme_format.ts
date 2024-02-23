@@ -1,7 +1,7 @@
-import type { Container, Content, Meme, TextContent } from '$lib/meme';
+import type { Container, Content, Meme } from '$lib/meme';
 import JSZip from 'jszip';
 import type { Material, MaterialSettings, MaterialType, ShadowSettings } from './material';
-import type { TextAlign, TextBaseline, TextCase, TextStyle } from './text/text';
+import type { TextAlign, TextBaseline, TextCase, TextFontSizeStrategy } from './text/text';
 import { downloadImage, useBlobUrl } from './utils';
 import type { FontSettings } from './text/font';
 import type { Rectangle } from './geometry/rectangle';
@@ -11,7 +11,8 @@ type MemeVersions =
 	| MemeDataV0_2_1
 	| MemeDataV0_2_2
 	| MemeDataV0_2_3
-	| MemeDataV0_2_4;
+	| MemeDataV0_2_4
+	| MemeDataV0_2_5;
 
 export type MemeFile<MemeV extends MemeVersions = MemeData> = {
 	meme: MemeV['meme'];
@@ -101,6 +102,30 @@ type LayerSettingsV0_2_4 = {
 	alpha: number;
 };
 
+type BlockV0_2_5 = {
+	id: string;
+	container: Container;
+	content: Content<TextContentV0_2_5, ImageContentV0_2_3>;
+	effects: { settings: Record<string, unknown> }[];
+	layer: LayerSettingsV0_2_4;
+};
+
+interface TextStyleV0_2_5 {
+	font: FontSettings;
+	lineSpacing: number;
+	case: TextCase;
+	align: TextAlign;
+	baseline: TextBaseline;
+	fill: Material;
+	stroke: Material;
+	// [0, 100] % от кегля
+	strokeWidth: number;
+	fontSizeStrategy: TextFontSizeStrategy;
+	experimental: Record<string, never>;
+}
+
+type TextContentV0_2_5 = TextContentV0_2_0<TextStyleV0_2_5>;
+
 interface MemeDataV0_2_2 {
 	version?: '0.2.2';
 	meme: Meme<FrameV0_2_0<BlockV0_2_2>>;
@@ -122,6 +147,15 @@ interface MemeDataV0_2_3 {
 interface MemeDataV0_2_4 {
 	version?: '0.2.4';
 	meme: Meme<FrameV0_2_0<BlockV0_2_4>>;
+	resources: {
+		images: { id: string; blob: Blob }[];
+		patterns: { name: string; blob: Blob }[];
+	};
+}
+
+interface MemeDataV0_2_5 {
+	version?: '0.2.5';
+	meme: Meme<FrameV0_2_0<BlockV0_2_5>>;
 	resources: {
 		images: { id: string; blob: Blob }[];
 		patterns: { name: string; blob: Blob }[];
@@ -180,7 +214,7 @@ function castVersionToActual<From extends MemeVersions>(
 }
 
 export class MemeFormat {
-	static FormatVersion = '0.2.4';
+	static FormatVersion = '0.2.5';
 	static EditorVersion = import.meta.env.VITE_APP_VERSION;
 	static fromFile(file: Blob): Promise<MemeData> {
 		const zip = new JSZip();
@@ -192,7 +226,8 @@ export class MemeFormat {
 					.then(MemeFormat.fromV0_2_1ToV0_2_2)
 					.then(MemeFormat.fromV0_2_2ToV0_2_3)
 					.then(MemeFormat.fromV0_2_3ToV0_2_4)
-					.then(castVersionToActual('0.2.4', this.FormatVersion));
+					.then(MemeFormat.fromV0_2_4ToV0_2_5)
+					.then(castVersionToActual('0.2.5', this.FormatVersion));
 			return index.async('string').then((json) => {
 				const index = JSON.parse(json, (key, value) => {
 					if (key === 'container' && value.type === 'global') {
@@ -228,7 +263,8 @@ export class MemeFormat {
 					.then(upToVersion(index, '0.2.2', this.fromV0_2_1ToV0_2_2))
 					.then(upToVersion(index, '0.2.3', this.fromV0_2_2ToV0_2_3))
 					.then(upToVersion(index, '0.2.4', this.fromV0_2_3ToV0_2_4))
-					.then(castVersionToActual('0.2.4', this.FormatVersion));
+					.then(upToVersion(index, '0.2.5', this.fromV0_2_4ToV0_2_5))
+					.then(castVersionToActual('0.2.5', this.FormatVersion));
 			});
 		});
 	}
@@ -310,6 +346,37 @@ export class MemeFormat {
 			}
 		};
 	}
+	private static fromV0_2_4ToV0_2_5(data: MemeDataV0_2_4): MemeDataV0_2_5 {
+		return {
+			...data,
+			version: '0.2.5',
+			meme: {
+				frames: data.meme.frames.map((f) => {
+					return {
+						...f,
+						blocks: f.blocks.map((b) => {
+							if (b.content.type == 'text') {
+								return {
+									...b,
+									content: {
+										...b.content,
+										value: {
+											...b.content.value,
+											style: {
+												...b.content.value.style,
+												fontSizeStrategy: 'same-height'
+											}
+										}
+									}
+								} as BlockV0_2_5;
+							}
+							return b as BlockV0_2_5;
+						})
+					};
+				})
+			}
+		};
+	}
 	static toFile(data: MemeData): Promise<Blob> {
 		const zip = new JSZip();
 		data.resources.images.forEach(({ id, blob }) => {
@@ -383,7 +450,7 @@ export class MemeFormat {
 							typeof frameJSON == 'string'
 								? ZeroZeroVersionTypes.DefaultStyle()
 								: (frameJSON.textContent.style as ZeroZeroVersionTypes.TextStylePrototype);
-						const content: TextContent = {
+						const content: TextContentV0_2_0 = {
 							text,
 							style: convertZeroZeroToActualStyle(
 								ZeroZeroVersionTypes.mergePartials(ZeroZeroVersionTypes.DefaultStyle(), oldStyle),
@@ -509,7 +576,7 @@ export class UnsupportedFormatError extends Error {
 function convertZeroZeroToActualStyle(
 	oldStyle: ZeroZeroVersionTypes.TextStylePrototype,
 	isMain: boolean
-): TextStyle {
+): TextStyleV0_2_0 {
 	const shadow: undefined | ShadowSettings = oldStyle.shadow?.enabled
 		? {
 				blur: oldStyle.shadow.blur,

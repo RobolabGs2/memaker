@@ -7,6 +7,7 @@ export const defaultStyle: TextStyle = {
 	align: 'center',
 	baseline: 'middle',
 	lineSpacing: -0.125,
+	fontSizeStrategy: 'same-height',
 	fill: {
 		settings: {
 			type: 'color',
@@ -33,7 +34,7 @@ export const defaultStyle: TextStyle = {
 
 export type StylePresetType = Omit<
 	TextStyle,
-	'align' | 'baseline' | 'lineSpacing' | 'strokeWidth' | 'experimental'
+	'align' | 'baseline' | 'lineSpacing' | 'strokeWidth' | 'experimental' | 'fontSizeStrategy'
 > & { lineSpacing?: number; strokeWidth?: number };
 
 export function applyStylePreset(preset: StylePresetType, style: TextStyle): TextStyle {
