@@ -53,7 +53,8 @@ export class TextManager {
 
 	drawTextInfo(text: string, style: TextStyle, width: number, height: number) {
 		const formattedText = textToCase(text, style.case).split('\n');
-		switch (style.fontSizeStrategy) {
+		const strategy = style.fontSizeStrategy;
+		switch (strategy.type) {
 			case 'same-height':
 				return this.drawLinesSameHeight(
 					formattedText,
@@ -68,6 +69,18 @@ export class TextManager {
 			case 'same-width':
 				return this.drawLinesSameWidth(
 					formattedText,
+					style.font,
+					style.stroke.settings.type == 'disabled' ? 0 : style.strokeWidth / 100,
+					style.align,
+					style.baseline,
+					style.lineSpacing,
+					width,
+					height
+				);
+			case 'fixed':
+				return this.drawLinesFixedSize(
+					formattedText,
+					strategy.unit == 'pt' ? (strategy.value / 72) * 96 : strategy.value,
 					style.font,
 					style.stroke.settings.type == 'disabled' ? 0 : style.strokeWidth / 100,
 					style.align,
@@ -180,7 +193,7 @@ export class TextManager {
 				lines.push({ text: line, x, y, fontSize, lineWidth, metrics: lineMetrics });
 				y += lineWidth / 2 + spacing + lineMetrics.boundingBox.bottom;
 			}
-		} while (totalHeight > height && height > 8);
+		} while (totalHeight > height && height > 8 && width > 8);
 		const shift =
 			baseline == 'top'
 				? 0
@@ -212,6 +225,29 @@ export class TextManager {
 		height: number
 	): TextDrawInfo {
 		const fontSize = this.fontSize(width - 2, height - 2, text, font, strokeWidth, spacing);
+		return this.drawLinesFixedSize(
+			text,
+			fontSize,
+			font,
+			strokeWidth,
+			align,
+			baseline,
+			spacing,
+			width,
+			height
+		);
+	}
+	private drawLinesFixedSize(
+		text: string[],
+		fontSize: number,
+		font: FontSettings,
+		strokeWidth: number,
+		align: TextAlign,
+		baseline: TextBaseline,
+		spacing: number,
+		width: number,
+		height: number
+	): TextDrawInfo {
 		const lineWidth = strokeWidth * fontSize;
 		const halfLineWidth = lineWidth / 2;
 		const baseX =

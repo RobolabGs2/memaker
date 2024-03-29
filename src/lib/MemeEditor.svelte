@@ -86,7 +86,6 @@
 	function onPaste(event: ClipboardEvent) {
 		const inFocus = document.activeElement;
 		if (inFocus instanceof HTMLInputElement || inFocus instanceof HTMLTextAreaElement) return;
-		console.log(event);
 		const items = event.clipboardData?.items;
 		if (!items) return;
 		for (let index = 0; index < items.length; index++) {

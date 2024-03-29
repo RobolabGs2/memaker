@@ -1,7 +1,7 @@
 import type { Container, Content, Meme } from '$lib/meme';
 import JSZip from 'jszip';
 import type { Material, MaterialSettings, MaterialType, ShadowSettings } from './material';
-import type { TextAlign, TextBaseline, TextCase, TextFontSizeStrategy } from './text/text';
+import type { TextAlign, TextBaseline, TextCase } from './text/text';
 import { downloadImage, useBlobUrl } from './utils';
 import type { FontSettings } from './text/font';
 import type { Rectangle } from './geometry/rectangle';
@@ -12,7 +12,8 @@ type MemeVersions =
 	| MemeDataV0_2_2
 	| MemeDataV0_2_3
 	| MemeDataV0_2_4
-	| MemeDataV0_2_5;
+	| MemeDataV0_2_5
+	| MemeDataV0_2_6;
 
 export type MemeFile<MemeV extends MemeVersions = MemeData> = {
 	meme: MemeV['meme'];
@@ -110,6 +111,8 @@ type BlockV0_2_5 = {
 	layer: LayerSettingsV0_2_4;
 };
 
+type TextFontSizeStrategyV0_2_5 = 'same-height' | 'same-width';
+
 interface TextStyleV0_2_5 {
 	font: FontSettings;
 	lineSpacing: number;
@@ -120,11 +123,44 @@ interface TextStyleV0_2_5 {
 	stroke: Material;
 	// [0, 100] % от кегля
 	strokeWidth: number;
-	fontSizeStrategy: TextFontSizeStrategy;
+	fontSizeStrategy: TextFontSizeStrategyV0_2_5;
 	experimental: Record<string, never>;
 }
 
 type TextContentV0_2_5 = TextContentV0_2_0<TextStyleV0_2_5>;
+
+type TextFontSizeStrategyV0_2_6 =
+	| { type: 'same-height' }
+	| { type: 'same-width' }
+	| {
+			type: 'fixed';
+			value: number;
+			unit: 'px' | 'pt';
+	  };
+
+type TextContentV0_2_6 = TextContentV0_2_0<TextStyleV0_2_6>;
+
+type BlockV0_2_6 = {
+	id: string;
+	container: Container;
+	content: Content<TextContentV0_2_6, ImageContentV0_2_3>;
+	effects: { settings: Record<string, unknown> }[];
+	layer: LayerSettingsV0_2_4;
+};
+
+interface TextStyleV0_2_6 {
+	font: FontSettings;
+	lineSpacing: number;
+	case: TextCase;
+	align: TextAlign;
+	baseline: TextBaseline;
+	fill: Material;
+	stroke: Material;
+	// [0, 100] % от кегля
+	strokeWidth: number;
+	fontSizeStrategy: TextFontSizeStrategyV0_2_6;
+	experimental: Record<string, never>;
+}
 
 interface MemeDataV0_2_2 {
 	version?: '0.2.2';
@@ -162,6 +198,14 @@ interface MemeDataV0_2_5 {
 	};
 }
 
+interface MemeDataV0_2_6 {
+	version?: '0.2.6';
+	meme: Meme<FrameV0_2_0<BlockV0_2_6>>;
+	resources: {
+		images: { id: string; blob: Blob }[];
+		patterns: { name: string; blob: Blob }[];
+	};
+}
 /**
  * -1 -> a < b
  *  0 -> a = b
@@ -214,7 +258,7 @@ function castVersionToActual<From extends MemeVersions>(
 }
 
 export class MemeFormat {
-	static FormatVersion = '0.2.5';
+	static FormatVersion = '0.2.6';
 	static EditorVersion = import.meta.env.VITE_APP_VERSION;
 	static fromFile(file: Blob): Promise<MemeData> {
 		const zip = new JSZip();
@@ -227,7 +271,8 @@ export class MemeFormat {
 					.then(MemeFormat.fromV0_2_2ToV0_2_3)
 					.then(MemeFormat.fromV0_2_3ToV0_2_4)
 					.then(MemeFormat.fromV0_2_4ToV0_2_5)
-					.then(castVersionToActual('0.2.5', this.FormatVersion));
+					.then(MemeFormat.fromV0_2_5ToV0_2_6)
+					.then(castVersionToActual('0.2.6', this.FormatVersion));
 			return index.async('string').then((json) => {
 				const index = JSON.parse(json, (key, value) => {
 					if (key === 'container' && value.type === 'global') {
@@ -264,7 +309,8 @@ export class MemeFormat {
 					.then(upToVersion(index, '0.2.3', this.fromV0_2_2ToV0_2_3))
 					.then(upToVersion(index, '0.2.4', this.fromV0_2_3ToV0_2_4))
 					.then(upToVersion(index, '0.2.5', this.fromV0_2_4ToV0_2_5))
-					.then(castVersionToActual('0.2.5', this.FormatVersion));
+					.then(upToVersion(index, '0.2.6', this.fromV0_2_5ToV0_2_6))
+					.then(castVersionToActual('0.2.6', this.FormatVersion));
 			});
 		});
 	}
@@ -371,6 +417,38 @@ export class MemeFormat {
 								} as BlockV0_2_5;
 							}
 							return b as BlockV0_2_5;
+						})
+					};
+				})
+			}
+		};
+	}
+	private static fromV0_2_5ToV0_2_6(data: MemeDataV0_2_5): MemeDataV0_2_6 {
+		return {
+			...data,
+			version: '0.2.6',
+			meme: {
+				frames: data.meme.frames.map((f) => {
+					return {
+						...f,
+						blocks: f.blocks.map((b) => {
+							if (b.content.type == 'text') {
+								const oldStrategy = b.content.value.style.fontSizeStrategy;
+								return {
+									...b,
+									content: {
+										...b.content,
+										value: {
+											...b.content.value,
+											style: {
+												...b.content.value.style,
+												fontSizeStrategy: { type: oldStrategy }
+											}
+										}
+									}
+								} as BlockV0_2_6;
+							}
+							return b as BlockV0_2_6;
 						})
 					};
 				})

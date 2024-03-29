@@ -21,7 +21,7 @@
 	import DropDown from '$lib/base/DropDown.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
 	import SvgIcon from '$lib/base/icons/SvgIcon.svelte';
-	import IconLinesFont from '$lib/base/icons/IconLinesFont.svelte';
+	import FontSizeStrategyInput from './FontSizeStrategyInput.svelte';
 
 	export let font: FontSettings;
 	export let textCase: TextCase;
@@ -53,14 +53,7 @@
 	<ToggleButton title="Капитель" bind:value={font.smallCaps} width={buttonWidth} on:change>
 		<span style="font-size: 20px;font-variant: small-caps;">Аа</span>
 	</ToggleButton>
-	<ToggleButton
-		title="Отдельно вычислять высоту каждой строки так, чтобы они занимали максимальную ширину"
-		value={fontSizeStrategy === 'same-width'}
-		width={buttonWidth}
-		on:change={(ev) => (fontSizeStrategy = ev.detail ? 'same-width' : 'same-height')}
-	>
-		<IconLinesFont size={24} />
-	</ToggleButton>
+	<FontSizeStrategyInput bind:value={fontSizeStrategy} />
 	<Select
 		css={selectCSS}
 		title="Выравнивание"

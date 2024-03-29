@@ -4,7 +4,14 @@ import type { FontSettings } from './font';
 export type TextCase = 'As is' | 'UPPER' | 'lower';
 export type TextAlign = CanvasTextAlign;
 export type TextBaseline = CanvasTextBaseline;
-export type TextFontSizeStrategy = 'same-height' | 'same-width';
+export type TextFontSizeStrategy =
+	| { type: 'same-height' }
+	| { type: 'same-width' }
+	| {
+			type: 'fixed';
+			value: number;
+			unit: 'px' | 'pt';
+	  };
 
 export function textToCase(text: string, textCase: TextCase): string {
 	switch (textCase) {

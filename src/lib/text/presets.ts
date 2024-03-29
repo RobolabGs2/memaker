@@ -7,7 +7,7 @@ export const defaultStyle: TextStyle = {
 	align: 'center',
 	baseline: 'middle',
 	lineSpacing: -0.125,
-	fontSizeStrategy: 'same-height',
+	fontSizeStrategy: { type: 'same-height' },
 	fill: {
 		settings: {
 			type: 'color',
