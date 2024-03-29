@@ -1,4 +1,4 @@
-import type { Container, Content, Meme } from '$lib/meme';
+import type { Content, Meme } from '$lib/meme';
 import JSZip from 'jszip';
 import type { Material, MaterialSettings, MaterialType, ShadowSettings } from './material';
 import type { TextAlign, TextBaseline, TextCase } from './text/text';
@@ -53,9 +53,25 @@ interface ImageContentV0_2_3 {
 	crop: Rectangle;
 }
 
+interface GlobalContainerV0_2_0 {
+	// percents
+	maxWidth: number;
+	maxHeight: number;
+	minHeight: number;
+}
+type ContainerV0_2_0 =
+	| {
+			type: 'rectangle';
+			value: Rectangle;
+	  }
+	| {
+			type: 'global';
+			value: GlobalContainerV0_2_0;
+	  };
+
 type BlockV0_2_0 = {
 	id: string;
-	container: Container;
+	container: ContainerV0_2_0;
 	content: Content<TextContentV0_2_0, ImageContentV0_2_0>;
 };
 
@@ -77,21 +93,21 @@ interface MemeDataV0_2_1 {
 }
 type BlockV0_2_2 = {
 	id: string;
-	container: Container;
+	container: ContainerV0_2_0;
 	content: Content<TextContentV0_2_0, ImageContentV0_2_0>;
 	effects: { settings: Record<string, unknown> }[];
 };
 
 type BlockV0_2_3 = {
 	id: string;
-	container: Container;
+	container: ContainerV0_2_0;
 	content: Content<TextContentV0_2_0, ImageContentV0_2_3>;
 	effects: { settings: Record<string, unknown> }[];
 };
 
 type BlockV0_2_4 = {
 	id: string;
-	container: Container;
+	container: ContainerV0_2_0;
 	content: Content<TextContentV0_2_0, ImageContentV0_2_3>;
 	effects: { settings: Record<string, unknown> }[];
 	layer: LayerSettingsV0_2_4;
@@ -105,7 +121,7 @@ type LayerSettingsV0_2_4 = {
 
 type BlockV0_2_5 = {
 	id: string;
-	container: Container;
+	container: ContainerV0_2_0;
 	content: Content<TextContentV0_2_5, ImageContentV0_2_3>;
 	effects: { settings: Record<string, unknown> }[];
 	layer: LayerSettingsV0_2_4;
@@ -140,9 +156,27 @@ type TextFontSizeStrategyV0_2_6 =
 
 type TextContentV0_2_6 = TextContentV0_2_0<TextStyleV0_2_6>;
 
+interface GlobalContainerV0_2_6 {
+	// percents
+	maxWidth: number;
+	maxHeight: number;
+	minHeight: number;
+	textPadding: number;
+}
+
+type ContainerV0_2_6 =
+	| {
+			type: 'rectangle';
+			value: Rectangle;
+	  }
+	| {
+			type: 'global';
+			value: GlobalContainerV0_2_6;
+	  };
+
 type BlockV0_2_6 = {
 	id: string;
-	container: Container;
+	container: ContainerV0_2_6;
 	content: Content<TextContentV0_2_6, ImageContentV0_2_3>;
 	effects: { settings: Record<string, unknown> }[];
 	layer: LayerSettingsV0_2_4;
@@ -424,6 +458,34 @@ export class MemeFormat {
 		};
 	}
 	private static fromV0_2_5ToV0_2_6(data: MemeDataV0_2_5): MemeDataV0_2_6 {
+		function migrateContent(
+			content: Content<TextContentV0_2_5, ImageContentV0_2_3>
+		): Content<TextContentV0_2_6, ImageContentV0_2_3> {
+			if (content.type == 'text') {
+				const oldStrategy = content.value.style.fontSizeStrategy;
+				return {
+					...content,
+					value: {
+						...content.value,
+						style: {
+							...content.value.style,
+							fontSizeStrategy: { type: oldStrategy }
+						}
+					}
+				};
+			}
+			return content;
+		}
+		function migrateContainer(container: ContainerV0_2_0): ContainerV0_2_6 {
+			if (container.type == 'rectangle') return container;
+			return {
+				type: 'global',
+				value: {
+					...container.value,
+					textPadding: 2 / 9
+				}
+			};
+		}
 		return {
 			...data,
 			version: '0.2.6',
@@ -432,23 +494,11 @@ export class MemeFormat {
 					return {
 						...f,
 						blocks: f.blocks.map((b) => {
-							if (b.content.type == 'text') {
-								const oldStrategy = b.content.value.style.fontSizeStrategy;
-								return {
-									...b,
-									content: {
-										...b.content,
-										value: {
-											...b.content.value,
-											style: {
-												...b.content.value.style,
-												fontSizeStrategy: { type: oldStrategy }
-											}
-										}
-									}
-								} as BlockV0_2_6;
-							}
-							return b as BlockV0_2_6;
+							return {
+								...b,
+								content: migrateContent(b.content),
+								container: migrateContainer(b.container)
+							} as BlockV0_2_6;
 						})
 					};
 				})

@@ -19,6 +19,7 @@ export interface GlobalContainer {
 	maxWidth: number;
 	maxHeight: number;
 	minHeight: number;
+	textPadding: number;
 }
 export type Container =
 	| {
@@ -192,7 +193,7 @@ class TextContentRenderer implements ContentRenderer<TextContent> {
 				)
 			);
 		const textStencil = this.textService.getTextStencil(text, style, width, height);
-		const fontShift = 2 / 9;
+		const fontShift = global.textPadding;
 		const verticalShift = height / 2 + textStencil.info.fontSize * fontShift;
 		const baseline = style.baseline;
 		const y =

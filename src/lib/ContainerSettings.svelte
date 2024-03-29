@@ -15,7 +15,8 @@
 			container.value = {
 				maxWidth: 0.95,
 				maxHeight: 0.4,
-				minHeight: 0.1
+				minHeight: 0.1,
+				textPadding: 2 / 9
 			};
 			container.type = 'global';
 			return;
@@ -110,6 +111,19 @@
 					on:input={(ev) => {
 						if (container.type !== 'global') return;
 						container.value.minHeight = ev.detail / 100;
+					}}
+				/>
+			</Label>
+			<Label>
+				Отступ для текста (% от размера шрифта): <NumberInput
+					min={0}
+					max={100}
+					step={0.5}
+					withRange={true}
+					value={container.value.textPadding * 100}
+					on:input={(ev) => {
+						if (container.type !== 'global') return;
+						container.value.textPadding = ev.detail / 100;
 					}}
 				/>
 			</Label>

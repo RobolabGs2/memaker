@@ -23,7 +23,8 @@
 					block.container.value = {
 						maxWidth: 0.95,
 						maxHeight: 0.4,
-						minHeight: 0.1
+						minHeight: 0.1,
+						textPadding: 2 / 9
 					};
 				}
 				block.container.type = 'global';
@@ -36,7 +37,8 @@
 					block.container.value = {
 						maxWidth: 0.95,
 						maxHeight: 0.4,
-						minHeight: 0.1
+						minHeight: 0.1,
+						textPadding: 2 / 9
 					};
 				}
 				block.container.type = 'global';

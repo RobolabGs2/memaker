@@ -236,7 +236,8 @@ export class Memaker {
 					value: {
 						maxWidth: 0.96,
 						maxHeight: 0.4,
-						minHeight: 0
+						minHeight: 0,
+						textPadding: 2 / 9
 					}
 				},
 				content: {
@@ -437,7 +438,8 @@ export class Memaker {
 						value: {
 							maxHeight: 1,
 							maxWidth: 1,
-							minHeight: 1
+							minHeight: 1,
+							textPadding: 2 / 9
 						}
 					},
 					content: {
@@ -457,7 +459,8 @@ export class Memaker {
 						value: {
 							maxWidth: 0.96,
 							maxHeight: 0.4,
-							minHeight: 0
+							minHeight: 0,
+							textPadding: 2 / 9
 						}
 					},
 					content: {
@@ -567,7 +570,10 @@ export class Memaker {
 							backgroundBlock = {
 								...defaultBlockSettings(),
 								id: this.blockIdGenerator.generate(),
-								container: { type: 'global', value: { maxHeight: 1, maxWidth: 1, minHeight: 1 } },
+								container: {
+									type: 'global',
+									value: { maxHeight: 1, maxWidth: 1, minHeight: 1, textPadding: 2 / 9 }
+								},
 								content: {
 									type: 'image',
 									value: {

@@ -34,7 +34,10 @@
 				blocks: [
 					{
 						id: 'loading-block-placeholder',
-						container: { type: 'global', value: { maxHeight: 0.9, maxWidth: 0.9, minHeight: 0 } },
+						container: {
+							type: 'global',
+							value: { maxHeight: 0.9, maxWidth: 0.9, minHeight: 0, textPadding: 2 / 9 }
+						},
 						content: {
 							type: 'text',
 							value: {
