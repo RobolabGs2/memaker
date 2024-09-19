@@ -18,7 +18,7 @@ interface ShaderInputTypesMap {
 			min?: number;
 			max?: number;
 			step?: number;
-			layout?: NumberLayout;
+			layout: NumberLayout;
 		};
 	};
 	int: {
@@ -28,7 +28,7 @@ interface ShaderInputTypesMap {
 			min?: number;
 			max?: number;
 			step?: number;
-			layout?: NumberLayout;
+			layout: NumberLayout;
 		};
 	};
 	angle: {
@@ -60,6 +60,7 @@ interface ShaderInputTypesMap {
 }
 
 export type UniformInputType = keyof ShaderInputTypesMap;
+export const UniformInputTypes: ReadonlyArray<UniformInputType> = ["float", "int", "angle", "point", "color"];
 export type UniformInputDefault<T extends UniformInputType = UniformInputType> =
 	ShaderInputTypesMap[T]['default'];
 export type UniformInput<T extends UniformInputType = UniformInputType> =
