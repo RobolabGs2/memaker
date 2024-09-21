@@ -14,6 +14,8 @@
 			Одинаковая ширина
 		{:else if value.type === 'fixed'}
 			<NumberInput bind:value={value.value} min={1} />{value.unit}
+		{:else if value.type === 'relative'}
+			<NumberInput bind:value={value.value} min={1} step={0.1} />{value.unit}
 		{:else}
 			ERROR
 		{/if}
@@ -41,19 +43,28 @@
 			<input
 				type="radio"
 				bind:group={value}
-				value={{ type: 'fixed', unit: 'pt', value: 14 }}
+				value={{ type: 'fixed', unit: 'pt', value: 60 }}
 				style="display: none;"
 			/>
-			Задать в пунктах
+			Пункты (pt)
 		</label>
 		<label>
 			<input
 				type="radio"
 				bind:group={value}
-				value={{ type: 'fixed', unit: 'px', value: 32 }}
+				value={{ type: 'fixed', unit: 'px', value: 80 }}
 				style="display: none;"
 			/>
-			Задать в пикселях
+			Пиксели (px)
+		</label>
+		<label>
+			<input
+				type="radio"
+				bind:group={value}
+				value={{ type: 'relative', unit: 'vh', value: 7.4 }}
+				style="display: none;"
+			/>
+			% от высоты кадра (vh)
 		</label>
 	</section>
 </DropDown>

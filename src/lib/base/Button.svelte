@@ -23,7 +23,7 @@
 	style="justify-content:{justifyContent};width:{width || '100%'};{width
 		? `min-width:${width};max-width:${width};`
 		: ''}{height ? `${height};` : ''}{style};"
-	on:click
+	on:click|stopPropagation
 	on:mousemove
 	on:mouseout
 	on:mouseover

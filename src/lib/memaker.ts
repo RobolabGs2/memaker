@@ -43,7 +43,7 @@ export function defaultBlockSettings(): Omit<Block, 'id' | 'container' | 'conten
 }
 
 export class Memaker {
-	private textures: TextureManager<TextureMeta>;
+	public readonly textures: TextureManager<TextureMeta>;
 	public readonly drawer: FrameDrawer;
 	public meme: Meme = { frames: [] };
 	public activeFrame!: Frame;
@@ -234,10 +234,9 @@ export class Memaker {
 				container: {
 					type: 'global',
 					value: {
-						maxWidth: 0.96,
+						maxWidth: 0.9,
 						maxHeight: 0.4,
-						minHeight: 0,
-						textPadding: 2 / 9
+						minHeight: 0
 					}
 				},
 				content: {
@@ -402,12 +401,12 @@ export class Memaker {
 							let width = texture.width;
 							let height = texture.height;
 							const ratio = width / height;
-							if (width > frame.width * 0.6) {
-								width = frame.width * 0.6;
+							if (width > frame.width) {
+								width = frame.width;
 								height = width / ratio;
 							}
-							if (height > frame.height * 0.6) {
-								height = frame.height * 0.6;
+							if (height > frame.height) {
+								height = frame.height;
 								width = height * ratio;
 							}
 							container.value.height = height;
@@ -438,8 +437,7 @@ export class Memaker {
 						value: {
 							maxHeight: 1,
 							maxWidth: 1,
-							minHeight: 1,
-							textPadding: 2 / 9
+							minHeight: 1
 						}
 					},
 					content: {
@@ -459,8 +457,7 @@ export class Memaker {
 						value: {
 							maxWidth: 0.96,
 							maxHeight: 0.4,
-							minHeight: 0,
-							textPadding: 2 / 9
+							minHeight: 0
 						}
 					},
 					content: {
@@ -572,7 +569,7 @@ export class Memaker {
 								id: this.blockIdGenerator.generate(),
 								container: {
 									type: 'global',
-									value: { maxHeight: 1, maxWidth: 1, minHeight: 1, textPadding: 2 / 9 }
+									value: { maxHeight: 1, maxWidth: 1, minHeight: 1 }
 								},
 								content: {
 									type: 'image',

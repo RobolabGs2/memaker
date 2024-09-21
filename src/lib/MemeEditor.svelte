@@ -64,6 +64,7 @@
 	import IconUploadAdd from './base/icons/IconUploadAdd.svelte';
 	import IconText from './base/icons/IconText.svelte';
 	import PreviewBlock from './PreviewBlock.svelte';
+	import { TextureManager } from './graphics/textures';
 
 	export let meme: Meme;
 	export let frame: Frame;
@@ -77,6 +78,7 @@
 	export let editorState: BlockEditorState;
 	export let frameDrawer: FrameDrawer;
 	export let devMode: boolean;
+	export let textureManager: TextureManager;
 
 	const dispatch = createEventDispatcher<EventsMap>();
 
@@ -306,7 +308,12 @@
 			</div>
 			<div slot="content">
 				{#if tab === 'Текст' && block.content.type == 'text'}
-					<TextContentSettings bind:content={block.content.value} on:change on:addPattern />
+					<TextContentSettings
+						bind:content={block.content.value}
+						container={block.container}
+						on:change
+						on:addPattern
+					/>
 				{:else if tab === 'Изображение' && block.content.type == 'image'}
 					<ImageContentSettings
 						bind:content={block.content.value}
@@ -314,6 +321,8 @@
 					/>
 				{:else if tab === 'Контейнер'}
 					<ContainerSettings
+						{textureManager}
+						content={block.content}
 						frameHeight={frame.height}
 						frameWidth={frame.width}
 						bind:container={block.container}

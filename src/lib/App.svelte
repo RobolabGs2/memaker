@@ -36,7 +36,7 @@
 						id: 'loading-block-placeholder',
 						container: {
 							type: 'global',
-							value: { maxHeight: 0.9, maxWidth: 0.9, minHeight: 0, textPadding: 2 / 9 }
+							value: { maxHeight: 0.9, maxWidth: 0.9, minHeight: 0 }
 						},
 						content: {
 							type: 'text',
@@ -156,6 +156,7 @@
 	</Modal>
 	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
 	<MemeEditor
+		textureManager={memaker?.textures}
 		{devMode}
 		effectsShaders={shaders.effects}
 		version={import.meta.env.VITE_APP_VERSION}

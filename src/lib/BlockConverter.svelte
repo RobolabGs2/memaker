@@ -21,10 +21,9 @@
 				const oldType: string = block.container.type;
 				if (oldType !== 'global') {
 					block.container.value = {
-						maxWidth: 0.95,
+						maxWidth: 0.9,
 						maxHeight: 0.4,
-						minHeight: 0.1,
-						textPadding: 2 / 9
+						minHeight: 0.1
 					};
 				}
 				block.container.type = 'global';
@@ -35,10 +34,9 @@
 				const oldType: string = block.container.type;
 				if (oldType !== 'global') {
 					block.container.value = {
-						maxWidth: 0.95,
+						maxWidth: 0.9,
 						maxHeight: 0.4,
-						minHeight: 0.1,
-						textPadding: 2 / 9
+						minHeight: 0.1
 					};
 				}
 				block.container.type = 'global';

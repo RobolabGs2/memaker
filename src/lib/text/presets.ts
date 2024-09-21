@@ -7,6 +7,7 @@ export const defaultStyle: TextStyle = {
 	align: 'center',
 	baseline: 'middle',
 	lineSpacing: -0.125,
+	padding: 1 / 3,
 	fontSizeStrategy: { type: 'same-height' },
 	fill: {
 		settings: {
@@ -34,14 +35,28 @@ export const defaultStyle: TextStyle = {
 
 export type StylePresetType = Omit<
 	TextStyle,
-	'align' | 'baseline' | 'lineSpacing' | 'strokeWidth' | 'experimental' | 'fontSizeStrategy'
-> & { lineSpacing?: number; strokeWidth?: number };
+	| 'align'
+	| 'baseline'
+	| 'lineSpacing'
+	| 'strokeWidth'
+	| 'experimental'
+	| 'fontSizeStrategy'
+	| 'padding'
+> & {
+	lineSpacing?: number;
+	strokeWidth?: number;
+	fontSizeStrategy?: TextStyle['fontSizeStrategy'];
+	padding?: number;
+};
 
 export function applyStylePreset(preset: StylePresetType, style: TextStyle): TextStyle {
 	style.case = preset.case;
 	style.fill = deepCopy(preset.fill);
 	style.stroke = deepCopy(preset.stroke);
 	style.font = deepCopy(preset.font);
+	if (preset.fontSizeStrategy !== undefined)
+		style.fontSizeStrategy = deepCopy(preset.fontSizeStrategy);
+	if (preset.padding !== undefined) style.padding = preset.padding;
 	if (preset.lineSpacing !== undefined) style.lineSpacing = preset.lineSpacing;
 	if (preset.strokeWidth !== undefined) style.strokeWidth = preset.strokeWidth;
 	return style;
@@ -51,6 +66,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'КАНОНИЧНЫЙ ИМПАКТ',
 		case: 'UPPER',
+		padding: 1 / 3,
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',
@@ -104,6 +121,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'Субтитры',
 		case: 'As is',
+		padding: 1 / 2,
+		fontSizeStrategy: { type: 'relative', unit: 'vh', value: 7.4 },
 		fill: {
 			settings: {
 				type: 'color',

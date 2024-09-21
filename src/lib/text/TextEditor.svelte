@@ -12,9 +12,11 @@
 	import { IconBrandTopbuzz } from '@tabler/icons-svelte';
 	import type { Material } from '$lib/material';
 	import { fontSettingsToKey } from './metrics';
+	import type { Container } from '$lib/meme';
 
 	export let style: TextStyle;
 	export let text: string;
+	export let container: Container;
 
 	type TabEntry = {
 		icon: string;
@@ -114,6 +116,20 @@
 		bind:value={text}
 		on:change
 	/>
+	{#if container.type === 'global'}
+		<Label>
+			Отступ: <NumberInput
+				min={0}
+				max={100}
+				step={0.5}
+				withRange={true}
+				value={style.padding * 100}
+				on:input={(ev) => {
+					style.padding = ev.detail / 100;
+				}}
+			/>
+		</Label>
+	{/if}
 	<TabsContainer {tabs} let:tab bind:activeTab={selected}>
 		<div class="icon" title={tab.label}>
 			{#if tab.icon === 'fill'}

@@ -1,5 +1,5 @@
 import { fontSettingsToCSS } from '$lib/text/font';
-import type { TextManager, TextDrawInfo } from '$lib/text/manager';
+import type { TextManager, TextDrawInfo, TextMeasureContext } from '$lib/text/manager';
 import type { TextStyle } from '$lib/text/text';
 import * as twgl from 'twgl.js';
 
@@ -34,11 +34,12 @@ export class TextStencilService {
 		text: string,
 		style: TextStyle,
 		width: number,
-		height: number
+		height: number,
+		ctx: TextMeasureContext
 	): { stencil: WebGLTexture; info: TextDrawInfo } {
 		const w = Math.ceil(Math.abs(width));
 		const h = Math.ceil(Math.abs(height));
-		const drawInfo = this.textManager.drawTextInfo(text, style, w, h);
+		const drawInfo = this.textManager.drawTextInfo(text, style, w, h, ctx);
 
 		const canvas = this.ctx.canvas;
 		if (canvas.height != h) canvas.height = h;

@@ -11,6 +11,11 @@ export type TextFontSizeStrategy =
 			type: 'fixed';
 			value: number;
 			unit: 'px' | 'pt';
+	  }
+	| {
+			type: 'relative';
+			value: number;
+			unit: 'vw' | 'vh';
 	  };
 
 export function textToCase(text: string, textCase: TextCase): string {
@@ -36,6 +41,7 @@ export interface TextStyle {
 	// [0, 100] % от кегля
 	strokeWidth: number;
 	fontSizeStrategy: TextFontSizeStrategy;
+	padding: number;
 	experimental: Record<string, never>;
 }
 

@@ -7,6 +7,10 @@ import {
 } from './metrics';
 import { textToCase, type TextAlign, type TextBaseline, type TextStyle } from './text';
 
+export interface TextMeasureContext {
+	frame: { width: number; height: number };
+}
+
 export class CanvasTextMeasurer implements TextMeasurer {
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	constructor(private readonly ctx = document.createElement('canvas').getContext('2d')!) {}
@@ -51,7 +55,13 @@ export class TextManager {
 		measurer.baseline = 'bottom';
 	}
 
-	drawTextInfo(text: string, style: TextStyle, width: number, height: number) {
+	drawTextInfo(
+		text: string,
+		style: TextStyle,
+		width: number,
+		height: number,
+		ctx: TextMeasureContext
+	) {
 		const formattedText = textToCase(text, style.case).split('\n');
 		const strategy = style.fontSizeStrategy;
 		switch (strategy.type) {
@@ -81,6 +91,18 @@ export class TextManager {
 				return this.drawLinesFixedSize(
 					formattedText,
 					strategy.unit == 'pt' ? (strategy.value / 72) * 96 : strategy.value,
+					style.font,
+					style.stroke.settings.type == 'disabled' ? 0 : style.strokeWidth / 100,
+					style.align,
+					style.baseline,
+					style.lineSpacing,
+					width,
+					height
+				);
+			case 'relative':
+				return this.drawLinesFixedSize(
+					formattedText,
+					(strategy.value / 100) * (strategy.unit == 'vh' ? ctx.frame.height : ctx.frame.width),
 					style.font,
 					style.stroke.settings.type == 'disabled' ? 0 : style.strokeWidth / 100,
 					style.align,
