@@ -1,18 +1,16 @@
 <script lang="ts">
 	export let error = '';
-	let forAnchor: string | undefined = undefined;
-	export { forAnchor as for };
 </script>
 
-<label class:error for={forAnchor}>
+<main class:error>
 	<slot />
 	{#if error}
 		<div>{error}</div>
 	{/if}
-</label>
+</main>
 
 <style lang="scss">
-	label {
+	main {
 		position: relative;
 		padding-top: 4px;
 		padding-bottom: 4px;
@@ -33,14 +31,14 @@
 		}
 	}
 
-	label > :global(input),
-	label > :global(select) {
+	main > :global(input),
+	main > :global(select) {
 		height: 24px;
 	}
-	label > :global(input) {
+	main > :global(input) {
 		width: 64px;
 	}
-	label > :global(select) {
+	main > :global(select) {
 		width: 128px;
 	}
 	div {

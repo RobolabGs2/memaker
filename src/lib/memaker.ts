@@ -455,7 +455,7 @@ export class Memaker {
 					container: {
 						type: 'global',
 						value: {
-							maxWidth: 0.96,
+							maxWidth: 0.9,
 							maxHeight: 0.4,
 							minHeight: 0
 						}

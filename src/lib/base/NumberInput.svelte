@@ -14,6 +14,8 @@
 	export let shiftMultiplier = 5;
 	export let precision = 4;
 	export let withRange = false;
+	export let withButtons = true;
+	export let width = '48px';
 	// TODO: change event on finish button clicks
 	const dispatch = createEventDispatcher<{ input: number; change: number }>();
 
@@ -56,6 +58,7 @@
 		<RangeInput bind:value min={rangeMin ?? min} max={rangeMax ?? max} {step} on:input on:change />
 	{/if}
 	<input
+		style="width:{width};"
 		value={+value.toFixed(precision)}
 		on:input={(ev) => {
 			const rawValue = Number(ev.currentTarget.value);
@@ -68,38 +71,40 @@
 		}}
 		on:change={(ev) => dispatch('change', Number(ev.currentTarget.value))}
 	/>
-	<footer>
-		<Button
-			disablePadding={true}
-			{title}
-			on:mousedown={(ev) => {
-				if (ev.button != 0) return;
-				initInterval(-multiplier(ev) * step);
-			}}
-			on:mouseup={(ev) => {
-				if (ev.button != 0) return;
-				if (intervalStarted) return;
-				deltaChange(-multiplier(ev) * step);
-			}}
-		>
-			<IconMinus />
-		</Button>
-		<Button
-			disablePadding={true}
-			{title}
-			on:mousedown={(ev) => {
-				if (ev.button != 0) return;
-				initInterval(+multiplier(ev) * step);
-			}}
-			on:mouseup={(ev) => {
-				if (ev.button != 0) return;
-				if (intervalStarted) return;
-				deltaChange(+multiplier(ev) * step);
-			}}
-		>
-			<IconPlus />
-		</Button>
-	</footer>
+	{#if withButtons}
+		<footer>
+			<Button
+				disablePadding={true}
+				{title}
+				on:mousedown={(ev) => {
+					if (ev.button != 0) return;
+					initInterval(-multiplier(ev) * step);
+				}}
+				on:mouseup={(ev) => {
+					if (ev.button != 0) return;
+					if (intervalStarted) return;
+					deltaChange(-multiplier(ev) * step);
+				}}
+			>
+				<IconMinus />
+			</Button>
+			<Button
+				disablePadding={true}
+				{title}
+				on:mousedown={(ev) => {
+					if (ev.button != 0) return;
+					initInterval(+multiplier(ev) * step);
+				}}
+				on:mouseup={(ev) => {
+					if (ev.button != 0) return;
+					if (intervalStarted) return;
+					deltaChange(+multiplier(ev) * step);
+				}}
+			>
+				<IconPlus />
+			</Button>
+		</footer>
+	{/if}
 </main>
 
 <style lang="scss">
@@ -109,8 +114,5 @@
 	}
 	footer {
 		display: flex;
-	}
-	input {
-		width: 48px;
 	}
 </style>

@@ -3,7 +3,7 @@
 	import Select from '$lib/base/Select.svelte';
 	import type { FontSettings } from './font';
 	import { fontsNames } from './fonts_store';
-	import type { TextAlign, TextBaseline, TextCase, TextFontSizeStrategy } from './text';
+	import type { TextAlign, TextBaseline, TextCase } from './text';
 	import {
 		IconAlignLeft,
 		IconAlignCenter,
@@ -14,21 +14,15 @@
 		IconItalic,
 		IconLetterCase,
 		IconLetterCaseLower,
-		IconLetterCaseUpper,
-		IconLineHeight
+		IconLetterCaseUpper
 	} from '@tabler/icons-svelte';
 	import { mdiFormatAlignMiddle } from '@mdi/js';
-	import DropDown from '$lib/base/DropDown.svelte';
-	import NumberInput from '$lib/base/NumberInput.svelte';
 	import SvgIcon from '$lib/base/icons/SvgIcon.svelte';
-	import FontSizeStrategyInput from './FontSizeStrategyInput.svelte';
 
 	export let font: FontSettings;
 	export let textCase: TextCase;
 	export let align: TextAlign;
 	export let baseline: TextBaseline;
-	export let spacing: number;
-	export let fontSizeStrategy: TextFontSizeStrategy;
 
 	const fontFamilySize: Record<string, number> = {
 		'JetBrains Mono': 15,
@@ -39,7 +33,7 @@
 	const selectCSS = {
 		height: '48px',
 		width: '100%',
-		main: 'min-width: 52px;max-width: 92px;'
+		main: 'min-width: 52px;max-width: 108px;'
 	};
 </script>
 
@@ -53,7 +47,7 @@
 	<ToggleButton title="Капитель" bind:value={font.smallCaps} width={buttonWidth} on:change>
 		<span style="font-size: 20px;font-variant: small-caps;">Аа</span>
 	</ToggleButton>
-	<FontSizeStrategyInput bind:value={fontSizeStrategy} />
+
 	<Select
 		css={selectCSS}
 		title="Выравнивание"
@@ -86,21 +80,6 @@
 			<IconArrowBarToDown size={20} />
 		{/if}
 	</Select>
-	<DropDown
-		title="Междустрочный интервал"
-		css={{ height: '48px', main: 'min-width:100px', width: '100%' }}
-	>
-		<svelte:fragment slot="header"><IconLineHeight /></svelte:fragment>
-		<section slot="content" class="spacing-values">
-			<NumberInput bind:value={spacing} min={-1} step={0.125} precision={3} />
-			{#each [0, 0.5, 1, 1.25] as value}
-				<label>
-					<input type="radio" bind:group={spacing} {value} style="display: none;" />
-					{value}
-				</label>
-			{/each}
-		</section>
-	</DropDown>
 	<Select
 		css={{
 			height: '48px',
@@ -143,27 +122,6 @@
 		& > :global(*) {
 			flex: 1;
 			margin: 0;
-		}
-	}
-	.spacing-values {
-		background-color: var(--secondary);
-		color: var(--text-secondary);
-		display: flex;
-		flex-direction: column;
-		& > label {
-			font-size: 12px;
-			padding: 8px 4px;
-			background-color: var(--secondary);
-			color: var(--text-secondary);
-			border: var(--border-secondary);
-			&:hover {
-				border: var(--border-secondary-hover);
-				background-color: var(--secondary-hover);
-			}
-			&:active {
-				background-color: var(--secondary-active);
-				border: var(--border-secondary-active);
-			}
 		}
 	}
 </style>

@@ -121,8 +121,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'Субтитры',
 		case: 'As is',
-		padding: 1 / 2,
-		fontSizeStrategy: { type: 'relative', unit: 'vh', value: 7.4 },
+		padding: 0.7,
+		fontSizeStrategy: { type: 'relative', unit: 'vh', value: 8.2 },
 		fill: {
 			settings: {
 				type: 'color',

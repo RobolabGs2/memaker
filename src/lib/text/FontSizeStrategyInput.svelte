@@ -6,7 +6,10 @@
 	export let value: TextFontSizeStrategy;
 </script>
 
-<DropDown title="Размер шрифта" css={{ height: '48px', main: 'min-width:156px', width: '100%' }}>
+<DropDown
+	title="Размер шрифта"
+	css={{ height: '48px', main: 'min-width:156px;flex: 1', width: '100%' }}
+>
 	<svelte:fragment slot="header">
 		{#if value.type === 'same-height'}
 			Одинаковая высота

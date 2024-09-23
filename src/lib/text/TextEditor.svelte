@@ -13,6 +13,10 @@
 	import type { Material } from '$lib/material';
 	import { fontSettingsToKey } from './metrics';
 	import type { Container } from '$lib/meme';
+	import FontSizeStrategyInput from './FontSizeStrategyInput.svelte';
+	import InputGroup from '$lib/base/InputGroup.svelte';
+	import InputRow from '$lib/base/InputRow.svelte';
+	import LineSpacingInput from './LineSpacingInput.svelte';
 
 	export let style: TextStyle;
 	export let text: string;
@@ -106,8 +110,6 @@
 		bind:textCase={style.case}
 		bind:align={style.align}
 		bind:baseline={style.baseline}
-		bind:spacing={style.lineSpacing}
-		bind:fontSizeStrategy={style.fontSizeStrategy}
 		on:change
 	/>
 	<textarea
@@ -116,20 +118,31 @@
 		bind:value={text}
 		on:change
 	/>
-	{#if container.type === 'global'}
-		<Label>
-			Отступ: <NumberInput
-				min={0}
-				max={100}
-				step={0.5}
-				withRange={true}
-				value={style.padding * 100}
-				on:input={(ev) => {
-					style.padding = ev.detail / 100;
-				}}
-			/>
-		</Label>
-	{/if}
+	<InputGroup>
+		<InputRow>
+			<span>Размер текста</span>
+			<FontSizeStrategyInput bind:value={style.fontSizeStrategy} />
+		</InputRow>
+		<InputRow>
+			<span>Междустрочный интервал</span>
+			<LineSpacingInput bind:value={style.lineSpacing} />
+		</InputRow>
+		{#if container.type === 'global'}
+			<Label>
+				Отступ: <NumberInput
+					min={0}
+					max={100}
+					step={0.5}
+					withRange={true}
+					withButtons={false}
+					value={style.padding * 100}
+					on:input={(ev) => {
+						style.padding = ev.detail / 100;
+					}}
+				/>
+			</Label>
+		{/if}
+	</InputGroup>
 	<TabsContainer {tabs} let:tab bind:activeTab={selected}>
 		<div class="icon" title={tab.label}>
 			{#if tab.icon === 'fill'}
