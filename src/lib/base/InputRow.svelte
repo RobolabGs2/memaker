@@ -2,15 +2,15 @@
 	export let error = '';
 </script>
 
-<main class:error>
+<article class:error>
 	<slot />
 	{#if error}
 		<div>{error}</div>
 	{/if}
-</main>
+</article>
 
 <style lang="scss">
-	main {
+	article {
 		position: relative;
 		padding-top: 4px;
 		padding-bottom: 4px;
@@ -31,14 +31,14 @@
 		}
 	}
 
-	main > :global(input),
-	main > :global(select) {
+	article > :global(input),
+	article > :global(select) {
 		height: 24px;
 	}
-	main > :global(input) {
+	article > :global(input) {
 		width: 64px;
 	}
-	main > :global(select) {
+	article > :global(select) {
 		width: 128px;
 	}
 	div {

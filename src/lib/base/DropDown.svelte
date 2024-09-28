@@ -20,7 +20,7 @@
 	let left = 0;
 </script>
 
-<main style={`height:${css.height};width:${css.width};${css.main}`}>
+<article style={`height:${css.height};width:${css.width};${css.main}`}>
 	<Button
 		{title}
 		{type}
@@ -46,23 +46,23 @@
 	</Button>
 	{#if (mouseIn && !hideOnClick) || active}
 		<!-- svelte-ignore a11y-mouse-events-have-key-events -->
-		<article
+		<section
 			style={`max-height:${maxHeight}px;width:${width}px;left:${left}px;top:${bottom}px;`}
 			transition:slide={{ duration: 150 }}
 			on:mouseover={() => (mouseIn = true)}
 			on:mouseout={() => (mouseIn = false)}
 		>
 			<slot name="content" />
-		</article>
+		</section>
 	{/if}
-</main>
+</article>
 
 <style lang="scss">
-	main {
+	article {
 		position: relative;
 		overflow: visible;
 	}
-	article {
+	section {
 		overflow: auto;
 		position: fixed;
 		z-index: 1;

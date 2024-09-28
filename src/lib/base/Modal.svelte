@@ -56,7 +56,7 @@
 						</Button>{/if}
 				</header>
 			{/if}
-			<main><slot /></main>
+			<section><slot /></section>
 			{#if $$slots.footer}
 				<footer><slot name="footer" /></footer>
 			{/if}
@@ -114,7 +114,7 @@
 			border-bottom: 1px #ffffff44 solid;
 		}
 
-		main {
+		section {
 			padding: 20px;
 			width: 100%;
 			flex: 1 1 100%;

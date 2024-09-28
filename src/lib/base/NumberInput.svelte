@@ -53,7 +53,7 @@
 	const title = `Шаг: ${step}\nCtrl: x${ctrlMultiplier}\nShift: x${shiftMultiplier}`;
 </script>
 
-<main>
+<article>
 	{#if withRange}
 		<RangeInput bind:value min={rangeMin ?? min} max={rangeMax ?? max} {step} on:input on:change />
 	{/if}
@@ -105,10 +105,10 @@
 			</Button>
 		</footer>
 	{/if}
-</main>
+</article>
 
 <style lang="scss">
-	main {
+	article {
 		display: flex;
 		flex-wrap: wrap;
 	}

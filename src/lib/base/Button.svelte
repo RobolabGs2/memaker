@@ -11,7 +11,7 @@
 	export let height = '';
 </script>
 
-<main
+<article
 	role="button"
 	tabindex={1}
 	{title}
@@ -43,10 +43,10 @@
 	on:blur
 >
 	<slot />
-</main>
+</article>
 
 <style lang="scss">
-	main {
+	article {
 		font-size: small;
 		font-family: inherit;
 		border-radius: 8px;

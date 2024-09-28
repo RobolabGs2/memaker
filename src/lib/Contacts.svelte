@@ -25,7 +25,7 @@
 	let iconsSize = 24;
 </script>
 
-<main>
+<article>
 	<Modal bind:open={showInfo}>
 		<svelte:fragment slot="title">О проекте</svelte:fragment>
 		<p>
@@ -100,10 +100,10 @@
 			<IconBrandVk size={iconsSize} />
 		</a>
 	</section>
-</main>
+</article>
 
 <style lang="scss">
-	main {
+	article {
 		position: absolute;
 		width: 100%;
 		height: 124px;

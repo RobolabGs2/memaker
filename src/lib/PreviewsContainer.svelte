@@ -20,7 +20,7 @@
 	}
 </script>
 
-<main
+<article
 	class:reverse
 	style="height: {height};min-height: {height};max-height: {height};"
 	on:drop
@@ -37,7 +37,7 @@
 			<slot {item} {index} />
 		</article>
 	{/each}
-</main>
+</article>
 
 <style lang="scss">
 	.item {
@@ -58,7 +58,7 @@
 			border: var(--border-secondary-active);
 		}
 	}
-	main {
+	article {
 		display: flex;
 		flex-direction: column;
 		&.reverse {

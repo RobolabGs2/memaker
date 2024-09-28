@@ -6,7 +6,7 @@
 	export let value: Frame;
 </script>
 
-<main>
+<article>
 	<section>Ширина<NumberInput bind:value={value.width} /></section>
 	<section>Высота<NumberInput bind:value={value.height} /></section>
 	<section>Фон<ColorInput bind:value={value.backgroundColor} /></section>
@@ -17,10 +17,10 @@
 			step={0.05}
 		/> 
 	</section> -->
-</main>
+</article>
 
 <style lang="scss">
-	main {
+	article {
 		width: 100%;
 		display: flex;
 		justify-content: flex-end;

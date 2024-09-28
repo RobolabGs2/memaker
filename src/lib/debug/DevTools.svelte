@@ -162,7 +162,7 @@
 	};
 </script>
 
-<main>
+<article>
 	<section>
 		<Button type="primary" on:click={() => fontTestFrame()}>Фрейм с вариациями шрифта</Button>
 		<Button type="primary" on:click={() => $fontsNames.forEach((family) => fontTestFrame(family))}>
@@ -179,7 +179,7 @@
 	</section>
 	<TextContentSettings bind:content={textContent} container={mockContainer} />
 	<Button type="danger" on:click={generateData}>Сгенерировать данные для шрифта</Button>
-</main>
+</article>
 
 <style lang="scss">
 	section {
