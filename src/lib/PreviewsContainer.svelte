@@ -21,6 +21,7 @@
 </script>
 
 <article
+	class="main"
 	class:reverse
 	style="height: {height};min-height: {height};max-height: {height};"
 	on:drop
@@ -58,7 +59,7 @@
 			border: var(--border-secondary-active);
 		}
 	}
-	article {
+	.main {
 		display: flex;
 		flex-direction: column;
 		&.reverse {

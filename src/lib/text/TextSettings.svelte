@@ -14,7 +14,8 @@
 		IconItalic,
 		IconLetterCase,
 		IconLetterCaseLower,
-		IconLetterCaseUpper
+		IconLetterCaseUpper,
+		IconDots
 	} from '@tabler/icons-svelte';
 	import { mdiFormatAlignMiddle } from '@mdi/js';
 	import SvgIcon from '$lib/base/icons/SvgIcon.svelte';
@@ -33,8 +34,10 @@
 	const selectCSS = {
 		height: '48px',
 		width: '100%',
-		main: 'min-width: 52px;max-width: 108px;'
+		main: 'min-width: 52px;max-width: 116px;'
 	};
+
+	export let moreSettings = false;
 </script>
 
 <article>
@@ -112,6 +115,9 @@
 			<IconLetterCaseLower size={20} />
 		{/if}
 	</Select>
+	<ToggleButton title="Ещё настройки" bind:value={moreSettings} width={buttonWidth} on:change>
+		<IconDots size={20} />
+	</ToggleButton>
 </article>
 
 <style lang="scss">
