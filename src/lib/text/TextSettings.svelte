@@ -34,7 +34,7 @@
 	const selectCSS = {
 		height: '48px',
 		width: '100%',
-		main: 'min-width: 52px;max-width: 116px;'
+		main: 'min-width: 56px;max-width: 116px;'
 	};
 
 	export let moreSettings = false;

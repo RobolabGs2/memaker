@@ -1,4 +1,8 @@
-<article><slot /></article>
+<script lang="ts">
+	import { slide } from 'svelte/transition';
+</script>
+
+<article transition:slide|local><slot /></article>
 
 <style>
 	article {
