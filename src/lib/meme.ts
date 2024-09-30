@@ -68,20 +68,23 @@ import * as twgl from 'twgl.js';
 export class FrameDrawer {
 	private contentRenderers: Record<'text' | 'image', ContentRenderer<unknown>>;
 	private backgroundTexture: WebGLTexture;
+	private textStencilService: TextStencilService;
 	constructor(
 		readonly gl: WebGL2RenderingContext,
 		textures: TextureManager,
 		textManager: TextManager,
 		readonly graphics: Graphics
 	) {
+		this.textStencilService = new TextStencilService(gl, textManager);
 		this.contentRenderers = {
 			image: new ImageContentRenderer(textures),
-			text: new TextContentRenderer(new TextStencilService(gl, textManager))
+			text: new TextContentRenderer(this.textStencilService)
 		};
 		this.backgroundTexture = twgl.createTexture(gl, { src: [255, 255, 255, 255] });
 	}
 	clear() {
 		this.graphics.clear();
+		this.textStencilService.clear();
 	}
 	drawFrame(frame: Frame) {
 		this.graphics.resize(frame.width, frame.height);
@@ -124,6 +127,7 @@ export class FrameDrawer {
 		this.graphics.buffersPull.free(effectBuffer);
 		this.graphics.buffersPull.free(layerBuffer);
 		this.graphics.buffersPull.free(composedBuffer);
+		this.textStencilService.tick();
 	}
 
 	drawBlock(

@@ -1,3 +1,4 @@
+import { deepCopy, deepEqual } from '$lib/state';
 import { fontSettingsToCSS } from '$lib/text/font';
 import type { TextManager, TextDrawInfo, TextMeasureContext } from '$lib/text/manager';
 import type { TextStyle } from '$lib/text/text';
@@ -22,14 +23,16 @@ export class TextStencilService {
 	) {
 		if (!ctx) throw new Error('TextStencilService require not null ctx: CanvasRenderingContext2D.');
 		this.ctx = ctx;
-		const texture = gl.createTexture();
-		if (!texture) throw new Error('Failed to create WebGL texture in TextStencilService.');
-		this.stencilTexture = texture;
 	}
-	// TODO: cache textures
-	private stencilTexture: WebGLTexture;
+	private cache = new TextTextureCache();
 	private ctx: CanvasRenderingContext2D;
 
+	tick() {
+		this.cache.tick();
+	}
+	clear() {
+		this.cache.clear(this.gl);
+	}
 	getTextStencil(
 		text: string,
 		style: TextStyle,
@@ -37,6 +40,12 @@ export class TextStencilService {
 		height: number,
 		ctx: TextMeasureContext
 	): { stencil: WebGLTexture; info: TextDrawInfo } {
+		const properties = { text, style, width, height, ctx };
+		const cached = this.cache.get(properties);
+		if (cached) {
+			return cached;
+		}
+
 		const w = Math.ceil(Math.abs(width));
 		const h = Math.ceil(Math.abs(height));
 		const drawInfo = this.textManager.drawTextInfo(text, style, w, h, ctx);
@@ -48,11 +57,16 @@ export class TextStencilService {
 		this.draw(this.ctx, drawInfo);
 
 		const gl = this.gl;
-		twgl.setTextureFromElement(gl, this.stencilTexture, canvas, {
+		const texture = this.cache.expiredTextures.pop() || gl.createTexture();
+		if (!texture) {
+			throw new Error('Failed to create WebGL texture in TextStencilService.');
+		}
+		twgl.setTextureFromElement(gl, texture, canvas, {
 			wrap: gl.CLAMP_TO_EDGE,
 			min: gl.LINEAR
 		});
-		return { stencil: this.stencilTexture, info: drawInfo };
+		this.cache.set(properties, texture, drawInfo);
+		return { stencil: texture, info: drawInfo };
 	}
 	draw(ctx: CanvasRenderingContext2D, drawInfo: TextDrawInfo) {
 		ctx.lineJoin = 'round';
@@ -122,5 +136,92 @@ export class TextStencilService {
 				}
 			}
 		}
+	}
+}
+
+class TableCell {
+	constructor(
+		readonly properties: {
+			text: string;
+			style: TextStyle;
+			width: number;
+			height: number;
+			ctx: TextMeasureContext;
+		},
+		readonly stencil: WebGLTexture,
+		readonly info: TextDrawInfo
+	) {}
+	lastUsage = 0;
+
+	cacheEquals(other: TableCell['properties']): boolean {
+		const self = this.properties;
+		return (
+			self.height === other.height &&
+			self.width == other.width &&
+			self.style.lineSpacing == other.style.lineSpacing &&
+			self.style.case === other.style.case &&
+			self.style.align == other.style.align &&
+			self.style.baseline == other.style.baseline &&
+			self.style.strokeWidth == other.style.strokeWidth &&
+			deepEqual(self.style.font, other.style.font) &&
+			deepEqual(self.style.fontSizeStrategy, other.style.fontSizeStrategy) &&
+			self.ctx.frame.height === other.ctx.frame.height &&
+			self.ctx.frame.width === other.ctx.frame.width
+		);
+	}
+}
+
+class TextTextureCache {
+	time = 1;
+	table: Record<string, TableCell[]> = Object.create(null);
+	get(
+		properties: TableCell['properties']
+	): { stencil: WebGLTexture; info: TextDrawInfo } | undefined {
+		const row = this.table[properties.text];
+		if (row === undefined) return undefined;
+		const cell = row.find((c) => c.cacheEquals(properties));
+		if (cell === undefined) return undefined;
+		cell.lastUsage = this.time;
+		return cell;
+	}
+	set(properties: TableCell['properties'], stencil: WebGLTexture, info: TextDrawInfo): void {
+		let row = this.table[properties.text];
+		if (row === undefined) {
+			row = [];
+			this.table[properties.text] = row;
+		}
+		const cell = new TableCell(deepCopy(properties), stencil, info);
+		cell.lastUsage = this.time;
+		row.push(cell);
+	}
+	expiredTextures = new Array<WebGLTexture>();
+	tick() {
+		for (const text in this.table) {
+			const row = this.table[text];
+			for (let i = 0; i < row.length; i++) {
+				const cur = row[i];
+				if (cur.lastUsage == this.time) {
+					continue;
+				}
+				const lastI = row.length - 1;
+				if (i !== lastI) {
+					row[i] = row[lastI];
+				}
+				row.pop();
+				--i;
+				this.expiredTextures.push(cur.stencil);
+			}
+			if (row.length === 0) {
+				delete this.table[text];
+			}
+		}
+		this.time++;
+	}
+	clear(gl: WebGL2RenderingContext) {
+		for (const text in this.table) {
+			const row = this.table[text];
+			for (const cell of row) gl.deleteTexture(cell.stencil);
+		}
+		this.table = Object.create(null);
 	}
 }
