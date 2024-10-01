@@ -165,8 +165,11 @@ class TableCell {
 			self.style.strokeWidth == other.style.strokeWidth &&
 			deepEqual(self.style.font, other.style.font) &&
 			deepEqual(self.style.fontSizeStrategy, other.style.fontSizeStrategy) &&
-			self.ctx.frame.height === other.ctx.frame.height &&
-			self.ctx.frame.width === other.ctx.frame.width
+			(self.style.fontSizeStrategy.type !== 'relative' ||
+				(self.ctx.frame.height === other.ctx.frame.height &&
+					self.ctx.frame.width === other.ctx.frame.width)) &&
+			(self.style.stroke.settings.type === 'disabled') ===
+				(other.style.stroke.settings.type === 'disabled')
 		);
 	}
 }
