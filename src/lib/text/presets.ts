@@ -35,17 +35,10 @@ export const defaultStyle: TextStyle = {
 
 export type StylePresetType = Omit<
 	TextStyle,
-	| 'align'
-	| 'baseline'
-	| 'lineSpacing'
-	| 'strokeWidth'
-	| 'experimental'
-	| 'fontSizeStrategy'
-	| 'padding'
+	'align' | 'baseline' | 'lineSpacing' | 'strokeWidth' | 'experimental' | 'padding'
 > & {
 	lineSpacing?: number;
 	strokeWidth?: number;
-	fontSizeStrategy?: TextStyle['fontSizeStrategy'];
 	padding?: number;
 };
 
@@ -54,8 +47,7 @@ export function applyStylePreset(preset: StylePresetType, style: TextStyle): Tex
 	style.fill = deepCopy(preset.fill);
 	style.stroke = deepCopy(preset.stroke);
 	style.font = deepCopy(preset.font);
-	if (preset.fontSizeStrategy !== undefined)
-		style.fontSizeStrategy = deepCopy(preset.fontSizeStrategy);
+	style.fontSizeStrategy = deepCopy(preset.fontSizeStrategy);
 	if (preset.padding !== undefined) style.padding = preset.padding;
 	if (preset.lineSpacing !== undefined) style.lineSpacing = preset.lineSpacing;
 	if (preset.strokeWidth !== undefined) style.strokeWidth = preset.strokeWidth;
@@ -92,6 +84,7 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'постироничный лобстер',
 		case: 'lower',
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',
@@ -153,6 +146,7 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'подпись с тенью',
 		case: 'As is',
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',
@@ -181,6 +175,7 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'Arial с обводкой',
 		case: 'As is',
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',
@@ -205,6 +200,7 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'Обычный текст',
 		case: 'As is',
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',
