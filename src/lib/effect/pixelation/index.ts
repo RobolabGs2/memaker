@@ -1,3 +1,4 @@
+import { NumberLayout } from '$lib/graphics/inputs';
 import type { ShaderInputDesc, RawShader } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
@@ -10,7 +11,8 @@ const inputs: ShaderInputDesc[] = [
 		input: {
 			type: 'float',
 			min: 1,
-			step: 1
+			step: 1,
+			layout: NumberLayout.NUMBER
 		}
 	}
 ];

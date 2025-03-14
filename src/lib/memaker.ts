@@ -54,7 +54,7 @@ export class Memaker {
 	}
 	public get currentTask(): string {
 		if (!this.busy) return '';
-		return this.backgroundTasks.values().next().value;
+		return this.backgroundTasks.values().next().value || 'Что-то делаем';
 	}
 	readonly gl: WebGL2RenderingContext;
 	constructor(
@@ -849,12 +849,10 @@ export class Memaker {
 		).then(() => this.draw(this.activeFrame));
 	}
 	updateEffect(key: string, shader: RawShader) {
-		
 		this.meme.frames.forEach((frame) =>
 			frame.blocks.forEach((block) => {
 				block.effects.forEach((effect) => {
 					if (effect.type !== key) return;
-
 				});
 			})
 		);

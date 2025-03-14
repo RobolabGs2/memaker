@@ -11,7 +11,8 @@ const inputs: ShaderInputDesc[] = [
 		input: {
 			type: 'float',
 			min: 0,
-			step: 1
+			step: 1,
+			layout: NumberLayout.NUMBER
 		}
 	},
 	{

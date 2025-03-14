@@ -25,7 +25,8 @@ export const BugleShader: RawShader = {
 			input: {
 				type: 'float',
 				min: 0,
-				step: 1
+				step: 1,
+				layout: NumberLayout.NUMBER
 			}
 		},
 		{

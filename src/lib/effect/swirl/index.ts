@@ -1,4 +1,4 @@
-import { AngleShaderMode } from '$lib/graphics/inputs';
+import { AngleShaderMode, NumberLayout } from '$lib/graphics/inputs';
 import type { RawShader } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
@@ -23,7 +23,8 @@ export const SwirlShader: RawShader = {
 			input: {
 				type: 'float',
 				min: 0,
-				step: 1
+				step: 1,
+				layout: NumberLayout.NUMBER
 			}
 		},
 		{

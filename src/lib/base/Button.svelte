@@ -11,6 +11,7 @@
 	export let height = '';
 </script>
 
+<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
 <article
 	role="button"
 	tabindex={1}
