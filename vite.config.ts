@@ -27,6 +27,13 @@ export default defineConfig(() => {
 		assetsInclude: ['**/*.meme', '**/*.zip'],
 		test: {
 			include: ['src/**/*.{test,spec}.{js,ts}']
+		},
+		css: {
+			preprocessorOptions: {
+				scss: {
+					api: 'modern-compiler'
+				}
+			}
 		}
 	};
 });
