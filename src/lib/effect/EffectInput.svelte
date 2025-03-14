@@ -105,7 +105,7 @@
 			bind:active
 			let:item
 		>
-			<section class="preview" transition:slide|local>
+			<section class="preview" transition:slide>
 				{shaders[item.value.type].title}
 				<PreviewActions
 					value={item.value}
@@ -121,7 +121,7 @@
 				{@const type = active.value.type}
 				{@const shader = shaders[type]}
 				{#if shader.inputs}
-					<div transition:slide>
+					<div transition:slide|global>
 						<InputGroup>
 							{#each shader.inputs as input (input)}
 								<ShaderInput

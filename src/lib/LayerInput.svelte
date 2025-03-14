@@ -114,7 +114,7 @@
 		<Checkbox bind:value={expertMode} />
 	</Label>
 	{#if expertMode}
-		<div transition:slide|local>
+		<div transition:slide>
 			<article class="block">
 				<section>Режим смешивания:</section>
 				<section>

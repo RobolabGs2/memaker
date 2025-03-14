@@ -156,7 +156,7 @@
 				<IconBrandTopbuzz transform="rotate(-12)" size={32} />
 			{/if}
 		</div>
-		<div slot="content">
+		<div slot="content" let:tab>
 			{#if tab.label === 'Заливка'}
 				<MaterialInput
 					bind:value={style.fill}

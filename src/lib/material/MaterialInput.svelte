@@ -45,21 +45,21 @@
 		<InputGroup>
 			{@const type = value.settings.type}
 			{#if type === 'color'}
-				<div transition:slide|local><ColorSettings bind:value={value.settings} on:change /></div>
+				<div transition:slide><ColorSettings bind:value={value.settings} on:change /></div>
 			{:else if type === 'pattern'}
-				<div transition:slide|local>
+				<div transition:slide>
 					<PatternSettings bind:value={value.settings} on:change on:addPattern />
 				</div>
 			{:else if type === 'gradient4'}
-				<div transition:slide|local>
+				<div transition:slide>
 					<GradientSettings bind:value={value.settings} />
 				</div>
 			{:else}
-				<div transition:slide|local>
+				<div transition:slide>
 					<JsonView bind:value={value.settings} />
 				</div>
 			{/if}
-			<div transition:slide|local>
+			<div transition:slide>
 				<Label>
 					Прозрачность (%) <NumberInput
 						withRange

@@ -306,7 +306,7 @@
 					<IconBug />
 				{/if}
 			</div>
-			<div slot="content">
+			<div slot="content" let:tab >
 				{#if tab === 'Текст' && block.content.type == 'text'}
 					<TextContentSettings
 						bind:content={block.content.value}

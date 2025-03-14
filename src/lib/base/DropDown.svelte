@@ -48,7 +48,7 @@
 		<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 		<section
 			style={`max-height:${maxHeight}px;width:${width}px;left:${left}px;top:${bottom}px;`}
-			transition:slide={{ duration: 150 }}
+			transition:slide|global={{ duration: 150 }}
 			on:mouseover={() => (mouseIn = true)}
 			on:mouseout={() => (mouseIn = false)}
 		>
