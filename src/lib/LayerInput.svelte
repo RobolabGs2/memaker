@@ -73,7 +73,7 @@
 	};
 </script>
 
-<main>
+<article class="main">
 	<Label>
 		Прозрачность (%) <NumberInput
 			withRange
@@ -87,7 +87,7 @@
 			}}
 		/>
 	</Label>
-	<article>
+	<article class="block">
 		<section>Режим:</section>
 		<section>
 			<Select
@@ -115,7 +115,7 @@
 	</Label>
 	{#if expertMode}
 		<div transition:slide|local>
-			<article>
+			<article class="block">
 				<section>Режим смешивания:</section>
 				<section>
 					<Select css={selectCss} bind:value={value.blendMode} items={blendModes} let:item>
@@ -123,7 +123,7 @@
 					</Select>
 				</section>
 			</article>
-			<article>
+			<article class="block">
 				<section>Режим наложения:</section>
 				<section>
 					<Select css={selectCss} bind:value={value.composeMode} items={composeModes} let:item>
@@ -133,13 +133,13 @@
 			</article>
 		</div>
 	{/if}
-</main>
+</article>
 
 <style lang="scss">
-	main {
+	.main {
 		padding-left: 4px;
 	}
-	article {
+	.block {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;

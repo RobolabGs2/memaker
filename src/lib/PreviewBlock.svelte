@@ -11,7 +11,7 @@
 </script>
 
 <article>
-	<main>
+	<section>
 		{#if content.type === 'text'}
 			<IconText />
 			<span style={`font:${fontSettingsToCSS(content.value.style.font, 16)};`}>
@@ -22,7 +22,7 @@
 		{:else}
 			{value.content.type}
 		{/if}
-	</main>
+	</section>
 	<slot />
 </article>
 
@@ -35,7 +35,7 @@
 		align-items: center;
 		padding-left: 4px;
 	}
-	main {
+	section {
 		height: 32px;
 		display: flex;
 		align-items: center;

@@ -17,15 +17,15 @@
 	}
 </script>
 
-<main on:dragover={(ev) => ev.preventDefault()} on:drop={onDrop}>
+<article on:dragover={(ev) => ev.preventDefault()} on:drop={onDrop}>
 	<FileInput on:change {accept} {typeFilter}>
 		<Button>Выберите файл</Button>
 	</FileInput>
 	<span> или перетащите сюда.</span>
-</main>
+</article>
 
 <style>
-	main {
+	article {
 		width: 100%;
 		height: 96px;
 		border: 1px dashed white;

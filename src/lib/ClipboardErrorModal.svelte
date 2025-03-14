@@ -21,7 +21,7 @@
 
 <Modal open={fallbackBlob != null} on:close={() => (fallbackBlob = null)}>
 	<svelte:fragment slot="title">Ваш браузер не поддерживает копирование</svelte:fragment>
-	<main>
+	<article>
 		<p>
 			Ваш браузер отключил или не поддерживает копирование изображений из скриптов. Вы можете
 			скопировать эту копию фрейма вручную с помощью ПКМ.
@@ -34,11 +34,11 @@
 			окно, а функционал копирования заработает корректно.
 		</p>
 		<img src={HelpImage} alt="Скриншот страницы about:config" />
-	</main>
+	</article>
 </Modal>
 
 <style>
-	main {
+	article {
 		height: 100%;
 		display: flex;
 		align-items: center;

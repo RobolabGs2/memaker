@@ -19,7 +19,6 @@ export interface GlobalContainer {
 	maxWidth: number;
 	maxHeight: number;
 	minHeight: number;
-	textPadding: number;
 }
 export type Container =
 	| {
@@ -69,20 +68,23 @@ import * as twgl from 'twgl.js';
 export class FrameDrawer {
 	private contentRenderers: Record<'text' | 'image', ContentRenderer<unknown>>;
 	private backgroundTexture: WebGLTexture;
+	private textStencilService: TextStencilService;
 	constructor(
 		readonly gl: WebGL2RenderingContext,
 		textures: TextureManager,
 		textManager: TextManager,
 		readonly graphics: Graphics
 	) {
+		this.textStencilService = new TextStencilService(gl, textManager);
 		this.contentRenderers = {
 			image: new ImageContentRenderer(textures),
-			text: new TextContentRenderer(new TextStencilService(gl, textManager))
+			text: new TextContentRenderer(this.textStencilService)
 		};
 		this.backgroundTexture = twgl.createTexture(gl, { src: [255, 255, 255, 255] });
 	}
 	clear() {
 		this.graphics.clear();
+		this.textStencilService.clear();
 	}
 	drawFrame(frame: Frame) {
 		this.graphics.resize(frame.width, frame.height);
@@ -125,6 +127,7 @@ export class FrameDrawer {
 		this.graphics.buffersPull.free(effectBuffer);
 		this.graphics.buffersPull.free(layerBuffer);
 		this.graphics.buffersPull.free(composedBuffer);
+		this.textStencilService.tick();
 	}
 
 	drawBlock(
@@ -137,7 +140,7 @@ export class FrameDrawer {
 		const { drawers, rectangle } =
 			container.type === 'global'
 				? renderer.drawGlobal(graphics, content.value, frame, container.value)
-				: renderer.drawInRectangle(graphics, content.value, container.value);
+				: renderer.drawInRectangle(graphics, content.value, frame, container.value);
 		return drawers.map(
 			block.effects.length == 0
 				? (d) => (_buf: twgl.FramebufferInfo, dst: twgl.FramebufferInfo) => d(dst)
@@ -165,7 +168,12 @@ type ContentDrawData = {
 };
 
 interface ContentRenderer<T> {
-	drawInRectangle(graphics: Graphics, content: T, rectangle: Rectangle): ContentDrawData;
+	drawInRectangle(
+		graphics: Graphics,
+		content: T,
+		frame: Frame,
+		rectangle: Rectangle
+	): ContentDrawData;
 	drawGlobal(
 		graphics: Graphics,
 		content: T,
@@ -192,8 +200,8 @@ class TextContentRenderer implements ContentRenderer<TextContent> {
 					linesCount * (0.175 + Math.max(-0.05, 0.03 * (2.5 - symbolsCount / 10)))
 				)
 			);
-		const textStencil = this.textService.getTextStencil(text, style, width, height);
-		const fontShift = global.textPadding;
+		const textStencil = this.textService.getTextStencil(text, style, width, height, { frame });
+		const fontShift = style.padding;
 		const verticalShift = height / 2 + textStencil.info.fontSize * fontShift;
 		const baseline = style.baseline;
 		const y =
@@ -219,9 +227,16 @@ class TextContentRenderer implements ContentRenderer<TextContent> {
 	): Rectangle {
 		return this.prepareRectangle(content, frame, global).rect;
 	}
-	drawInRectangle(graphics: Graphics, content: TextContent, rect: Rectangle): ContentDrawData {
+	drawInRectangle(
+		graphics: Graphics,
+		content: TextContent,
+		frame: Frame,
+		rect: Rectangle
+	): ContentDrawData {
 		const { text, style } = content;
-		const textStencil = this.textService.getTextStencil(text, style, rect.width, rect.height);
+		const textStencil = this.textService.getTextStencil(text, style, rect.width, rect.height, {
+			frame
+		});
 		return {
 			drawers: this.draw(graphics, textStencil, rect, style),
 			rectangle: rect
@@ -291,6 +306,7 @@ class ImageContentRenderer implements ContentRenderer<ImageContent> {
 	drawInRectangle(
 		graphics: Graphics,
 		content: ImageContent,
+		_frame: Frame,
 		rectangle: Rectangle
 	): ContentDrawData {
 		const image = this.textures.get(content.id);
@@ -315,7 +331,7 @@ class ImageContentRenderer implements ContentRenderer<ImageContent> {
 		global: GlobalContainer
 	): ContentDrawData {
 		const rect = this.measureGlobalRectangle(content, frame, global);
-		return this.drawInRectangle(graphics, content, rect);
+		return this.drawInRectangle(graphics, content, frame, rect);
 	}
 	private cropImage(
 		image: { width: number; height: number },

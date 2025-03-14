@@ -4,34 +4,81 @@
 	import NumberInput from './base/NumberInput.svelte';
 	import PointInput from './base/PointInput.svelte';
 	import Select from './base/Select.svelte';
-	import type { Container } from './meme';
+	import { TextureManager } from './graphics/textures';
+	import type { Container, Content } from './meme';
 
 	export let container: Container;
+	export let content: Content;
+	export let textureManager: TextureManager;
 	export let frameWidth: number;
 	export let frameHeight: number;
 
 	function changeType(to: Container['type']) {
-		if (to == 'global') {
-			container.value = {
-				maxWidth: 0.95,
-				maxHeight: 0.4,
-				minHeight: 0.1,
-				textPadding: 2 / 9
-			};
-			container.type = 'global';
-			return;
+		switch (content.type) {
+			case 'text':
+				switch (to) {
+					case 'global':
+						container.value = {
+							maxWidth: 0.9,
+							maxHeight: 0.4,
+							minHeight: 0.1
+						};
+						container.type = 'global';
+						return;
+					case 'rectangle':
+						container.value = {
+							width: frameWidth / 2,
+							height: frameHeight / 2,
+							position: {
+								x: frameWidth / 2,
+								y: frameHeight / 2
+							},
+							rotation: 0
+						};
+						container.type = 'rectangle';
+						return;
+				}
+				break;
+			case 'image':
+				{
+					const crop = content.value.crop;
+					const image = textureManager.get(content.value.id);
+					let width = crop.width * image.width;
+					let height = crop.height * image.height;
+					const ratio = width / height;
+					if (ratio > 1 && width > frameWidth) {
+						width = frameWidth;
+						height = width / ratio;
+					}
+					if (ratio < 1 && height > frameHeight) {
+						height = frameHeight;
+						width = height * ratio;
+					}
+					switch (to) {
+						case 'global':
+							container.value = {
+								maxWidth: 1,
+								maxHeight: 1,
+								minHeight: 0.0
+							};
+							container.type = 'global';
+							return;
+						case 'rectangle':
+							container.value = {
+								width,
+								height,
+								position: {
+									x: width / 2,
+									y: height / 2
+								},
+								rotation: 0
+							};
+							container.type = 'rectangle';
+							return;
+					}
+				}
+				break;
 		}
-		container.value = {
-			width: frameWidth / 2,
-			height: frameHeight / 2,
-			position: {
-				x: frameWidth / 2,
-				y: frameHeight / 2
-			},
-			rotation: 0
-		};
-		container.type = 'rectangle';
-		return;
 	}
 
 	const containerTypes = ['global', 'rectangle'] as const;
@@ -111,19 +158,6 @@
 					on:input={(ev) => {
 						if (container.type !== 'global') return;
 						container.value.minHeight = ev.detail / 100;
-					}}
-				/>
-			</Label>
-			<Label>
-				Отступ для текста (% от размера шрифта): <NumberInput
-					min={0}
-					max={100}
-					step={0.5}
-					withRange={true}
-					value={container.value.textPadding * 100}
-					on:input={(ev) => {
-						if (container.type !== 'global') return;
-						container.value.textPadding = ev.detail / 100;
 					}}
 				/>
 			</Label>

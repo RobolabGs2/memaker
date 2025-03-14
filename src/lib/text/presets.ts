@@ -7,6 +7,7 @@ export const defaultStyle: TextStyle = {
 	align: 'center',
 	baseline: 'middle',
 	lineSpacing: -0.125,
+	padding: 1 / 3,
 	fontSizeStrategy: { type: 'same-height' },
 	fill: {
 		settings: {
@@ -34,14 +35,19 @@ export const defaultStyle: TextStyle = {
 
 export type StylePresetType = Omit<
 	TextStyle,
-	'align' | 'baseline' | 'lineSpacing' | 'strokeWidth' | 'experimental' | 'fontSizeStrategy'
-> & { lineSpacing?: number; strokeWidth?: number };
+	'align' | 'baseline' | 'lineSpacing' | 'strokeWidth' | 'experimental'
+> & {
+	lineSpacing?: number;
+	strokeWidth?: number;
+};
 
 export function applyStylePreset(preset: StylePresetType, style: TextStyle): TextStyle {
 	style.case = preset.case;
 	style.fill = deepCopy(preset.fill);
 	style.stroke = deepCopy(preset.stroke);
 	style.font = deepCopy(preset.font);
+	style.fontSizeStrategy = deepCopy(preset.fontSizeStrategy);
+	style.padding = preset.padding;
 	if (preset.lineSpacing !== undefined) style.lineSpacing = preset.lineSpacing;
 	if (preset.strokeWidth !== undefined) style.strokeWidth = preset.strokeWidth;
 	return style;
@@ -51,6 +57,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'КАНОНИЧНЫЙ ИМПАКТ',
 		case: 'UPPER',
+		padding: 1 / 3,
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',
@@ -75,6 +83,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'постироничный лобстер',
 		case: 'lower',
+		padding: 1 / 3,
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',
@@ -104,6 +114,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'Субтитры',
 		case: 'As is',
+		padding: 0.7,
+		fontSizeStrategy: { type: 'relative', unit: 'vh', value: 8.2 },
 		fill: {
 			settings: {
 				type: 'color',
@@ -134,6 +146,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'подпись с тенью',
 		case: 'As is',
+		padding: 1 / 3,
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',
@@ -162,6 +176,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'Arial с обводкой',
 		case: 'As is',
+		padding: 1 / 3,
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',
@@ -186,6 +202,8 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 	{
 		name: 'Обычный текст',
 		case: 'As is',
+		padding: 1 / 3,
+		fontSizeStrategy: { type: 'same-height' },
 		fill: {
 			settings: {
 				type: 'color',

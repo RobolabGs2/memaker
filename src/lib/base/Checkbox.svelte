@@ -6,7 +6,7 @@
 	const dispatch = createEventDispatcher<{ input: boolean; change: boolean }>();
 </script>
 
-<main>
+<article>
 	<input
 		type="checkbox"
 		bind:checked={value}
@@ -14,11 +14,11 @@
 		on:change={(ev) => dispatch('change', ev.currentTarget.checked)}
 	/>
 	<span />
-</main>
+</article>
 
 <!-- https://www.w3docs.com/snippets/css/how-to-style-a-checkbox-with-css.html -->
 <style>
-	main {
+	article {
 		display: block;
 		position: relative;
 		padding-left: 45px;
@@ -41,15 +41,15 @@
 		border-style: inset;
 	}
 	/* Specify the background color to be shown when hovering over checkbox */
-	main:hover input ~ span {
+	article:hover input ~ span {
 		background-color: #5555ff;
 	}
 	/* Specify the background color to be shown when checkbox is active */
-	main input:active ~ span {
+	article input:active ~ span {
 		background-color: #4444dd;
 	}
 	/* Specify the background color to be shown when checkbox is checked */
-	main input:checked ~ span {
+	article input:checked ~ span {
 		background-color: #4444ff;
 	}
 	/* Checkmark to be shown in checkbox */
@@ -60,14 +60,14 @@
 		display: none;
 	}
 	/* Display checkmark when checked */
-	main input:checked ~ span:after {
+	article input:checked ~ span:after {
 		display: block;
 	}
 	/* Styling the checkmark using webkit */
 	/* Rotated the rectangle by 45 degree and 
       showing only two border to make it look
       like a tickmark */
-	main span:after {
+	article span:after {
 		left: 7px;
 		bottom: 5px;
 		width: 6px;

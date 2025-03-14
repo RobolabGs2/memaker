@@ -156,27 +156,9 @@ type TextFontSizeStrategyV0_2_6 =
 
 type TextContentV0_2_6 = TextContentV0_2_0<TextStyleV0_2_6>;
 
-interface GlobalContainerV0_2_6 {
-	// percents
-	maxWidth: number;
-	maxHeight: number;
-	minHeight: number;
-	textPadding: number;
-}
-
-type ContainerV0_2_6 =
-	| {
-			type: 'rectangle';
-			value: Rectangle;
-	  }
-	| {
-			type: 'global';
-			value: GlobalContainerV0_2_6;
-	  };
-
 type BlockV0_2_6 = {
 	id: string;
-	container: ContainerV0_2_6;
+	container: ContainerV0_2_0;
 	content: Content<TextContentV0_2_6, ImageContentV0_2_3>;
 	effects: { settings: Record<string, unknown> }[];
 	layer: LayerSettingsV0_2_4;
@@ -193,6 +175,7 @@ interface TextStyleV0_2_6 {
 	// [0, 100] % от кегля
 	strokeWidth: number;
 	fontSizeStrategy: TextFontSizeStrategyV0_2_6;
+	padding: number;
 	experimental: Record<string, never>;
 }
 
@@ -469,22 +452,13 @@ export class MemeFormat {
 						...content.value,
 						style: {
 							...content.value.style,
+							padding: 2 / 9,
 							fontSizeStrategy: { type: oldStrategy }
 						}
 					}
 				};
 			}
 			return content;
-		}
-		function migrateContainer(container: ContainerV0_2_0): ContainerV0_2_6 {
-			if (container.type == 'rectangle') return container;
-			return {
-				type: 'global',
-				value: {
-					...container.value,
-					textPadding: 2 / 9
-				}
-			};
 		}
 		return {
 			...data,
@@ -496,8 +470,7 @@ export class MemeFormat {
 						blocks: f.blocks.map((b) => {
 							return {
 								...b,
-								content: migrateContent(b.content),
-								container: migrateContainer(b.container)
+								content: migrateContent(b.content)
 							} as BlockV0_2_6;
 						})
 					};
@@ -614,7 +587,7 @@ export class MemeFormat {
 														type: 'global',
 														value: {
 															maxHeight: 0.4,
-															maxWidth: 0.96,
+															maxWidth: 0.9,
 															minHeight: 0.1
 														}
 												  } as const)
@@ -655,7 +628,7 @@ export class MemeFormat {
 														value: {
 															maxHeight: 0.4,
 															minHeight: 0.1,
-															maxWidth: 0.96
+															maxWidth: 0.9
 														}
 												  } as const)
 												: ({

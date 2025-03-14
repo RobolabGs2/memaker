@@ -11,7 +11,7 @@
 	export let height = '';
 </script>
 
-<main
+<article
 	role="button"
 	tabindex={1}
 	{title}
@@ -23,7 +23,7 @@
 	style="justify-content:{justifyContent};width:{width || '100%'};{width
 		? `min-width:${width};max-width:${width};`
 		: ''}{height ? `min-height:${height};max-height:${height};` : ''}{style};"
-	on:click
+	on:click|stopPropagation
 	on:mousemove
 	on:mouseout
 	on:mouseover
@@ -43,10 +43,10 @@
 	on:blur
 >
 	<slot />
-</main>
+</article>
 
 <style lang="scss">
-	main {
+	article {
 		font-size: small;
 		font-family: inherit;
 		border-radius: 8px;
