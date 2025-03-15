@@ -6,10 +6,10 @@
 	import PreviewsContainer from '$lib/PreviewsContainer.svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { IconPlus } from '@tabler/icons-svelte';
-	import ShaderInput from './ShaderInput.svelte';
 	import InputGroup from '$lib/base/InputGroup.svelte';
 	import Label from '$lib/base/Label.svelte';
 	import { NumberLayout } from '$lib/graphics/inputs';
+	import GLSLEditor, { type CompilationError } from '$lib/effect/GLSLEditor.svelte';
 
 	const dispatch = createEventDispatcher<{
 		compile: {
@@ -66,66 +66,27 @@ void main() {
 		inputs = inputs;
 		activeUniform = { id: uniform.name, value: uniform };
 	}
-	import { basicSetup } from 'codemirror';
-	import { EditorView, keymap } from '@codemirror/view';
-	import { indentWithTab } from '@codemirror/commands';
-	import { shader } from '@codemirror/legacy-modes/mode/clike';
-	import { StreamLanguage } from '@codemirror/language';
-	import { oneDark } from '@codemirror/theme-one-dark';
-	import { type Diagnostic, setDiagnostics } from '@codemirror/lint';
-
-	let editorElem: HTMLElement;
-	let editor: EditorView;
-	const regexpLinter = (err: string) => {
+	const parseErrors = (err: string | undefined) => {
 		if (!err) return [];
 		const added = new Set();
-		const diagnostics: Diagnostic[] = err
+		return err
 			.matchAll(/ERROR: \d+:(\d+): (.+)/g)
 			.map((match) => {
-				const [_full, lineInd, message] = match;
-				const line = editor.state.doc.line(+lineInd);
-				return {
-					from: line.from,
-					to: line.to,
-					severity: 'error',
-					message,
-					actions: []
-				} as Diagnostic;
+				const [_full, line, message] = match;
+				return { line: +line, message } as CompilationError;
 			})
-			.filter((diagnostic) => {
-				const key = diagnostic.from + diagnostic.message;
+			.filter((err) => {
+				const key = err.line + err.message;
 				if (added.has(key)) return false;
 				added.add(key);
 				return true;
 			})
 			.toArray();
-		return diagnostics;
 	};
-	let prevErr: string | undefined = undefined;
-	$: {
-		if (editor) {
-			if (prevErr != compilationError) {
-				prevErr = compilationError;
-				editor.dispatch(setDiagnostics(editor.state, regexpLinter(prevErr || '')));
-			}
-		}
-	}
-	onMount(() => {
-		editor = new EditorView({
-			doc: fragment,
-			extensions: [basicSetup, keymap.of([indentWithTab]), StreamLanguage.define(shader), oneDark],
-			parent: editorElem
-		});
-		return () => editor.destroy();
-	});
 </script>
 
 <main>
-	<Button
-		type="primary"
-		on:click={() =>
-			dispatch('compile', { fragment: editor?.state.doc.toString() || '', inputs, title })}
-	>
+	<Button type="primary" on:click={() => dispatch('compile', { fragment, inputs, title })}>
 		Компилировать
 	</Button>
 	<section>
@@ -159,7 +120,7 @@ void main() {
 	</section>
 	<section>
 		<header>Фрагментный шейдер</header>
-		<article bind:this={editorElem} />
+		<GLSLEditor bind:text={fragment} errors={parseErrors(compilationError)} />
 	</section>
 </main>
 
