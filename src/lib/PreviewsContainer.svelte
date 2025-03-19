@@ -1,10 +1,11 @@
 <script lang="ts">
 	type IdType = $$Generic;
-	type Item = $$Generic<{ id: IdType }>;
+	type Item = $$Generic;
 	export let items: Array<Item>;
 	export let active: Item;
 	export let reverse = false;
 	export let height = '100%';
+	export let getId = (item: Item) => (item as { id: IdType }).id!;
 
 	const scrollSettings = { behavior: 'smooth', block: 'center' } as const;
 	function scrollIntoView(node: HTMLElement, { isActive }: { isActive: boolean }) {
@@ -27,12 +28,12 @@
 	on:drop
 	on:dragover
 >
-	{#each items as item, index (item.id)}
+	{#each items as item, index (getId(item))}
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<article
-			use:scrollIntoView={{ isActive: item.id === active.id }}
+			use:scrollIntoView={{ isActive: getId(item) === getId(active) }}
 			class="item"
-			class:active={item.id === active.id}
+			class:active={getId(item) === getId(active)}
 			on:click={() => (active = item)}
 		>
 			<slot {item} {index} />

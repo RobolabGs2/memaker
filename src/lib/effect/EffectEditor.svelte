@@ -6,10 +6,15 @@
 	import PreviewsContainer from '$lib/PreviewsContainer.svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { IconPlus } from '@tabler/icons-svelte';
-	import InputGroup from '$lib/base/InputGroup.svelte';
-	import Label from '$lib/base/Label.svelte';
-	import { NumberLayout } from '$lib/graphics/inputs';
+	import {
+		NumberLayout,
+		uniformInputTypeToGLSL,
+		type UniformInputType
+	} from '$lib/graphics/inputs';
 	import GLSLEditor, { type CompilationError } from '$lib/effect/GLSLEditor.svelte';
+	import { type Completion } from '@codemirror/autocomplete';
+	import UniformInput from './UniformInput.svelte';
+	import { SwirlShader } from './swirl';
 
 	const dispatch = createEventDispatcher<{
 		compile: {
@@ -37,6 +42,7 @@
 			}
 		}
 	];
+	inputs = SwirlShader.inputs!;
 	let fragment: string = `#version 300 es
 precision mediump float;
 precision mediump int;
@@ -49,7 +55,7 @@ void main() {
     vec4 color = texture(layer, texCoord);
     FragColor = color;
 }`;
-	let activeUniform = { id: inputs[0]?.name, value: inputs[0] };
+	let activeUniform = inputs[0];
 	function onAddUniform() {
 		const uniform: ShaderInputDesc = {
 			name: `uniform${inputs.length}`,
@@ -64,7 +70,7 @@ void main() {
 		};
 		inputs.push(uniform);
 		inputs = inputs;
-		activeUniform = { id: uniform.name, value: uniform };
+		activeUniform = uniform;
 	}
 	const parseErrors = (err: string | undefined) => {
 		if (!err) return [];
@@ -83,6 +89,23 @@ void main() {
 			})
 			.toArray();
 	};
+	function typeHint(type: UniformInputType) {
+		const glsl = uniformInputTypeToGLSL(type);
+		return glsl === type ? glsl : `${glsl} (${type})`;
+	}
+	function completions(inputs: ShaderInputDesc[]): Completion[] {
+		return inputs.map((desc) => {
+			return {
+				label: desc.name,
+				type: 'variable',
+				detail: `${typeHint(desc.input.type)}: ${desc.title}`,
+				info: desc.description
+			} as Completion;
+		});
+	}
+	function onUniformChanged() {
+		inputs = inputs;
+	}
 </script>
 
 <main>
@@ -102,25 +125,25 @@ void main() {
 			>
 		</header>
 		<PreviewsContainer
-			items={inputs.map((value) => ({ id: value.name, value }))}
+			items={inputs}
+			getId={(input) => input.name}
 			bind:active={activeUniform}
 			let:item
 		>
 			{#if item == activeUniform}
-				<InputGroup>
-					<Label>Имя в коде <input bind:value={activeUniform.value.name} /></Label>
-					<Label>Имя в UI <input bind:value={activeUniform.value.title} /></Label>
-					<Label>Описание <textarea bind:value={activeUniform.value.description} /></Label>
-					<UniformInputView bind:value={activeUniform.value.input} />
-				</InputGroup>
+				<UniformInput bind:value={activeUniform} on:change={onUniformChanged} />
 			{:else}
-				{item.value.input.type} {item.value.name}
+				{item.input.type} {item.name}
 			{/if}
 		</PreviewsContainer>
 	</section>
 	<section>
 		<header>Фрагментный шейдер</header>
-		<GLSLEditor bind:text={fragment} errors={parseErrors(compilationError)} />
+		<GLSLEditor
+			bind:text={fragment}
+			errors={parseErrors(compilationError)}
+			hints={completions(inputs)}
+		/>
 	</section>
 </main>
 

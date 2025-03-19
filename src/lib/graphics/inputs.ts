@@ -60,11 +60,32 @@ interface ShaderInputTypesMap {
 }
 
 export type UniformInputType = keyof ShaderInputTypesMap;
-export const UniformInputTypes: ReadonlyArray<UniformInputType> = ["float", "int", "angle", "point", "color"];
+export const UniformInputTypes: ReadonlyArray<UniformInputType> = [
+	'float',
+	'int',
+	'angle',
+	'point',
+	'color'
+];
 export type UniformInputDefault<T extends UniformInputType = UniformInputType> =
 	ShaderInputTypesMap[T]['default'];
 export type UniformInput<T extends UniformInputType = UniformInputType> =
 	ShaderInputTypesMap[T]['input'];
+
+export function uniformInputTypeToGLSL(t: UniformInputType): string {
+	switch (t) {
+		case 'float':
+			return 'float';
+		case 'int':
+			return 'int';
+		case 'angle':
+			return 'float';
+		case 'point':
+			return 'vec2';
+		case 'color':
+			return 'vec3';
+	}
+}
 
 export function getDefaultValue<T extends UniformInputType>(
 	type: T,

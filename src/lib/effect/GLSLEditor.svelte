@@ -10,6 +10,13 @@
 	import { basicSetup } from 'codemirror';
 	import { EditorView, keymap } from '@codemirror/view';
 	import { Transaction } from '@codemirror/state';
+	import {
+		completeFromList,
+		type Completion,
+		autocompletion,
+		CompletionContext,
+		type CompletionSource
+	} from '@codemirror/autocomplete';
 	import { indentWithTab } from '@codemirror/commands';
 	import { shader } from '@codemirror/legacy-modes/mode/clike';
 	import { StreamLanguage } from '@codemirror/language';
@@ -20,6 +27,7 @@
 	// TODO: update from outside
 	export let text: string;
 	export let errors: CompilationError[] = [];
+	export let hints: Completion[] = [];
 	function errorToDiagnostic(editor: EditorView, err: CompilationError): Diagnostic {
 		const line = editor.state.doc.line(err.line);
 		return {
@@ -35,12 +43,22 @@
 	$: editor &&
 		editor.dispatch(setDiagnostics(editor.state, errors.map(errorToDiagnostic.bind(null, editor))));
 	// $: editor && editor.set
+
 	const language = StreamLanguage.define(shader);
 	function dispatchTransactions(trs: readonly Transaction[], view: EditorView) {
 		view.update(trs);
 		const docChanged = trs.some((t) => t.docChanged);
 		if (docChanged) text = view.state.doc.toString();
 	}
+	let fromList: CompletionSource;
+	$: fromList = completeFromList(hints);
+	const hitsAutocompletion = autocompletion({
+		override: [
+			(context: CompletionContext) => {
+				return fromList(context);
+			}
+		]
+	});
 	onMount(() => {
 		editor = new EditorView({
 			doc: text,
@@ -49,6 +67,7 @@
 				keymap.of([indentWithTab]),
 				keymap.of(vscodeKeymap),
 				language,
+				hitsAutocompletion,
 				oneDark
 			],
 			parent: editorElem,
