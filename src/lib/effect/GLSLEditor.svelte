@@ -31,7 +31,7 @@
 	function errorToDiagnostic(editor: EditorView, err: CompilationError): Diagnostic {
 		const line = editor.state.doc.line(err.line);
 		return {
-			from: line.from,
+			from: line.from+(line.length - line.text.trimStart().length),
 			to: line.to,
 			severity: 'error',
 			message: err.message,

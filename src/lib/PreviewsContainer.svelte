@@ -29,15 +29,14 @@
 	on:dragover
 >
 	{#each items as item, index (getId(item))}
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<article
+		<button
 			use:scrollIntoView={{ isActive: getId(item) === getId(active) }}
 			class="item"
 			class:active={getId(item) === getId(active)}
 			on:click={() => (active = item)}
 		>
 			<slot {item} {index} />
-		</article>
+		</button>
 	{/each}
 </article>
 

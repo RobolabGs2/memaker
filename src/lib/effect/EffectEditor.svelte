@@ -1,10 +1,8 @@
 <script lang="ts">
 	import Button from '$lib/base/Button.svelte';
-	import JsonView from '$lib/debug/JsonView.svelte';
 	import type { ShaderInputDesc } from '$lib/graphics/shader';
-	import UniformInputView from '$lib/graphics/ui/UniformInputView.svelte';
 	import PreviewsContainer from '$lib/PreviewsContainer.svelte';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import { IconPlus } from '@tabler/icons-svelte';
 	import {
 		NumberLayout,
@@ -13,8 +11,9 @@
 	} from '$lib/graphics/inputs';
 	import GLSLEditor, { type CompilationError } from '$lib/effect/GLSLEditor.svelte';
 	import { type Completion } from '@codemirror/autocomplete';
-	import UniformInput from './UniformInput.svelte';
-	import { SwirlShader } from './swirl';
+	import UniformInputView from './UniformInput.svelte';
+
+	import { deepCopy } from '$lib/state';
 
 	const dispatch = createEventDispatcher<{
 		compile: {
@@ -42,19 +41,27 @@
 			}
 		}
 	];
-	inputs = SwirlShader.inputs!;
-	let fragment: string = `#version 300 es
+	const header = `#version 300 es
 precision mediump float;
 precision mediump int;
 
 uniform sampler2D layer;
 in vec2 texCoord;
 out vec4 FragColor;
-
+vec4 effect();
 void main() {
-    vec4 color = texture(layer, texCoord);
-    FragColor = color;
+    FragColor = effect();
 }`;
+	let fragment: string = `vec4 effect() {
+    vec4 color = texture(layer, texCoord);
+    return color;
+}`;
+	function shaderHeader() {
+		return (
+			header +
+			inputs.map((u) => `uniform ${uniformInputTypeToGLSL(u.input.type)} ${u.name};`).join('')
+		);
+	}
 	let activeUniform = inputs[0];
 	function onAddUniform() {
 		const uniform: ShaderInputDesc = {
@@ -75,11 +82,12 @@ void main() {
 	const parseErrors = (err: string | undefined) => {
 		if (!err) return [];
 		const added = new Set();
+		const header = shaderHeader().split('\n');
 		return err
 			.matchAll(/ERROR: \d+:(\d+): (.+)/g)
 			.map((match) => {
 				const [_full, line, message] = match;
-				return { line: +line, message } as CompilationError;
+				return { line: Math.max(1, +line - header.length), message } as CompilationError;
 			})
 			.filter((err) => {
 				const key = err.line + err.message;
@@ -94,14 +102,27 @@ void main() {
 		return glsl === type ? glsl : `${glsl} (${type})`;
 	}
 	function completions(inputs: ShaderInputDesc[]): Completion[] {
-		return inputs.map((desc) => {
-			return {
-				label: desc.name,
-				type: 'variable',
-				detail: `${typeHint(desc.input.type)}: ${desc.title}`,
-				info: desc.description
-			} as Completion;
-		});
+		return inputs
+			.map((desc) => {
+				return {
+					label: desc.name,
+					type: 'variable',
+					detail: `${typeHint(desc.input.type)}: ${desc.title}`,
+					info: desc.description
+				} as Completion;
+			})
+			.concat([
+				{
+					label: 'layer',
+					type: 'variable',
+					detail: 'sampler2D: Текстура с текущим слоем'
+				},
+				{
+					label: 'texCoord',
+					type: 'constant',
+					detail: 'vec2: Текстурные координаты на layer'
+				}
+			]);
 	}
 	function onUniformChanged() {
 		inputs = inputs;
@@ -109,7 +130,15 @@ void main() {
 </script>
 
 <main>
-	<Button type="primary" on:click={() => dispatch('compile', { fragment, inputs, title })}>
+	<Button
+		type="primary"
+		on:click={() =>
+			dispatch('compile', {
+				fragment: shaderHeader() + '\n' + fragment,
+				inputs: deepCopy(inputs),
+				title
+			})}
+	>
 		Компилировать
 	</Button>
 	<section>
@@ -121,8 +150,9 @@ void main() {
 	<section>
 		<header>
 			<span>Параметры</span>
-			<Button on:click={onAddUniform} width="32px" height="32px" type="primary"><IconPlus /></Button
-			>
+			<Button on:click={onAddUniform} width="32px" height="32px" type="primary">
+				<IconPlus />
+			</Button>
 		</header>
 		<PreviewsContainer
 			items={inputs}
@@ -131,7 +161,7 @@ void main() {
 			let:item
 		>
 			{#if item == activeUniform}
-				<UniformInput bind:value={activeUniform} on:change={onUniformChanged} />
+				<UniformInputView bind:value={activeUniform} on:change={onUniformChanged} />
 			{:else}
 				{item.input.type} {item.name}
 			{/if}
@@ -148,11 +178,6 @@ void main() {
 </main>
 
 <style>
-	textarea {
-		width: 100%;
-		color: inherit;
-		background-color: inherit;
-	}
 	header {
 		display: flex;
 		align-items: end;
