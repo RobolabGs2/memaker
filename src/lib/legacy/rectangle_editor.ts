@@ -19,7 +19,7 @@ import {
 } from './sprites/sprite';
 import type { Effect } from '$lib/effect';
 import { RingSprite } from './sprites/circle_sprite';
-import type { RawShader, ShaderInputDesc } from '$lib/graphics/shader';
+import type { RawShader, UniformDesc } from '$lib/graphics/shader';
 import type { ImageContent } from '$lib/image';
 
 export enum BlockEditorMode {
@@ -227,9 +227,9 @@ export class RectangleEditor {
 		const uiUnit = 8 * this.cursor.scale;
 		const shader = this.effectsShaders[effect.type];
 		if (!shader || !shader.inputs) return;
-		let center: ShaderInputDesc | undefined;
-		const points: ShaderInputDesc[] = [];
-		let radius: ShaderInputDesc | undefined;
+		let center: UniformDesc | undefined;
+		const points: UniformDesc[] = [];
+		let radius: UniformDesc | undefined;
 		for (const uniform of shader.inputs) {
 			if (uniform.input.type == 'point') {
 				points.push(uniform);

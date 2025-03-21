@@ -12,6 +12,7 @@ export interface Gradient4Settings {
 
 export const Gradient4Shader = {
 	fragment: fragmentShader,
+	title: 'Градиент (крестовой)',
 	uniforms(settings: Gradient4Settings) {
 		return {
 			colors: [

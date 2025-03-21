@@ -1,8 +1,8 @@
 import { NumberLayout } from '$lib/graphics/inputs';
-import type { RawShader, ShaderInputDesc } from '$lib/graphics/shader';
+import type { RawShader, UniformDesc } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
-const inputs: ShaderInputDesc[] = [
+const inputs: UniformDesc[] = [
 	{
 		name: 'strength',
 		default: 0.5,

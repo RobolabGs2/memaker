@@ -1,8 +1,8 @@
 import { NumberLayout } from '$lib/graphics/inputs';
-import type { ShaderInputDesc, RawShader } from '$lib/graphics/shader';
+import type { UniformDesc, RawShader } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
-const inputs: ShaderInputDesc[] = [
+const inputs: UniformDesc[] = [
 	{
 		name: 'radius',
 		title: 'Радиус',

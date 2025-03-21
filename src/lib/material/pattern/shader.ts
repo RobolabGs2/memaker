@@ -15,6 +15,7 @@ export interface PatternSettings {
 
 export function PatternShader(patterns: PatternsManager) {
 	return {
+		title: 'Паттерн',
 		fragment: fragmentShader,
 		uniforms(settings: PatternSettings, block: Rectangle, ctx: GraphicsContext) {
 			const pattern = ctx.textures.get(patterns.getTexture(settings.name));

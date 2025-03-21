@@ -75,6 +75,7 @@
 	export let version: string;
 	export let memeExampleURL: string;
 	export let effectsShaders: Record<string, RawShader>;
+	export let materialsShaders: Record<string, RawShader>;
 	export let editorState: BlockEditorState;
 	export let frameDrawer: FrameDrawer;
 	export let devMode: boolean;
@@ -306,9 +307,11 @@
 					<IconBug />
 				{/if}
 			</div>
-			<div slot="content" let:tab >
+			<div slot="content" let:tab>
 				{#if tab === 'Текст' && block.content.type == 'text'}
 					<TextContentSettings
+						context={{ frame }}
+						shaders={materialsShaders}
 						bind:content={block.content.value}
 						container={block.container}
 						on:change

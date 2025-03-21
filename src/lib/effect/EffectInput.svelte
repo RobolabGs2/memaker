@@ -5,7 +5,7 @@
 	import { slide } from 'svelte/transition';
 	import type { Effect, EffectSettings } from '.';
 	import InputGroup from '$lib/base/InputGroup.svelte';
-	import ShaderInput from './ShaderInput.svelte';
+	import UniformInput from '../graphics/ui/UniformInput.svelte';
 	import type { RawShader } from '$lib/graphics/shader';
 	import { getDefaultValue } from '$lib/graphics/inputs';
 	export let value: Effect[];
@@ -124,7 +124,7 @@
 					<div transition:slide|global>
 						<InputGroup>
 							{#each shader.inputs as input (input)}
-								<ShaderInput
+								<UniformInput
 									desc={input}
 									name={input.name}
 									{context}

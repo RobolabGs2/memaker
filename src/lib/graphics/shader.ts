@@ -18,12 +18,24 @@ export function parseColorBytes(color: string): [number, number, number] {
 	return [raw >> (2 * 8), (raw >> 8) & 0xff, raw & 0xff];
 }
 
+export type ShaderUniforms = Record<string, unknown>;
+export interface ShaderSettings {
+	type: string;
+	settings: ShaderUniforms;
+}
+
+export interface ShaderResource {
+	name: string;
+	shader: RawShader;
+	source: 'default' | 'user';
+}
+
 export interface RawShader<T = unknown> {
-	title?: string;
+	title: string;
 	description?: string;
 	vertex?: string;
 	fragment?: string;
-	inputs?: ShaderInputDesc[];
+	inputs?: UniformDesc[];
 	uniforms?(settings: T, rectangle: Rectangle, ctx: GraphicsContext): Record<string, unknown>;
 }
 
@@ -31,7 +43,7 @@ export interface GraphicsContext {
 	textures: TextureManager<unknown>;
 }
 
-export type ShaderInputDesc<T extends UniformInputType = UniformInputType> = {
+export type UniformDesc<T extends UniformInputType = UniformInputType> = {
 	name: string;
 	title: string;
 	description?: string;
@@ -40,7 +52,7 @@ export type ShaderInputDesc<T extends UniformInputType = UniformInputType> = {
 };
 
 export function inputToUniform(
-	input: ShaderInputDesc,
+	input: UniformDesc,
 	src: Record<string, unknown>,
 	uniforms: Record<string, unknown>
 ) {

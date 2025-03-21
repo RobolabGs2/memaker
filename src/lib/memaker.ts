@@ -14,6 +14,7 @@ import { TextManager } from './text/manager';
 import { Graphics } from './graphics/graphics';
 import type { RawShader } from './graphics/shader';
 import type { ImageContent } from './image';
+import { IsOldMaterial } from './material';
 
 type TextureMeta = {
 	type: 'pattern' | 'image';
@@ -658,10 +659,10 @@ export class Memaker {
 						.flatMap((c) => {
 							if (c.type != 'text') return [];
 							const patterns = [];
-							const style = c.value.style;
-							if (style.fill.settings.type == 'pattern') patterns.push(style.fill.settings.name);
-							if (style.stroke.settings.type == 'pattern')
-								patterns.push(style.stroke.settings.name);
+							const strokeMaterial = c.value.style.stroke.settings;
+							const fillMaterial = c.value.style.fill.settings;
+							if (IsOldMaterial('pattern', strokeMaterial)) patterns.push(strokeMaterial.name);
+							if (IsOldMaterial('pattern', fillMaterial)) patterns.push(fillMaterial.name);
 							return patterns;
 						})
 						.filter((b) => b)
@@ -786,7 +787,7 @@ export class Memaker {
 											content.value.style.fill.settings
 										];
 										for (const m of materials) {
-											if (m.type !== 'pattern') continue;
+											if (!IsOldMaterial('pattern', m)) continue;
 											const newName = patternNameMapping.get(m.name);
 											if (newName) m.name = newName;
 										}

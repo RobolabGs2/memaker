@@ -1,4 +1,4 @@
-import { parseColor } from '$lib/graphics/shader';
+import { parseColor, type RawShader } from '$lib/graphics/shader';
 import fragmentShader from './color.frag?raw';
 
 export type Color = string;
@@ -7,7 +7,8 @@ export interface ColorSettings {
 	value: Color;
 }
 
-export const ColorShader = {
+export const ColorShader: RawShader<any> = {
+	title: "Цвет",
 	fragment: fragmentShader,
 	uniforms(settings: ColorSettings) {
 		return {

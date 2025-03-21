@@ -10,17 +10,20 @@
 	import type { TextStyle } from './text';
 	import TextSettings from './TextSettings.svelte';
 	import { IconBrandTopbuzz } from '@tabler/icons-svelte';
-	import type { Material } from '$lib/material';
+	import { type Material, IsOldMaterial } from '$lib/material';
 	import { fontSettingsToKey } from './metrics';
 	import type { Container } from '$lib/meme';
 	import FontSizeStrategyInput from './FontSizeStrategyInput.svelte';
 	import InputGroup from '$lib/base/InputGroup.svelte';
 	import InputRow from '$lib/base/InputRow.svelte';
 	import LineSpacingInput from './LineSpacingInput.svelte';
+	import type { RawShader } from '$lib/graphics/shader';
 
+	export let shaders: Record<string, RawShader>;
 	export let style: TextStyle;
 	export let text: string;
 	export let container: Container;
+	export let context: { frame: { width: number; height: number } };
 
 	type TabEntry = {
 		icon: string;
@@ -55,19 +58,16 @@
 		'#000000': 'чёрная'
 	};
 	function textMaterialTooltip(material: Material) {
+		if (!material.settings) return 'отсутствует';
 		const res = [];
-		switch (material.settings.type) {
-			case 'disabled':
-				return 'отсутствует';
-			case 'color':
-				res.push(colorNames[material.settings.value] || `цвет: ${material.settings.value}`);
-				break;
-			case 'pattern':
-				res.push(`паттерн (${material.settings.name})`);
-				break;
-			case 'gradient4':
-				res.push(`градиент`);
-				break;
+		if (IsOldMaterial('color', material.settings)) {
+			res.push(colorNames[material.settings.value] || `цвет: ${material.settings.value}`);
+		} else if (IsOldMaterial('pattern', material.settings)) {
+			res.push(`паттерн (${material.settings.name})`);
+		} else if (IsOldMaterial('gradient4', material.settings)) {
+			res.push(`градиент`);
+		} else {
+			res.push(shaders[material.settings.type]?.title?.toLowerCase() || material.settings.type);
 		}
 		if (material.shadow) res.push('с тенью');
 		return res.join(' ');
@@ -160,8 +160,9 @@
 			{#if tab.label === 'Заливка'}
 				<MaterialInput
 					bind:value={style.fill}
+					{shaders}
+					{context}
 					defaults={[
-						{ type: 'disabled' },
 						{ type: 'color', value: '#ffffff' },
 						{
 							type: 'pattern',
@@ -188,8 +189,9 @@
 				</Label>
 				<MaterialInput
 					bind:value={style.stroke}
+					{shaders}
+					{context}
 					defaults={[
-						{ type: 'disabled' },
 						{ type: 'color', value: '#000000' },
 						{
 							type: 'pattern',

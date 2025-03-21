@@ -168,8 +168,7 @@ class TableCell {
 			(self.style.fontSizeStrategy.type !== 'relative' ||
 				(self.ctx.frame.height === other.ctx.frame.height &&
 					self.ctx.frame.width === other.ctx.frame.width)) &&
-			(self.style.stroke.settings.type === 'disabled') ===
-				(other.style.stroke.settings.type === 'disabled')
+			(self.style.stroke.settings === undefined) === (other.style.stroke.settings === undefined)
 		);
 	}
 }

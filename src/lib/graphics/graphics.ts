@@ -178,6 +178,7 @@ export class Graphics<T = unknown> {
 	}
 	clear() {
 		this.buffersPull.clear();
+		// TODO: remove shaders
 	}
 	resize(width: number, height: number) {
 		if (this.canvasRenderBuffer.width == width && this.canvasRenderBuffer.height == height) return;
@@ -255,7 +256,8 @@ export class Graphics<T = unknown> {
 		destination: TargetFrameBuffer
 	) {
 		const gl = this.gl;
-		const shader = this.shaders[materialShaderName(material.settings.type)];
+		const shader = this.shaders[materialShaderName(material.settings!.type)];
+		const materialSettings = material.settings as any;
 		const uniforms = {
 			camera: twgl.m4.ortho(0, this.size.width, this.size.height, 0, -100, 100),
 			transform: twgl.m4.scale(
@@ -269,7 +271,7 @@ export class Graphics<T = unknown> {
 			channel,
 			channels,
 			alpha: material.alpha,
-			...shader.uniforms(material.settings as unknown as Record<string, unknown>, rectangle, this)
+			...shader.uniforms(materialSettings.settings || materialSettings, rectangle, this)
 		};
 		gl.bindFramebuffer(gl.FRAMEBUFFER, destination.framebuffer);
 		gl.useProgram(shader.info.program);

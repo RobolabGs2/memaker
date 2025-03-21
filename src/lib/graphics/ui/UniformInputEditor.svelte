@@ -16,12 +16,10 @@
 	const dispatch = createEventDispatcher<{ change: { value: UniformInput; field: string } }>();
 	function onChange(field: string) {
 		return () => {
-			console.debug('DISPATCH', 'change', value, field);
 			dispatch('change', { value, field });
 		};
 	}
 	function onChangeType(ev: CustomEvent<{ value: UniformInputType }>) {
-		console.log(value);
 		switch (ev.detail.value) {
 			case 'int':
 				value = {
@@ -64,7 +62,6 @@
 			default:
 				break;
 		}
-		console.log(ev.detail, value);
 		onChange('type')();
 	}
 </script>

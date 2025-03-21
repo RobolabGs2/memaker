@@ -4,55 +4,95 @@
 	import NumberInput from '$lib/base/NumberInput.svelte';
 	import Select from '$lib/base/Select.svelte';
 	import { slide } from 'svelte/transition';
-	import type { Material, MaterialSettings, MaterialType } from '.';
+	import type { Material, MaterialSettings } from '.';
 	import ShadowInput from './ShadowInput.svelte';
 	import ColorSettings from './color/ColorSettings.svelte';
 	import PatternSettings from './pattern/PatternSettings.svelte';
 	import GradientSettings from './gradient/GradientSettings.svelte';
 	import JsonView from '$lib/debug/JsonView.svelte';
+	import type { RawShader } from '$lib/graphics/shader';
 	import Checkbox from '$lib/base/Checkbox.svelte';
-	export let value: Material<MaterialType>;
-	export let defaults: MaterialSettings<MaterialType>[];
+	import UniformInput from '$lib/graphics/ui/UniformInput.svelte';
+	import { getDefaultValue } from '$lib/graphics/inputs';
+	import { IsOldMaterial } from '.';
+	export let value: Material;
+	export let defaults: MaterialSettings[];
+	export let shaders: Record<string, RawShader>;
+	export let context: { frame: { width: number; height: number } };
 
+	const disableKey = '__disable__';
 	function changeTypeHandler(ev: CustomEvent<{ value: string }>) {
-		const defaultValue = defaults.find((v) => v.type === ev.detail.value);
-		if (!defaultValue) throw new Error(`Not found default value for type ${ev.detail.value}`);
-		value.settings = structuredClone(defaultValue);
+		const newType = ev.detail.value;
+		if (newType === disableKey) {
+			value.settings = undefined;
+			return;
+		}
+		const defaultValue = defaults.find((v) => v.type === newType);
+		if (defaultValue) {
+			value.settings = structuredClone(defaultValue);
+			return;
+		}
+		const shaderInputs = shaders[newType]?.inputs;
+		if (!shaderInputs) throw new Error(`Not found default value for type ${ev.detail.value}`);
+		value.settings = {
+			type: newType,
+			settings: {}
+		};
+		for (const input of shaderInputs || []) {
+			value.settings.settings[input.name] = getDefaultValue(
+				input.input.type,
+				input.default,
+				context
+			);
+		}
 	}
 
-	const modeNames: Record<MaterialType, string> = {
-		disabled: 'Выключить',
-		color: 'Цвет',
-		pattern: 'Паттерн',
-		gradient4: 'Градиент (крестовой)'
-	};
-	const materialKeys = Object.keys(modeNames) as MaterialType[];
+	let materialKeys: string[];
+	$: {
+		materialKeys = [disableKey, ...Object.keys(shaders)];
+	}
 </script>
 
 <article>
 	<header>
 		<Select
-			value={value.settings.type}
+			value={value.settings?.type || disableKey}
 			items={materialKeys}
 			on:change={changeTypeHandler}
 			let:item
 			on:change
 		>
-			{modeNames[item]}
+			{shaders[item]?.title || 'Выключить'}
 		</Select>
 	</header>
-	{#if value.settings.type !== 'disabled'}
+	{#if value.settings}
 		<InputGroup>
 			{@const type = value.settings.type}
-			{#if type === 'color'}
-				<div transition:slide><ColorSettings bind:value={value.settings} on:change /></div>
-			{:else if type === 'pattern'}
+			{@const shader = shaders[type]}
+			{#if IsOldMaterial('color', value.settings)}
+				<div transition:slide>
+					<ColorSettings bind:value={value.settings} on:change />
+				</div>
+			{:else if IsOldMaterial('pattern', value.settings)}
 				<div transition:slide>
 					<PatternSettings bind:value={value.settings} on:change on:addPattern />
 				</div>
-			{:else if type === 'gradient4'}
+			{:else if IsOldMaterial('gradient4', value.settings)}
 				<div transition:slide>
 					<GradientSettings bind:value={value.settings} />
+				</div>
+			{:else if shader?.inputs}
+				<div transition:slide>
+					<InputGroup>
+						{#each shader.inputs as input (input)}
+							<UniformInput
+								desc={input}
+								name={input.name}
+								{context}
+								bind:value={value.settings.settings}
+							/>
+						{/each}
+					</InputGroup>
 				</div>
 			{:else}
 				<div transition:slide>

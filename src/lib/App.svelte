@@ -18,7 +18,7 @@
 	import { MaterialShaders } from './material';
 	import { patternsNames } from './material/pattern/store';
 	import FloatWindow from './base/FloatWindow.svelte';
-	import EffectEditor from './effect/EffectEditor.svelte';
+	import EffectEditor from './graphics/ui/ShaderEditor.svelte';
 
 	export let patternUrls: FileImport[];
 	export let placeholdersUrls: SkinsMap;
@@ -158,17 +158,19 @@
 		<svelte:fragment slot="title">Инструменты разработчика</svelte:fragment>
 		<DevTools {memaker} />
 	</Modal>
-	<FloatWindow closable={false}>
+	<FloatWindow closable={false} open={true}>
 		<EffectEditor
 			{compilationError}
 			on:compile={(ev) => {
 				if (!memaker) return;
+				const { type, shader } = ev.detail;
 				compilationError = 'START';
 				memaker.drawer.graphics
-					.compileShader('effect', ev.detail)
+					.compileShader(type, shader)
 					.then((compiled) => {
-						memaker.drawer.graphics.updateShader('effect', ev.detail.title, compiled);
-						shaders.effects[ev.detail.title] = ev.detail;
+						memaker.drawer.graphics.updateShader(type, shader.title, compiled);
+						if (type === 'effect') shaders.effects[shader.title] = shader;
+						else if (type === 'material') shaders.materials[shader.title] = shader;
 						return tick().then(() => {
 							memaker.draw();
 							compilationError = 'OK';
@@ -185,6 +187,7 @@
 		textureManager={memaker?.textures}
 		{devMode}
 		effectsShaders={shaders.effects}
+		materialsShaders={shaders.materials}
 		version={import.meta.env.VITE_APP_VERSION}
 		{memeExampleURL}
 		frameDrawer={memaker?.drawer}

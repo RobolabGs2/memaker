@@ -2,14 +2,13 @@
 	import InputGroup from '$lib/base/InputGroup.svelte';
 	import Label from '$lib/base/Label.svelte';
 	import { type UniformInput } from '$lib/graphics/inputs';
-	import type { ShaderInputDesc } from '$lib/graphics/shader';
-	import UniformInputView from '$lib/graphics/ui/UniformInputView.svelte';
+	import type { UniformDesc } from '$lib/graphics/shader';
+	import UniformInputEditor from '$lib/graphics/ui/UniformInputEditor.svelte';
 
-	export let value: ShaderInputDesc;
+	export let value: UniformDesc;
 
 	function onUniformChanged(ev: CustomEvent<{ value: UniformInput; field: string }>) {
 		const { value: newValue, field } = ev.detail;
-		console.log(value);
 		if (field === 'type') {
 			switch (newValue.type) {
 				case 'int':
@@ -26,7 +25,6 @@
 		}
 
 		value.input = newValue;
-		console.log(ev.detail, value);
 	}
 </script>
 
@@ -36,7 +34,7 @@
 	<Label title="Будет появляться при наведении, как этот текст">
 		Описание <textarea rows="2" bind:value={value.description} on:change />
 	</Label>
-	<UniformInputView bind:value={value.input} on:change={onUniformChanged} on:change />
+	<UniformInputEditor bind:value={value.input} on:change={onUniformChanged} on:change />
 </InputGroup>
 
 <style>

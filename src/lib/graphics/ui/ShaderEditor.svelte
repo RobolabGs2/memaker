@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/base/Button.svelte';
-	import type { ShaderInputDesc } from '$lib/graphics/shader';
+	import type { UniformDesc } from '$lib/graphics/shader';
 	import PreviewsContainer from '$lib/PreviewsContainer.svelte';
 	import { createEventDispatcher } from 'svelte';
 	import { IconPlus } from '@tabler/icons-svelte';
@@ -9,25 +9,28 @@
 		uniformInputTypeToGLSL,
 		type UniformInputType
 	} from '$lib/graphics/inputs';
-	import GLSLEditor, { type CompilationError } from '$lib/effect/GLSLEditor.svelte';
+	import GLSLEditor, { type CompilationError } from '$lib/graphics/ui/GLSLEditor.svelte';
 	import { type Completion } from '@codemirror/autocomplete';
-	import UniformInputView from './UniformInput.svelte';
-
+	import UniformEditor from './UniformEditor.svelte';
+	import Select from '$lib/base/Select.svelte';
 	import { deepCopy } from '$lib/state';
 
 	const dispatch = createEventDispatcher<{
 		compile: {
-			title: string;
-			vertex?: string;
-			fragment: string;
-			inputs: ShaderInputDesc[];
+			type: 'material' | 'effect';
+			shader: {
+				title: string;
+				vertex?: string;
+				fragment: string;
+				inputs: UniformDesc[];
+			};
 		};
 	}>();
 
 	// oncompile
 	export let compilationError: string | undefined = undefined;
 	let title: string = 'debug_shader';
-	let inputs: ShaderInputDesc[] = [
+	let inputs: UniformDesc[] = [
 		{
 			name: 'test',
 			title: 'Test',
@@ -41,7 +44,30 @@
 			}
 		}
 	];
-	const header = `#version 300 es
+	let type: 'material' | 'effect' = 'effect';
+	const header = {
+		material: `#version 300 es
+precision highp float;
+precision highp int;
+
+uniform sampler2D stencilSampler;
+uniform vec3 color;
+uniform float alpha;
+uniform int channel;
+uniform int channels;
+
+in vec2 texCoord;
+out vec4 FragColor;
+
+float channelAlpha(int currentChannel, int channels, vec4 o);
+vec4 material();
+void main() {
+    vec4 origin = texture(stencilSampler, texCoord);
+    float originAlpha = channelAlpha(channel, channels, origin);
+    FragColor = material();
+    FragColor.a *= originAlpha * alpha;
+}`,
+		effect: `#version 300 es
 precision mediump float;
 precision mediump int;
 
@@ -51,20 +77,28 @@ out vec4 FragColor;
 vec4 effect();
 void main() {
     FragColor = effect();
-}`;
-	let fragment: string = `vec4 effect() {
+}`
+	};
+	const defaults = {
+		material: `vec4 material() {
+    vec4 color = vec4(1.0, 0, 0, 1.0);
+    return color;
+}`,
+		effect: `vec4 effect() {
     vec4 color = texture(layer, texCoord);
     return color;
-}`;
+}`
+	};
+	let fragment: string = defaults[type];
 	function shaderHeader() {
 		return (
-			header +
+			header[type] +
 			inputs.map((u) => `uniform ${uniformInputTypeToGLSL(u.input.type)} ${u.name};`).join('')
 		);
 	}
 	let activeUniform = inputs[0];
 	function onAddUniform() {
-		const uniform: ShaderInputDesc = {
+		const uniform: UniformDesc = {
 			name: `uniform${inputs.length}`,
 			title: `Юниформ ${inputs.length}`,
 			default: 0,
@@ -101,7 +135,7 @@ void main() {
 		const glsl = uniformInputTypeToGLSL(type);
 		return glsl === type ? glsl : `${glsl} (${type})`;
 	}
-	function completions(inputs: ShaderInputDesc[]): Completion[] {
+	function completions(inputs: UniformDesc[]): Completion[] {
 		return inputs
 			.map((desc) => {
 				return {
@@ -127,16 +161,27 @@ void main() {
 	function onUniformChanged() {
 		inputs = inputs;
 	}
+	const types = ['material', 'effect'] as const;
 </script>
 
 <main>
+	<Select
+		bind:value={type}
+		items={types}
+		on:change={(ev) => {
+			fragment = defaults[ev.detail.value];
+		}}
+	/>
 	<Button
 		type="primary"
 		on:click={() =>
 			dispatch('compile', {
-				fragment: shaderHeader() + '\n' + fragment,
-				inputs: deepCopy(inputs),
-				title
+				type,
+				shader: {
+					fragment: shaderHeader() + '\n' + fragment,
+					inputs: deepCopy(inputs),
+					title
+				}
 			})}
 	>
 		Компилировать
@@ -161,7 +206,7 @@ void main() {
 			let:item
 		>
 			{#if item == activeUniform}
-				<UniformInputView bind:value={activeUniform} on:change={onUniformChanged} />
+				<UniformEditor bind:value={activeUniform} on:change={onUniformChanged} />
 			{:else}
 				{item.input.type} {item.name}
 			{/if}

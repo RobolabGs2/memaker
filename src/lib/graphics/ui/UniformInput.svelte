@@ -4,9 +4,9 @@
 	import NumberInput from '$lib/base/NumberInput.svelte';
 	import PointInput from '$lib/base/PointInput.svelte';
 	import { NumberLayout, getDefaultValue } from '$lib/graphics/inputs';
-	import type { ShaderInputDesc } from '$lib/graphics/shader';
+	import type { UniformDesc } from '$lib/graphics/shader';
 
-	export let desc: ShaderInputDesc;
+	export let desc: UniformDesc;
 	export let value: Record<string, any>;
 	export let name: string;
 	export let context: { frame: { width: number; height: number } };
