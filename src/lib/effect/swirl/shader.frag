@@ -15,7 +15,6 @@ out vec4 FragColor;
 
 void main() {
     vec2 coord = gl_FragCoord.xy;
-    vec2 center = vec2(center.x, resolution.y - center.y);
     coord -= center;
     float distance = length(coord);
     if(distance < radius) {

@@ -40,7 +40,8 @@ export interface RawShader<T = unknown> {
 }
 
 export interface GraphicsContext {
-	textures: TextureManager<unknown>;
+	readonly textures: TextureManager<unknown>;
+	readonly size: { width: number; height: number };
 }
 
 export type UniformDesc<T extends UniformInputType = UniformInputType> = {
@@ -54,7 +55,8 @@ export type UniformDesc<T extends UniformInputType = UniformInputType> = {
 export function inputToUniform(
 	input: UniformDesc,
 	src: Record<string, unknown>,
-	uniforms: Record<string, unknown>
+	uniforms: Record<string, unknown>,
+	ctx: GraphicsContext
 ) {
 	const uniformName = input.name;
 	const value = src[input.name];
@@ -78,7 +80,7 @@ export function inputToUniform(
 			break;
 		case 'point': {
 			const { x, y } = value as Point;
-			uniforms[uniformName] = [x, y];
+			uniforms[uniformName] = [x, ctx.size.height - y];
 			break;
 		}
 	}

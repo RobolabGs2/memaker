@@ -142,6 +142,7 @@
 		</InputGroup>
 	{/if}
 	<textarea
+		placeholder="Текст..."
 		style="width:100%;max-width: 100%;min-width: 100%;"
 		rows="6"
 		bind:value={text}

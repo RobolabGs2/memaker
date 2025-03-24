@@ -201,7 +201,7 @@ void main() {
 		</header>
 		<PreviewsContainer
 			items={inputs}
-			getId={(input) => input.name}
+			getId={(input) => input}
 			bind:active={activeUniform}
 			let:item
 		>

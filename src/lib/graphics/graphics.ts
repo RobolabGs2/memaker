@@ -89,7 +89,7 @@ export class Graphics<T = unknown> {
 							if (raw.inputs) {
 								const uniforms = {} as Record<string, unknown>;
 								for (const input of raw.inputs) {
-									inputToUniform(input, s, uniforms);
+									inputToUniform(input, s, uniforms, ctx);
 								}
 								return uniforms;
 							}
@@ -148,7 +148,7 @@ export class Graphics<T = unknown> {
 						if (raw.inputs) {
 							const uniforms = {} as Record<string, unknown>;
 							for (const input of raw.inputs) {
-								inputToUniform(input, s, uniforms);
+								inputToUniform(input, s, uniforms, ctx);
 							}
 							return uniforms;
 						}
