@@ -1,0 +1,18 @@
+{
+	"name": "glslspec",
+	"version": "1.0.0",
+	"description": "Until for generating glsl autocomplete info",
+	"bin": "./generate.ts",
+	"private": true,
+	"scripts": {
+		"build": "npx ts-node ./generate.ts ../src/lib/graphics/ui/glsl_funcs.json"
+	},
+	"author": "RobolabGs2",
+	"license": "MIT",
+	"dependencies": {
+		"@types/node": "^22.13.14",
+		"node-html-parser": "^7.0.1",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.8.2"
+	}
+}

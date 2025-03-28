@@ -14,6 +14,7 @@
 	import UniformEditor from './UniformEditor.svelte';
 	import Select from '$lib/base/Select.svelte';
 	import { deepCopy } from '$lib/state';
+	import { GLSLES3Functions } from './autocomplete';
 
 	const dispatch = createEventDispatcher<{
 		compile: {
@@ -156,7 +157,8 @@ void main() {
 					type: 'constant',
 					detail: 'vec2: Текстурные координаты на layer'
 				}
-			]);
+			])
+			.concat(GLSLES3Functions);
 	}
 	function onUniformChanged() {
 		inputs = inputs;
