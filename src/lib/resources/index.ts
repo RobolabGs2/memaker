@@ -15,15 +15,17 @@ function images(imports: Record<string, string>) {
 const patternUrls = images(
 	import.meta.glob('$lib/resources/patterns/*.{png,jpg,jpeg,PNG,JPEG}', {
 		eager: true,
-		as: 'url'
+		query: '?url',
+		import: 'default'
 	})
 );
 
 const placeholdersUrls = Object.entries(
 	import.meta.glob('$lib/resources/placeholders/**/*.{png,jpg,jpeg,PNG,JPEG}', {
 		eager: true,
-		as: 'url'
-	})
+		query: '?url',
+		import: 'default'
+	}) as Record<string, string>
 )
 	.map(([origin, url]) => {
 		const prefix = /placeholders\//.exec(origin);
