@@ -2,6 +2,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { execSync } from 'node:child_process';
 import { imagetools } from 'vite-imagetools';
 import { defineConfig } from 'vitest/config';
+import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig(() => {
 	const commitDescribe = execSync('git describe --tags').toString().trimEnd();
@@ -22,6 +23,10 @@ export default defineConfig(() => {
 					new URLSearchParams({
 						format: 'webp'
 					})
+			}),
+			visualizer({
+				emitFile: true,
+				filename: 'stats.html'
 			})
 		],
 		assetsInclude: ['**/*.meme', '**/*.zip'],

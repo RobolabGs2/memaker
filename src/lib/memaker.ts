@@ -139,7 +139,7 @@ export class Memaker {
 		});
 	}
 	private backgroundTasks: Map<Promise<unknown>, string> = new Map();
-	private runTask<T>(description: string, task: Promise<T>): Promise<T> {
+	public runTask<T>(description: string, task: Promise<T>): Promise<T> {
 		this.backgroundTasks.set(task, description);
 		this.stores.busy.set(this.currentTask);
 		task.catch((err) => {
