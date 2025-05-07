@@ -3,13 +3,24 @@
 		line: number;
 		message: string;
 	}
+	const outsideReplace = Annotation.define();
+	function errorToDiagnostic(editor: EditorView, err: CompilationError): Diagnostic {
+		const line = editor.state.doc.line(err.line);
+		return {
+			from: line.from + (line.length - line.text.trimStart().length),
+			to: line.to,
+			severity: 'error',
+			message: err.message,
+			actions: []
+		};
+	}
 </script>
 
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { basicSetup } from 'codemirror';
 	import { EditorView, keymap } from '@codemirror/view';
-	import { Transaction } from '@codemirror/state';
+	import { Transaction, type TransactionSpec, Annotation } from '@codemirror/state';
 	import {
 		completeFromList,
 		type Completion,
@@ -24,42 +35,42 @@
 	import { type Diagnostic, setDiagnostics } from '@codemirror/lint';
 	import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
 
-	// TODO: update from outside
 	export let text: string;
 	export let errors: CompilationError[] = [];
 	export let hints: Completion[] = [];
-	function errorToDiagnostic(editor: EditorView, err: CompilationError): Diagnostic {
-		const line = editor.state.doc.line(err.line);
-		return {
-			from: line.from+(line.length - line.text.trimStart().length),
-			to: line.to,
-			severity: 'error',
-			message: err.message,
-			actions: []
-		};
-	}
+
 	let editorElem: HTMLElement;
 	let editor: EditorView;
+	let fromList: CompletionSource;
+
+	$: fromList = completeFromList(hints);
 	$: editor &&
 		editor.dispatch(setDiagnostics(editor.state, errors.map(errorToDiagnostic.bind(null, editor))));
-	// $: editor && editor.set
 
-	const language = StreamLanguage.define(shader);
-	function dispatchTransactions(trs: readonly Transaction[], view: EditorView) {
-		view.update(trs);
-		const docChanged = trs.some((t) => t.docChanged);
-		if (docChanged) text = view.state.doc.toString();
+	$: {
+		if (editor && text !== editor.state.doc.toString()) {
+			editor.dispatch({
+				changes: { from: 0, to: editor.state.doc.length, insert: text },
+				annotations: outsideReplace.of(undefined)
+			} as TransactionSpec);
+		}
 	}
-	let fromList: CompletionSource;
-	$: fromList = completeFromList(hints);
-	const hitsAutocompletion = autocompletion({
-		override: [
-			(context: CompletionContext) => {
-				return fromList(context);
-			}
-		]
-	});
+
 	onMount(() => {
+		const language = StreamLanguage.define(shader);
+		function dispatchTransactions(trs: readonly Transaction[], view: EditorView) {
+			view.update(trs);
+			const docChanged = trs.some((t) => t.docChanged && !t.annotation(outsideReplace));
+			if (docChanged) text = view.state.doc.toString();
+		}
+		const hitsAutocompletion = autocompletion({
+			closeOnBlur: false,
+			override: [
+				(context: CompletionContext) => {
+					return fromList(context);
+				}
+			]
+		});
 		editor = new EditorView({
 			doc: text,
 			extensions: [
