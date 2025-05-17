@@ -67,14 +67,14 @@
 </script>
 
 <article>
-	<Label
-		>Тип<Select
+	<Label>
+		Тип <Select
 			items={UniformInputTypes}
-			on:change={onChangeType}
 			value={value.type}
+			on:change={onChangeType}
 			css={{ width: '90%', height: '', main: '' }}
-		/></Label
-	>
+		/>
+	</Label>
 	{#if value.type === 'float' || value.type === 'int' || value.type === 'angle'}
 		{#if value.min !== undefined}
 			<Label>Минимум<NumberInput bind:value={value.min} on:change={onChange('min')} /></Label>
@@ -99,6 +99,7 @@
 				{/if}
 			</Select>
 		{:else}
+		<!-- TODO: это в инпуте пользователя селектор с единицами измерения должен быть, как px/pt -->
 			<Label title="В шейдере всегда радианы">
 				Пользователь вводит:
 				<Select
@@ -116,7 +117,7 @@
 			</Label>
 		{/if}
 	{:else if value.type === 'point'}
-		<Label>Цвет в UI<ColorInput bind:value={value.color} /></Label>
+		<Label>Цвет в UI<ColorInput bind:value={value.color} on:change={onChange('color')} /></Label>
 	{:else if value.type !== 'color'}
 		ERROR
 	{/if}

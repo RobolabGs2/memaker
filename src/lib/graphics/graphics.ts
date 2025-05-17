@@ -11,7 +11,7 @@ import baseFragShader from './base.frag?raw';
 import blendFragShader from './blend.frag?raw';
 import type { TextureManager } from './textures';
 import type { Effect } from '$lib/effect';
-import { type RawShader, type GraphicsContext, parseColor, inputToUniform } from './shader';
+import { type RawShader, parseColor, type UniformsSetter, compileUniformsSetter } from './shader';
 import type { Point } from '$lib/geometry/point';
 import { FrameBuffersPool } from './buffers_pool';
 
@@ -32,11 +32,7 @@ function effectShaderSources({ vertex, fragment }: RawShader): [string, string] 
 
 type CompiledShader = {
 	info: twgl.ProgramInfo;
-	uniforms: (
-		settings: Record<string, unknown>,
-		rectangle: Rectangle,
-		ctx: GraphicsContext
-	) => Record<string, unknown>;
+	uniforms: UniformsSetter;
 };
 
 export class ShaderCompilationError extends Error {
@@ -83,20 +79,7 @@ export class Graphics<T = unknown> {
 				.concat(Object.entries(mods).map(([name, raw]) => [effectShaderName(name), raw]))
 				.map(([name, raw]) => [
 					name,
-					{
-						uniforms: (s, b, ctx) => {
-							if (raw.uniforms) return raw.uniforms(s, b, ctx);
-							if (raw.inputs) {
-								const uniforms = {} as Record<string, unknown>;
-								for (const input of raw.inputs) {
-									inputToUniform(input, s, uniforms, ctx);
-								}
-								return uniforms;
-							}
-							return {};
-						},
-						info: shaderInfos[name]
-					}
+					{ info: shaderInfos[name], uniforms: compileUniformsSetter(raw) }
 				])
 		);
 		this.shadowProgram = shaderInfos['__shadow__'];
@@ -143,18 +126,7 @@ export class Graphics<T = unknown> {
 						reject(new ShaderCompilationError(sources, `Undefined program info`));
 						return;
 					}
-					const uniforms: CompiledShader['uniforms'] = (s, b, ctx) => {
-						if (raw.uniforms) return raw.uniforms(s, b, ctx);
-						if (raw.inputs) {
-							const uniforms = {} as Record<string, unknown>;
-							for (const input of raw.inputs) {
-								inputToUniform(input, s, uniforms, ctx);
-							}
-							return uniforms;
-						}
-						return {};
-					};
-					resolve({ info: info as twgl.ProgramInfo, uniforms });
+					resolve({ info: info as twgl.ProgramInfo, uniforms: compileUniformsSetter(raw) });
 				}
 			});
 		});

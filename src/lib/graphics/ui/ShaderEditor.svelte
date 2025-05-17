@@ -1,9 +1,8 @@
 <script lang="ts">
 	import Button from '$lib/base/Button.svelte';
+	import UniformsList from './UniformsList.svelte';
 	import type { UniformDesc } from '$lib/graphics/shader';
-	import PreviewsContainer from '$lib/PreviewsContainer.svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { IconPlus } from '@tabler/icons-svelte';
 	import {
 		NumberLayout,
 		uniformInputTypeToGLSL,
@@ -11,7 +10,6 @@
 	} from '$lib/graphics/inputs';
 	import GLSLEditor, { type CompilationError } from '$lib/graphics/ui/GLSLEditor.svelte';
 	import { type Completion } from '@codemirror/autocomplete';
-	import UniformEditor from './UniformEditor.svelte';
 	import Select from '$lib/base/Select.svelte';
 	import { deepCopy } from '$lib/state';
 	import { GLSLES3Functions } from './autocomplete';
@@ -97,23 +95,7 @@ void main() {
 			inputs.map((u) => `uniform ${uniformInputTypeToGLSL(u.input.type)} ${u.name};`).join('')
 		);
 	}
-	let activeUniform = inputs[0];
-	function onAddUniform() {
-		const uniform: UniformDesc = {
-			name: `uniform${inputs.length}`,
-			title: `Юниформ ${inputs.length}`,
-			default: 0,
-			input: {
-				type: 'float',
-				min: 0,
-				max: 1,
-				layout: NumberLayout.RANGE
-			}
-		};
-		inputs.push(uniform);
-		inputs = inputs;
-		activeUniform = uniform;
-	}
+
 	const parseErrors = (err: string | undefined) => {
 		if (!err) return [];
 		const added = new Set();
@@ -160,9 +142,7 @@ void main() {
 			])
 			.concat(GLSLES3Functions);
 	}
-	function onUniformChanged() {
-		inputs = inputs;
-	}
+
 	const types = ['material', 'effect'] as const;
 </script>
 
@@ -189,31 +169,10 @@ void main() {
 		Компилировать
 	</Button>
 	<section>
-		<header>Ключ</header>
-		<input />
 		<header>Название</header>
 		<input bind:value={title} />
 	</section>
-	<section>
-		<header>
-			<span>Параметры</span>
-			<Button on:click={onAddUniform} width="32px" height="32px" type="primary">
-				<IconPlus />
-			</Button>
-		</header>
-		<PreviewsContainer
-			items={inputs}
-			getId={(input) => input}
-			bind:active={activeUniform}
-			let:item
-		>
-			{#if item == activeUniform}
-				<UniformEditor bind:value={activeUniform} on:change={onUniformChanged} />
-			{:else}
-				{item.input.type} {item.name}
-			{/if}
-		</PreviewsContainer>
-	</section>
+	<UniformsList bind:inputs/>
 	<section>
 		<header>Фрагментный шейдер</header>
 		<GLSLEditor

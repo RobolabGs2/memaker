@@ -1,6 +1,5 @@
 import {
 	AngleShaderMode,
-	getDefaultValue,
 	type UniformInput,
 	type UniformInputDefault,
 	type UniformInputType
@@ -38,6 +37,12 @@ export interface RawShader<T = unknown> {
 	inputs?: UniformDesc[];
 	uniforms?(settings: T, rectangle: Rectangle, ctx: GraphicsContext): Record<string, unknown>;
 }
+
+export type UniformsSetter = (
+	settings: Record<string, unknown>,
+	rectangle: Rectangle,
+	ctx: GraphicsContext
+) => Record<string, unknown>;
 
 export interface GraphicsContext {
 	readonly textures: TextureManager<unknown>;
@@ -84,4 +89,18 @@ export function inputToUniform(
 			break;
 		}
 	}
+}
+
+export function compileUniformsSetter(raw: RawShader): UniformsSetter {
+	return (s, b, ctx) => {
+		if (raw.uniforms) return raw.uniforms(s, b, ctx);
+		if (raw.inputs) {
+			const uniforms = {} as Record<string, unknown>;
+			for (const input of raw.inputs) {
+				inputToUniform(input, s, uniforms, ctx);
+			}
+			return uniforms;
+		}
+		return {};
+	};
 }

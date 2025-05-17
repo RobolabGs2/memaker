@@ -85,7 +85,8 @@
 		materials: MaterialShaders(patternsNames),
 		effects: EffectShaders()
 	};
-	let effectEditor: typeof SvelteComponent<any> | undefined = undefined;
+	let shaderEditor: typeof SvelteComponent<any> | undefined = undefined;
+	let shaderEditorState = false;
 	onMount(() => {
 		try {
 			skinKey = new URL(location.href).searchParams.get('skin') ?? skinKey;
@@ -117,14 +118,6 @@
 		} catch (e: unknown) {
 			$error = e;
 		}
-		window.addEventListener('keydown', (ev) => {
-			if (ev.key == 'F12') {
-				if (ev.ctrlKey) devMode = !devMode;
-				else if (ev.shiftKey) devTools = true;
-			} else if (ev.key == '+') {
-				loadShaderEditor();
-			}
-		});
 		return () => memaker.clear();
 	});
 
@@ -138,8 +131,13 @@
 		});
 	}
 	function loadShaderEditor() {
-		if (memaker && !effectEditor) {
-			memaker.runTask("Import shader editor", import('$lib/graphics/ui/ShaderEditor.svelte').then((res) => (effectEditor = res.default)));
+		if (memaker && !shaderEditor) {
+			memaker.runTask(
+				'Import shader editor',
+				import('$lib/graphics/ui/ShaderEditor.svelte').then(
+					(res) => !shaderEditor && (shaderEditor = res.default)
+				)
+			);
 		}
 	}
 
@@ -149,6 +147,17 @@
 	let compilationError = '';
 </script>
 
+<svelte:window
+	on:keydown={(ev) => {
+		if (ev.key == 'F12') {
+			if (ev.ctrlKey) devMode = !devMode;
+			else if (ev.shiftKey) devTools = true;
+		} else if (ev.key == 'F11' && ev.altKey) {
+			shaderEditorState = !shaderEditorState;
+			loadShaderEditor();
+		}
+	}}
+/>
 <ThemeContext bind:theme={$theme}>
 	<Modal open={$busy !== ''} closable={false}>
 		<article>
@@ -165,24 +174,23 @@
 		<svelte:fragment slot="title">Инструменты разработчика</svelte:fragment>
 		<DevTools {memaker} />
 	</Modal>
-	{#if effectEditor}
-		<FloatWindow closable={false} open={true}>
+	<FloatWindow closable={true} bind:open={shaderEditorState}>
+		{#if shaderEditor}
 			<svelte:component
-				this={effectEditor}
+				this={shaderEditor}
 				{compilationError}
 				on:compile={(ev) => {
 					if (!memaker) return;
 					const { type, shader } = ev.detail;
-					compilationError = 'START';
 					memaker.drawer.graphics
 						.compileShader(type, shader)
 						.then((compiled) => {
+							compilationError = '';
 							memaker.drawer.graphics.updateShader(type, shader.title, compiled);
 							if (type === 'effect') shaders.effects[shader.title] = shader;
 							else if (type === 'material') shaders.materials[shader.title] = shader;
 							return tick().then(() => {
 								memaker.draw();
-								compilationError = 'OK';
 							});
 						})
 						.catch((err) => {
@@ -190,8 +198,10 @@
 						});
 				}}
 			/>
-		</FloatWindow>
-	{/if}
+		{:else}
+			Грузим редактор кода...
+		{/if}
+	</FloatWindow>
 	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
 	<MemeEditor
 		textureManager={memaker?.textures}

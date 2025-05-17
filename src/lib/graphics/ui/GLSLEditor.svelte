@@ -89,3 +89,13 @@
 </script>
 
 <article bind:this={editorElem} />
+
+<style>
+	article {
+		height: 300px;
+		display: flex;
+	}
+	article > :global(*) {
+		flex: 1;
+	}
+</style>

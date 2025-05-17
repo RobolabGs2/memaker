@@ -1,5 +1,5 @@
 import rawData from './glsl_funcs.json';
-import { type Completion, type CompletionInfo, type CompletionSection } from '@codemirror/autocomplete';
+import { type Completion, type CompletionInfo } from '@codemirror/autocomplete';
 
 type Var = {
 	type: string;
