@@ -369,8 +369,8 @@
 		min-width: 360px;
 		/* padding: 2px; */
 		/* overflow: auto; */
-		/* display: flex; */
-		/* flex-direction: column; */
+		display: flex; 
+		flex-direction: column;
 	}
 	section {
 		/* overflow: auto; */

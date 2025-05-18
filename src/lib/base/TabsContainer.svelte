@@ -3,7 +3,6 @@
 	export let tabs: T[];
 	export let activeTab: T = tabs[0];
 	export let layout: 'vertical' | 'horizontal' = 'vertical';
-	export let heightCrutch = true;
 
 	$: {
 		if (!tabs.includes(activeTab)) activeTab = tabs[0];
@@ -12,7 +11,7 @@
 	let collapse = false;
 </script>
 
-<article class={layout} class:heightCrutch>
+<article class={layout}>
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<header
 		class:collapse
@@ -59,10 +58,8 @@
 		padding-top: 4px;
 		background-color: #424242;
 		height: 100%;
-	}
-	article.heightCrutch {
-		// TODO: FIX
-		height: 70%;
+		// height: auto;
+		overflow-y: auto;
 	}
 	header {
 		display: flex;
@@ -75,7 +72,7 @@
 		}
 	}
 	.content {
-		overflow-y: auto;
+		// overflow-y: auto;
 		height: 100%;
 		width: 100%;
 		padding-left: 4px;

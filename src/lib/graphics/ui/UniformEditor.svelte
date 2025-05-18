@@ -29,7 +29,7 @@
 	}
 </script>
 
-<TabsContainer tabs={['Общее', 'UI', 'Default']} layout="horizontal" heightCrutch={false} let:tab>
+<TabsContainer tabs={['Общее', 'UI', 'Default']} layout="horizontal" let:tab>
 	<div class="tab-header">{tab.substring(0, 2)}</div>
 	<div slot="content" let:tab>
 		{#if tab == 'Общее'}
