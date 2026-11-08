@@ -1,4 +1,4 @@
-import { AngleShaderMode, NumberLayout } from '$lib/graphics/inputs';
+import { NumberLayout } from '$lib/graphics/inputs';
 import type { RawShader } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 

@@ -1,10 +1,5 @@
 import type { Point } from '$lib/geometry/point';
 
-export enum AngleShaderMode {
-	RADIAN = 0,
-	DEGREE = 1
-}
-
 export enum NumberLayout {
 	NUMBER = 0,
 	RANGE = 1

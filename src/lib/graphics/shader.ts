@@ -1,7 +1,5 @@
 import {
-	AngleShaderMode,
 	type UniformInput,
-	type UniformInputDefault,
 	type UniformInputType
 } from './inputs';
 import type { Point } from '$lib/geometry/point';

@@ -13,7 +13,7 @@
 	export let context: { frame: { width: number; height: number } };
 
 	$: {
-		const defaultValue = getDefaultValue(desc.input.type, desc.default, context);
+		const defaultValue = getDefaultValue(desc.input.type, desc.input.default, context);
 		if (value[name] === undefined || typeof value[name] !== typeof defaultValue)
 			value[name] = defaultValue;
 	}

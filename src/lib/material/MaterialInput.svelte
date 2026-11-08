@@ -41,7 +41,7 @@
 		for (const input of shaderInputs || []) {
 			value.settings.settings[input.name] = getDefaultValue(
 				input.input.type,
-				input.default,
+				input.input.default,
 				context
 			);
 		}

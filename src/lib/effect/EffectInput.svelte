@@ -21,7 +21,7 @@
 		}
 		const defaultValue: EffectSettings = {};
 		for (const input of shader.inputs || []) {
-			defaultValue[input.name] = getDefaultValue(input.input.type, input.default, context);
+			defaultValue[input.name] = getDefaultValue(input.input.type, input.input.default, context);
 		}
 		const i =
 			value.push({

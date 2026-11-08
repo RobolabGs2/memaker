@@ -5,7 +5,6 @@
 	import ColorInput from '$lib/base/ColorInput.svelte';
 	import { createEventDispatcher } from 'svelte';
 	import {
-		AngleShaderMode,
 		NumberLayout,
 		type UniformInput,
 		UniformInputTypes,
