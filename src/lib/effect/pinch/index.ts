@@ -5,10 +5,10 @@ import fragment from './shader.frag?raw';
 const inputs: UniformDesc[] = [
 	{
 		name: 'strength',
-		default: 0.5,
 		title: 'Сила',
 		input: {
 			type: 'float',
+			default: 0.5,
 			min: 0,
 			max: 1.5,
 			step: 0.05,
@@ -17,9 +17,9 @@ const inputs: UniformDesc[] = [
 	},
 	{
 		name: 'radius',
-		default: 50,
 		title: 'Радиус',
 		input: {
+			default: 50,
 			type: 'float',
 			min: 0,
 			step: 1,
@@ -28,13 +28,13 @@ const inputs: UniformDesc[] = [
 	},
 	{
 		name: 'center',
-		default: {
-			type: 'frame',
-			value: { x: 0.5, y: 0.5 }
-		},
 		title: 'Центр',
 		input: {
 			type: 'point',
+			default: {
+				type: 'frame',
+				value: { x: 0.5, y: 0.5 }
+			},
 			color: '#ff00ff'
 		}
 	}

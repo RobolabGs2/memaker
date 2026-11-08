@@ -33,9 +33,9 @@
 		{
 			name: 'test',
 			title: 'Test',
-			default: 2,
 			input: {
 				type: 'int',
+				default: 0,
 				min: 0,
 				max: 255,
 				step: 1,

@@ -15,13 +15,13 @@
 				case 'int':
 				case 'float':
 				case 'angle':
-					value.default = 0;
+					value.input.default = 0;
 					break;
 				case 'color':
-					value.default = '#ff0000';
+					value.input.default = '#ff0000';
 					break;
 				case 'point':
-					value.default = { type: 'frame', value: { x: 0.5, y: 0.5 } };
+					value.input.default = { type: 'frame', value: { x: 0.5, y: 0.5 } };
 			}
 		}
 
@@ -29,7 +29,7 @@
 	}
 </script>
 
-<TabsContainer tabs={['Общее', 'UI', 'Default']} layout="horizontal" let:tab>
+<TabsContainer tabs={['Общее', 'UI']} layout="horizontal" let:tab>
 	<div class="tab-header">{tab.substring(0, 2)}</div>
 	<div slot="content" let:tab>
 		{#if tab == 'Общее'}
@@ -42,8 +42,6 @@
 			</InputGroup>
 		{:else if tab == 'UI'}
 			<UniformInputEditor value={value.input} on:change={onUniformChanged} on:change />
-		{:else}
-			Default
 		{/if}
 	</div>
 </TabsContainer>

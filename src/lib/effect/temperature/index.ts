@@ -9,9 +9,9 @@ export const TemperatureShader: RawShader = {
 		{
 			name: 'temperature',
 			title: 'Температура',
-			default: 6550,
 			input: {
 				type: 'float',
+				default: 6550,
 				min: 1000,
 				max: 20000,
 				step: 100,
@@ -20,10 +20,10 @@ export const TemperatureShader: RawShader = {
 		},
 		{
 			name: 'strength',
-			default: 1,
 			title: 'Сила',
 			input: {
 				type: 'float',
+				default: 1,
 				min: -1,
 				max: 1,
 				step: 0.05,

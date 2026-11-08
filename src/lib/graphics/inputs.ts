@@ -12,9 +12,9 @@ export enum NumberLayout {
 
 interface ShaderInputTypesMap {
 	float: {
-		default: number;
 		input: {
 			type: 'float';
+			default: number;
 			min?: number;
 			max?: number;
 			step?: number;
@@ -22,9 +22,9 @@ interface ShaderInputTypesMap {
 		};
 	};
 	int: {
-		default: number;
 		input: {
 			type: 'int';
+			default: number;
 			min?: number;
 			max?: number;
 			step?: number;
@@ -32,29 +32,28 @@ interface ShaderInputTypesMap {
 		};
 	};
 	angle: {
-		default: number;
 		input: {
 			type: 'angle';
-			mode: AngleShaderMode;
+			default: number;
 			min?: number;
 			max?: number;
 			step?: number;
 		};
 	};
 	point: {
-		default: {
-			type: 'frame' | 'absolute';
-			value: Point;
-		};
 		input: {
 			type: 'point';
+			default: {
+				type: 'frame' | 'absolute';
+				value: Point;
+			};
 			color: string;
 		};
 	};
 	color: {
-		default: string;
 		input: {
 			type: 'color';
+			default: string;
 		};
 	};
 }
@@ -68,7 +67,7 @@ export const UniformInputTypes: ReadonlyArray<UniformInputType> = [
 	'color'
 ];
 export type UniformInputDefault<T extends UniformInputType = UniformInputType> =
-	ShaderInputTypesMap[T]['default'];
+	ShaderInputTypesMap[T]['input']['default'];
 export type UniformInput<T extends UniformInputType = UniformInputType> =
 	ShaderInputTypesMap[T]['input'];
 

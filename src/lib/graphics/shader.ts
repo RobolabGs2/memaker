@@ -53,7 +53,6 @@ export type UniformDesc<T extends UniformInputType = UniformInputType> = {
 	name: string;
 	title: string;
 	description?: string;
-	default: UniformInputDefault<T>;
 	input: UniformInput<T>;
 };
 
@@ -80,8 +79,7 @@ export function inputToUniform(
 			uniforms[uniformName] = parseColor(value as string);
 			break;
 		case 'angle':
-			uniforms[uniformName] =
-				settings.mode == AngleShaderMode.RADIAN ? value : ((value as number) / 180) * Math.PI;
+			uniforms[uniformName] = value;
 			break;
 		case 'point': {
 			const { x, y } = value as Point;

@@ -7,9 +7,9 @@ const inputs: UniformDesc[] = [
 		name: 'radius',
 		title: 'Радиус',
 		description: 'Размер пикселя',
-		default: 10,
 		input: {
 			type: 'float',
+			default: 10,
 			min: 1,
 			step: 1,
 			layout: NumberLayout.NUMBER

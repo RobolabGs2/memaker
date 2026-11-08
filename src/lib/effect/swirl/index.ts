@@ -9,19 +9,18 @@ export const SwirlShader: RawShader = {
 		{
 			name: 'angle',
 			title: 'Угол',
-			default: 180,
 			input: {
 				type: 'angle',
-				mode: AngleShaderMode.DEGREE,
+				default: Math.PI,
 				step: 0.5
 			}
 		},
 		{
 			name: 'radius',
 			title: 'Радиус',
-			default: 50,
 			input: {
 				type: 'float',
+				default: 50,
 				min: 0,
 				step: 1,
 				layout: NumberLayout.NUMBER
@@ -30,12 +29,12 @@ export const SwirlShader: RawShader = {
 		{
 			name: 'center',
 			title: 'Центр',
-			default: {
-				type: 'frame',
-				value: { x: 0.5, y: 0.5 }
-			},
 			input: {
 				type: 'point',
+				default: {
+					type: 'frame',
+					value: { x: 0.5, y: 0.5 }
+				},
 				color: '#0aaaa0'
 			}
 		}

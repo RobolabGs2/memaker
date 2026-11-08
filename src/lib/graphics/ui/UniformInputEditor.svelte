@@ -11,6 +11,7 @@
 		UniformInputTypes,
 		type UniformInputType
 	} from '../inputs';
+	import PointInput from '$lib/base/PointInput.svelte';
 
 	export let value: UniformInput;
 	const dispatch = createEventDispatcher<{ change: { value: UniformInput; field: string } }>();
@@ -24,6 +25,7 @@
 			case 'int':
 				value = {
 					type: 'int',
+					default: 0,
 					min: 0,
 					max: 100,
 					layout: NumberLayout.RANGE,
@@ -33,6 +35,7 @@
 			case 'float':
 				value = {
 					type: 'float',
+					default: 0,
 					min: 0,
 					max: 1,
 					layout: NumberLayout.RANGE,
@@ -42,7 +45,7 @@
 			case 'angle':
 				value = {
 					type: 'angle',
-					mode: AngleShaderMode.DEGREE,
+					default: 0,
 					min: 0,
 					max: 360,
 					step: 0.5
@@ -50,13 +53,18 @@
 				break;
 			case 'color':
 				value = {
-					type: 'color'
+					type: 'color',
+					default: '#ffffff'
 				};
 				break;
 			case 'point':
 				value = {
 					type: 'point',
-					color: '#ff0000'
+					color: '#ff0000',
+					default: {
+						type: 'frame',
+						value: { x: 0.5, y: 0.5 }
+					}
 				};
 				break;
 			default:
@@ -67,7 +75,7 @@
 </script>
 
 <article>
-	<Label>
+	<Label for="ignore">
 		Тип <Select
 			items={UniformInputTypes}
 			value={value.type}
@@ -98,27 +106,31 @@
 					С ползунком
 				{/if}
 			</Select>
-		{:else}
-		<!-- TODO: это в инпуте пользователя селектор с единицами измерения должен быть, как px/pt -->
-			<Label title="В шейдере всегда радианы">
-				Пользователь вводит:
-				<Select
-					bind:value={value.mode}
-					items={[AngleShaderMode.DEGREE, AngleShaderMode.RADIAN]}
-					let:item
-					on:change={onChange('mode')}
-				>
-					{#if item === AngleShaderMode.DEGREE}
-						Градусы
-					{:else if item === AngleShaderMode.RADIAN}
-						Радианы
-					{/if}
-				</Select>
-			</Label>
 		{/if}
+		<Label>
+			По умолчанию<NumberInput bind:value={value.default} on:change={onChange('default')} />
+		</Label>
 	{:else if value.type === 'point'}
 		<Label>Цвет в UI<ColorInput bind:value={value.color} on:change={onChange('color')} /></Label>
-	{:else if value.type !== 'color'}
+		<Label>
+			По умолчанию<PointInput bind:value={value.default.value} on:change={onChange('default')} />
+		</Label>
+		<Label for="ignore">
+			Умолчание вычисляется <Select
+				bind:value={value.default.type}
+				items={['frame', 'absolute']}
+				let:item
+			>
+				{#if item == 'frame'}
+					относительно фрейма
+				{:else}
+					как задано
+				{/if}
+			</Select>
+		</Label>
+	{:else if value.type === 'color'}
+		<Label>По умолчанию <ColorInput bind:value={value.default} /></Label>
+	{:else}
 		ERROR
 	{/if}
 </article>

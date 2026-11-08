@@ -7,9 +7,9 @@ const inputs: UniformDesc[] = [
 		name: 'radius',
 		title: 'Радиус',
 		description: 'Радиус разброса пикселей',
-		default: 10,
 		input: {
 			type: 'float',
+			default: 10,
 			min: 0,
 			step: 1,
 			layout: NumberLayout.NUMBER
@@ -18,9 +18,9 @@ const inputs: UniformDesc[] = [
 	{
 		name: 'minAlpha',
 		title: 'Минимальный альфа-канал',
-		default: 0.5,
 		input: {
 			type: 'float',
+			default: 0.5,
 			min: 0,
 			max: 1,
 			step: 0.05,
@@ -30,9 +30,9 @@ const inputs: UniformDesc[] = [
 	{
 		name: 'maxAlpha',
 		title: 'Максимальный альфа-канал',
-		default: 1,
 		input: {
 			type: 'float',
+			default: 1,
 			min: 0,
 			max: 1,
 			step: 0.05,

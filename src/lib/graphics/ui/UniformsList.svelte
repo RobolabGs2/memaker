@@ -18,9 +18,9 @@
 		const uniform: UniformDesc = {
 			name: `uniform${inputs.length}`,
 			title: `Юниформ ${inputs.length}`,
-			default: 0,
 			input: {
 				type: 'int',
+				default: 0,
 				min: 0,
 				max: 1,
 				layout: NumberLayout.RANGE

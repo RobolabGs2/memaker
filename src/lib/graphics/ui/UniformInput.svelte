@@ -3,6 +3,7 @@
 	import Label from '$lib/base/Label.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
 	import PointInput from '$lib/base/PointInput.svelte';
+	import Select from '$lib/base/Select.svelte';
 	import { NumberLayout, getDefaultValue } from '$lib/graphics/inputs';
 	import type { UniformDesc } from '$lib/graphics/shader';
 
@@ -13,12 +14,23 @@
 
 	$: {
 		const defaultValue = getDefaultValue(desc.input.type, desc.default, context);
-		if (value[name] === undefined || typeof value[name] !== typeof defaultValue) 
+		if (value[name] === undefined || typeof value[name] !== typeof defaultValue)
 			value[name] = defaultValue;
+	}
+
+	const angleSelectCSS = {
+		height: '32px',
+		width: '54px',
+		main: ''
+	};
+	let angleMode: '°' | 'rad' = '°';
+	function onAngleChange(ev: CustomEvent<number>) {
+		const newAngle = ev.detail;
+		value[name] = angleMode == '°' ? newAngle / 180 * Math.PI : newAngle;
 	}
 </script>
 
-<Label>
+<Label for="ignore">
 	<span title={desc.description}>
 		{#if desc.input.type == 'point'}
 			<div style={`width:10px;height:10px;background-color:${desc.input.color};`} />
@@ -43,11 +55,13 @@
 		/>
 	{:else if desc.input.type == 'angle'}
 		<NumberInput
-			bind:value={value[name]}
+			value={angleMode == '°' ? value[name] * 180 / Math.PI : value[name] }
 			min={desc.input.min ?? -Infinity}
 			max={desc.input.max ?? Infinity}
 			step={desc.input.step ?? 0.5}
+			on:change={onAngleChange}
 		/>
+		<Select items={['°', 'rad']} bind:value={angleMode} css={angleSelectCSS} />
 	{:else if desc.input.type == 'color'}
 		<ColorInput bind:value={value[name]} />
 	{:else if desc.input.type == 'point'}

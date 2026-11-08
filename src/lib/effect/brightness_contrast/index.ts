@@ -9,9 +9,9 @@ export const BrightnessContrastShader: RawShader = {
 		{
 			name: 'brightness',
 			title: 'Яркость',
-			default: 0,
 			input: {
 				type: 'float',
+				default: 0,
 				min: -1,
 				max: 1,
 				step: 0.05,
@@ -21,9 +21,9 @@ export const BrightnessContrastShader: RawShader = {
 		{
 			name: 'contrast',
 			title: 'Контраст',
-			default: 0,
 			input: {
 				type: 'float',
+				default: 0,
 				min: -1,
 				max: 1,
 				step: 0.05,
