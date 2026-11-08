@@ -130,7 +130,8 @@
 			else throw err;
 		});
 	}
-	function loadShaderEditor() {
+	function loadAndOpenOrCloseShaderEditor() {
+		shaderEditorState = !shaderEditorState;
 		if (memaker && !shaderEditor) {
 			memaker.runTask(
 				'Import shader editor',
@@ -153,8 +154,7 @@
 			if (ev.ctrlKey) devMode = !devMode;
 			else if (ev.shiftKey) devTools = true;
 		} else if (ev.key == 'F11' && ev.altKey) {
-			shaderEditorState = !shaderEditorState;
-			loadShaderEditor();
+			loadAndOpenOrCloseShaderEditor();
 		}
 	}}
 />
@@ -172,7 +172,7 @@
 	</Modal>
 	<Modal bind:open={devTools}>
 		<svelte:fragment slot="title">Инструменты разработчика</svelte:fragment>
-		<DevTools {memaker} />
+		<DevTools {memaker} materialsShaders={shaders.materials} />
 	</Modal>
 	<FloatWindow closable={true} bind:open={shaderEditorState}>
 		{#if shaderEditor}
@@ -236,6 +236,7 @@
 		on:deleteFrame={(ev) => memaker?.deleteFrame(ev.detail.frame)}
 		on:framesFromImages={(ev) => memaker?.framesFromImages(ev.detail.files)}
 		on:addPattern={(ev) => memaker?.addPattern(ev.detail.name, ev.detail.image)}
+		on:openShaderEditor={() => loadAndOpenOrCloseShaderEditor()}
 	/>
 </ThemeContext>
 

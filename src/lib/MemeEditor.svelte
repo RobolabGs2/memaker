@@ -22,6 +22,8 @@
 		framesFromImages: { files: File[] };
 
 		addPattern: { name: string; image: File };
+
+		openShaderEditor: undefined;
 	}
 	export type MemeEvent<K extends keyof EventsMap> = CustomEvent<EventsMap[K]>;
 </script>
@@ -43,7 +45,8 @@
 		IconCopy,
 		IconUpload,
 		IconDeviceFloppy,
-		IconBug
+		IconBug,
+		IconTools
 	} from '@tabler/icons-svelte';
 	import FileInput from './base/FileInput.svelte';
 	import type { Block, Frame, FrameDrawer, Meme } from './meme';
@@ -176,6 +179,13 @@
 				<IconUploadAdd /><span>Добавить фреймы из мема</span>
 			</Button>
 		</FileInput>
+		<Button
+			type="primary"
+			justifyContent="flex-start"
+			on:click={() => dispatch('openShaderEditor', undefined)}
+		>
+			<IconTools /><span>Редактор шейдеров</span>
+		</Button>
 		<Contacts
 			{version}
 			on:openExample={() =>
@@ -369,7 +379,7 @@
 		min-width: 360px;
 		/* padding: 2px; */
 		/* overflow: auto; */
-		display: flex; 
+		display: flex;
 		flex-direction: column;
 	}
 	section {
