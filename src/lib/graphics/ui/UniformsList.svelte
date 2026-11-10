@@ -6,6 +6,7 @@
 	import type { UniformDesc } from '$lib/graphics/shader';
 	import { NumberLayout } from '$lib/graphics/inputs';
 	import Button from '$lib/base/Button.svelte';
+	import PreviewActions from '$lib/PreviewActions.svelte';
 
 	export let inputs: UniformDesc[];
 
@@ -30,6 +31,28 @@
 		inputs = inputs;
 		activeUniform = uniform;
 	}
+
+	function shifter(dir: -1 | 1): (ev: CustomEvent<UniformDesc>) => void {
+		return (ev: CustomEvent<UniformDesc>) => {
+			const item = ev.detail;
+			const curIndex = inputs.indexOf(item);
+			const nextIndex = curIndex + dir;
+			if (nextIndex < 0 || inputs.length <= nextIndex) return;
+			inputs[curIndex] = inputs[nextIndex];
+			inputs[nextIndex] = item;
+		};
+	}
+	const shiftUp = shifter(-1);
+	const shiftDown = shifter(1);
+	function remove(ev: CustomEvent<UniformDesc>) {
+		const item = ev.detail;
+		const i = inputs.indexOf(item);
+		inputs.splice(i, 1);
+		inputs = inputs;
+		if (item === activeUniform) {
+			activeUniform = inputs[0]
+		}
+	}
 </script>
 
 <article>
@@ -52,15 +75,28 @@
 					bind:active={activeUniform}
 					let:item
 				>
-					<span class="preview">
-						{item.input.type}
-						{item.name}
-						{item.title}
-					</span>
+					<section class="preview">
+						<span>
+							{item.input.type}
+							{item.name}
+							{item.title}
+						</span>
+						<PreviewActions
+							value={item}
+							up
+							down
+							remove
+							on:up={shiftUp}
+							on:down={shiftDown}
+							on:remove={remove}
+						/>
+					</section>
 				</PreviewsContainer>
 			</section>
 			<section class="tabs">
-				<UniformEditor bind:value={activeUniform} on:change={onUniformChanged} />
+				{#if activeUniform}
+					<UniformEditor bind:value={activeUniform} on:change={onUniformChanged} />
+				{/if}
 			</section>
 		</div>
 	{/if}
@@ -99,6 +135,10 @@
 		padding: 4px 8px;
 		width: 100%;
 		text-align: left;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
 	}
 	.tabs {
 		height: 100%;

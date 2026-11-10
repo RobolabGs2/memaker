@@ -29,20 +29,7 @@
 	// oncompile
 	export let compilationError: string | undefined = undefined;
 	let title: string = 'debug_shader';
-	let inputs: UniformDesc[] = [
-		{
-			name: 'test',
-			title: 'Test',
-			input: {
-				type: 'int',
-				default: 0,
-				min: 0,
-				max: 255,
-				step: 1,
-				layout: NumberLayout.RANGE
-			}
-		}
-	];
+	let inputs: UniformDesc[] = [];
 	let type: 'material' | 'effect' = 'effect';
 	const header = {
 		material: `#version 300 es
@@ -88,6 +75,21 @@ void main() {
     return color;
 }`
 	};
+	const completionsByType = {
+		material: [],
+		effect: [
+			{
+				label: 'layer',
+				type: 'variable',
+				detail: 'sampler2D: Текстура с текущим слоем'
+			},
+			{
+				label: 'texCoord',
+				type: 'constant',
+				detail: 'vec2: Текстурные координаты на layer'
+			}
+		]
+	};
 	let fragment: string = defaults[type];
 	function shaderHeader() {
 		return (
@@ -128,18 +130,7 @@ void main() {
 					info: desc.description
 				} as Completion;
 			})
-			.concat([
-				{
-					label: 'layer',
-					type: 'variable',
-					detail: 'sampler2D: Текстура с текущим слоем'
-				},
-				{
-					label: 'texCoord',
-					type: 'constant',
-					detail: 'vec2: Текстурные координаты на layer'
-				}
-			])
+			.concat(completionsByType[type])
 			.concat(GLSLES3Functions);
 	}
 
@@ -172,7 +163,7 @@ void main() {
 		<header>Название</header>
 		<input bind:value={title} />
 	</section>
-	<UniformsList bind:inputs/>
+	<UniformsList bind:inputs />
 	<section>
 		<header>Фрагментный шейдер</header>
 		<GLSLEditor

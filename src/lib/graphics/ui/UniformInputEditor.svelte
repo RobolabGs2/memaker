@@ -84,10 +84,16 @@
 	</Label>
 	{#if value.type === 'float' || value.type === 'int' || value.type === 'angle'}
 		{#if value.min !== undefined}
-			<Label>Минимум<NumberInput bind:value={value.min} on:change={onChange('min')} /></Label>
+			<Label>
+				Минимум{#if value.type === 'angle'}°{/if}
+				<NumberInput bind:value={value.min} on:change={onChange('min')} />
+			</Label>
 		{/if}
 		{#if value.max !== undefined}
-			<Label>Максимум<NumberInput bind:value={value.max} on:change={onChange('max')} /></Label>
+			<Label>
+				Максимум{#if value.type === 'angle'}°{/if}
+				<NumberInput bind:value={value.max} on:change={onChange('max')} />
+			</Label>
 		{/if}
 		{#if value.step !== undefined}
 			<Label>Шаг<NumberInput bind:value={value.step} on:change={onChange('step')} /></Label>

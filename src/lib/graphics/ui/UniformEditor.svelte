@@ -4,7 +4,6 @@
 	import { type UniformInput } from '$lib/graphics/inputs';
 	import type { UniformDesc } from '$lib/graphics/shader';
 	import UniformInputEditor from '$lib/graphics/ui/UniformInputEditor.svelte';
-	import TabsContainer from '$lib/base/TabsContainer.svelte';
 
 	export let value: UniformDesc;
 
@@ -29,22 +28,16 @@
 	}
 </script>
 
-<TabsContainer tabs={['Общее', 'UI']} layout="horizontal" let:tab>
-	<div class="tab-header">{tab.substring(0, 2)}</div>
-	<div slot="content" let:tab>
-		{#if tab == 'Общее'}
-			<InputGroup>
-				<Label>Имя в коде <input bind:value={value.name} on:change /></Label>
-				<Label>Имя в UI <input bind:value={value.title} on:change /></Label>
-				<Label title="Будет появляться при наведении, как этот текст">
-					Описание <textarea rows="2" bind:value={value.description} on:change />
-				</Label>
-			</InputGroup>
-		{:else if tab == 'UI'}
-			<UniformInputEditor value={value.input} on:change={onUniformChanged} on:change />
-		{/if}
-	</div>
-</TabsContainer>
+<article>
+	<InputGroup>
+		<Label>Имя в коде <input bind:value={value.name} on:change /></Label>
+		<Label>Имя в UI <input bind:value={value.title} on:change /></Label>
+		<Label title="Будет появляться при наведении, как этот текст">
+			Описание <textarea rows="2" bind:value={value.description} on:change />
+		</Label>
+	</InputGroup>
+	<UniformInputEditor value={value.input} on:change={onUniformChanged} on:change />
+</article>
 
 <style>
 	textarea {
@@ -56,7 +49,8 @@
 		border: var(--border-secondary);
 	}
 
-	.tab-header {
-		max-height: 20px;
+	article {
+		padding: 8px;
+		background-color: var(--secondary);
 	}
 </style>

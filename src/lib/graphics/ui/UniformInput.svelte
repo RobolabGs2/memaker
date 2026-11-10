@@ -26,7 +26,7 @@
 	let angleMode: '°' | 'rad' = '°';
 	function onAngleChange(ev: CustomEvent<number>) {
 		const newAngle = ev.detail;
-		value[name] = angleMode == '°' ? newAngle / 180 * Math.PI : newAngle;
+		value[name] = angleMode == '°' ? (newAngle / 180) * Math.PI : newAngle;
 	}
 </script>
 
@@ -55,9 +55,13 @@
 		/>
 	{:else if desc.input.type == 'angle'}
 		<NumberInput
-			value={angleMode == '°' ? value[name] * 180 / Math.PI : value[name] }
-			min={desc.input.min ?? -Infinity}
-			max={desc.input.max ?? Infinity}
+			value={angleMode == '°' ? (value[name] * 180) / Math.PI : value[name]}
+			min={angleMode == '°'
+				? desc.input.min ?? -Infinity
+				: ((desc.input.min ?? -Infinity) / 180) * Math.PI}
+			max={angleMode == '°'
+				? desc.input.max ?? Infinity
+				: ((desc.input.max ?? Infinity) / 180) * Math.PI}
 			step={desc.input.step ?? 0.5}
 			on:change={onAngleChange}
 		/>
