@@ -5,7 +5,7 @@
 	import { slide } from 'svelte/transition';
 	import type { Effect, EffectSettings } from '.';
 	import InputGroup from '$lib/base/InputGroup.svelte';
-	import ShaderInput from './ShaderInput.svelte';
+	import UniformInput from '../graphics/ui/UniformInput.svelte';
 	import type { RawShader } from '$lib/graphics/shader';
 	import { getDefaultValue } from '$lib/graphics/inputs';
 	export let value: Effect[];
@@ -21,7 +21,7 @@
 		}
 		const defaultValue: EffectSettings = {};
 		for (const input of shader.inputs || []) {
-			defaultValue[input.name] = getDefaultValue(input.input.type, input.default, context);
+			defaultValue[input.name] = getDefaultValue(input.input.type, input.input.default, context);
 		}
 		const i =
 			value.push({
@@ -66,7 +66,7 @@
 	const downEffect = makeShiftEffectHandler(-1);
 
 	const placeholderKey = '__add__' as const;
-	const effectKeys = [...Object.keys(shaders), placeholderKey];
+	let effectKeys = [...Object.keys(shaders), placeholderKey];
 
 	let active = { id: value[0], value: value[0] };
 	$: {
@@ -74,6 +74,7 @@
 			active.value = value[value.length - 1];
 			active.id = active.value;
 		}
+		effectKeys = [...Object.keys(shaders), placeholderKey];
 	}
 	let selectorValue = placeholderKey;
 </script>
@@ -104,7 +105,7 @@
 			bind:active
 			let:item
 		>
-			<section class="preview" transition:slide|local>
+			<section class="preview" transition:slide>
 				{shaders[item.value.type].title}
 				<PreviewActions
 					value={item.value}
@@ -120,10 +121,10 @@
 				{@const type = active.value.type}
 				{@const shader = shaders[type]}
 				{#if shader.inputs}
-					<div transition:slide>
+					<div transition:slide|global>
 						<InputGroup>
 							{#each shader.inputs as input (input)}
-								<ShaderInput
+								<UniformInput
 									desc={input}
 									name={input.name}
 									{context}

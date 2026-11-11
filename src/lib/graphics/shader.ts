@@ -1,7 +1,5 @@
 import {
-	AngleShaderMode,
 	type UniformInput,
-	type UniformInputDefault,
 	type UniformInputType
 } from './inputs';
 import type { Point } from '$lib/geometry/point';
@@ -17,36 +15,49 @@ export function parseColorBytes(color: string): [number, number, number] {
 	return [raw >> (2 * 8), (raw >> 8) & 0xff, raw & 0xff];
 }
 
+export type ShaderUniforms = Record<string, unknown>;
+export interface ShaderSettings {
+	type: string;
+	settings: ShaderUniforms;
+}
+
 export interface RawShader<T = unknown> {
-	title?: string;
+	title: string;
 	description?: string;
 	vertex?: string;
 	fragment?: string;
-	inputs?: ShaderInputDesc[];
+	inputs?: UniformDesc[];
 	uniforms?(settings: T, rectangle: Rectangle, ctx: GraphicsContext): Record<string, unknown>;
 }
 
+export type UniformsSetter = (
+	settings: Record<string, unknown>,
+	rectangle: Rectangle,
+	ctx: GraphicsContext
+) => Record<string, unknown>;
+
 export interface GraphicsContext {
-	textures: TextureManager<unknown>;
+	readonly textures: TextureManager<unknown>;
+	readonly size: { width: number; height: number };
 }
 
-export type ShaderInputDesc<T extends UniformInputType = UniformInputType> = {
+export type UniformDesc<T extends UniformInputType = UniformInputType> = {
 	name: string;
 	title: string;
 	description?: string;
-	default: UniformInputDefault<T>;
 	input: UniformInput<T>;
 };
 
 export function inputToUniform(
-	input: ShaderInputDesc,
+	input: UniformDesc,
 	src: Record<string, unknown>,
-	uniforms: Record<string, unknown>
+	uniforms: Record<string, unknown>,
+	ctx: GraphicsContext
 ) {
 	const uniformName = input.name;
-	let value = src[input.name];
+	const value = src[input.name];
 	if (value === undefined) {
-		value = src[input.name] = structuredClone(input.default);
+		return;
 	}
 	const settings = input.input;
 	switch (settings.type) {
@@ -60,13 +71,26 @@ export function inputToUniform(
 			uniforms[uniformName] = parseColor(value as string);
 			break;
 		case 'angle':
-			uniforms[uniformName] =
-				settings.mode == AngleShaderMode.DEGREE ? value : ((value as number) / 180) * Math.PI;
+			uniforms[uniformName] = value;
 			break;
 		case 'point': {
 			const { x, y } = value as Point;
-			uniforms[uniformName] = [x, y];
+			uniforms[uniformName] = [x, ctx.size.height - y];
 			break;
 		}
 	}
+}
+
+export function compileUniformsSetter(raw: RawShader): UniformsSetter {
+	return (s, b, ctx) => {
+		if (raw.uniforms) return raw.uniforms(s, b, ctx);
+		if (raw.inputs) {
+			const uniforms = {} as Record<string, unknown>;
+			for (const input of raw.inputs) {
+				inputToUniform(input, s, uniforms, ctx);
+			}
+			return uniforms;
+		}
+		return {};
+	};
 }

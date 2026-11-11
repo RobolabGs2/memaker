@@ -261,8 +261,8 @@ class TextContentRenderer implements ContentRenderer<TextContent> {
 		rect: Rectangle,
 		style: TextStyle
 	) {
-		const enableStroke = style.stroke.settings.type !== 'disabled';
-		const enableFill = style.fill.settings.type !== 'disabled';
+		const enableStroke = style.stroke.settings !== undefined;
+		const enableFill = style.fill.settings !== undefined;
 		const channels = (+enableStroke * 1) | (+enableFill * 2);
 		const drawers = new Array<(destination: TargetFrameBuffer) => void>();
 		if (enableStroke) {

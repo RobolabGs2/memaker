@@ -1,22 +1,18 @@
 import type { Point } from '$lib/geometry/point';
-import type { RawShader } from '$lib/graphics/shader';
+import type { RawShader, ShaderSettings } from '$lib/graphics/shader';
 import { ColorShader, type ColorSettings } from './color/shader';
 import { Gradient4Shader, type Gradient4Settings } from './gradient/shader';
 import { PatternShader, type PatternSettings } from './pattern/shader';
 import type { PatternsManager } from './pattern/store';
 
 interface MaterialTypes {
-	disabled: {
-		type: 'disabled';
-	};
 	color: ColorSettings;
 	pattern: PatternSettings;
 	gradient4: Gradient4Settings;
 }
-export type MaterialType = keyof MaterialTypes;
-export type MaterialSettings<T extends MaterialType> = MaterialTypes[T];
-export interface Material<T extends MaterialType = MaterialType> {
-	settings: MaterialSettings<T>;
+export type MaterialSettings = MaterialTypes[keyof MaterialTypes] | ShaderSettings;
+export interface Material {
+	settings?: MaterialSettings;
 	alpha: number;
 	shadow?: ShadowSettings;
 }
@@ -27,9 +23,16 @@ export type ShadowSettings = {
 	saturation: number;
 };
 
+export function IsOldMaterial<K extends keyof MaterialTypes>(
+	name: K,
+	material?: MaterialSettings
+): material is MaterialTypes[K] {
+	return material?.type === name;
+}
+
 export function MaterialShaders(
 	patternsNames: PatternsManager
-): Record<Exclude<MaterialType, 'disabled'>, RawShader<unknown>> {
+): Record<string, RawShader<unknown>> {
 	return {
 		color: ColorShader,
 		pattern: PatternShader(patternsNames),

@@ -1,10 +1,5 @@
 import type { Point } from '$lib/geometry/point';
 
-export enum AngleShaderMode {
-	RADIAN = 0,
-	DEGREE = 1
-}
-
 export enum NumberLayout {
 	NUMBER = 0,
 	RANGE = 1
@@ -12,58 +7,79 @@ export enum NumberLayout {
 
 interface ShaderInputTypesMap {
 	float: {
-		default: number;
 		input: {
 			type: 'float';
+			default: number;
 			min?: number;
 			max?: number;
 			step?: number;
-			layout?: NumberLayout;
+			layout: NumberLayout;
 		};
 	};
 	int: {
-		default: number;
 		input: {
 			type: 'int';
+			default: number;
 			min?: number;
 			max?: number;
 			step?: number;
-			layout?: NumberLayout;
+			layout: NumberLayout;
 		};
 	};
 	angle: {
-		default: number;
 		input: {
 			type: 'angle';
-			mode: AngleShaderMode;
+			default: number;
 			min?: number;
 			max?: number;
 			step?: number;
 		};
 	};
 	point: {
-		default: {
-			type: 'frame' | 'absolute';
-			value: Point;
-		};
 		input: {
 			type: 'point';
+			default: {
+				type: 'frame' | 'absolute';
+				value: Point;
+			};
 			color: string;
 		};
 	};
 	color: {
-		default: string;
 		input: {
 			type: 'color';
+			default: string;
 		};
 	};
 }
 
 export type UniformInputType = keyof ShaderInputTypesMap;
+export const UniformInputTypes: ReadonlyArray<UniformInputType> = [
+	'float',
+	'int',
+	'angle',
+	'point',
+	'color'
+];
 export type UniformInputDefault<T extends UniformInputType = UniformInputType> =
-	ShaderInputTypesMap[T]['default'];
+	ShaderInputTypesMap[T]['input']['default'];
 export type UniformInput<T extends UniformInputType = UniformInputType> =
 	ShaderInputTypesMap[T]['input'];
+
+export function uniformInputTypeToGLSL(t: UniformInputType): string {
+	switch (t) {
+		case 'float':
+			return 'float';
+		case 'int':
+			return 'int';
+		case 'angle':
+			return 'float';
+		case 'point':
+			return 'vec2';
+		case 'color':
+			return 'vec3';
+	}
+}
 
 export function getDefaultValue<T extends UniformInputType>(
 	type: T,

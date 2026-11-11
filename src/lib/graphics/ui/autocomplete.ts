@@ -1,0 +1,56 @@
+import { uniformInputTypeToGLSL, type UniformInputType } from '../inputs';
+import { userShaderSettings, type UserShader } from '../user_shader';
+import rawData from './glsl_funcs.json';
+import { type Completion, type CompletionInfo } from '@codemirror/autocomplete';
+
+type Var = {
+	type: string;
+	mod?: string;
+	name: string;
+	opt?: boolean;
+};
+type Signature = [string, Var[]];
+type FlatFuncDeclaration = [string, Signature[], Record<string, string>, string, string];
+
+export class GLSLFuncCompletion implements Completion {
+	signatures: Signature[];
+	params: Record<string, string>;
+	constructor(raw: FlatFuncDeclaration) {
+		const info = document.createElement('article');
+		[this.label, this.signatures, this.params, this.detail, info.innerHTML] = raw;
+		this.detail = `(${this.signatures[0][1].map(v => `${v.type} ${v.name}`).join(", ")}): ${this.signatures[0][0]} — ${this.detail}`
+		this.info = () => {
+			return info;
+		};
+	}
+	detail: string;
+	label: string;
+
+	info: (completion: Completion) => CompletionInfo;
+	readonly type = 'function';
+	section = "functions";
+}
+
+export const GLSLES3Functions = rawData.map(
+	(data) => new GLSLFuncCompletion(data as FlatFuncDeclaration)
+);
+
+
+export function completions(shader: UserShader): Completion[] {
+	return shader.uniforms
+		.map((desc) => {
+			return {
+				label: desc.name,
+				type: 'variable',
+				detail: `${typeHint(desc.input.type)}: ${desc.title}`,
+				info: desc.description
+			} as Completion;
+		})
+		.concat(userShaderSettings[shader.type].completions)
+		.concat(GLSLES3Functions);
+}
+
+function typeHint(type: UniformInputType) {
+	const glsl = uniformInputTypeToGLSL(type);
+	return glsl === type ? glsl : `${glsl} (${type})`;
+}

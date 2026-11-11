@@ -12,6 +12,7 @@
 </script>
 
 <article class={layout}>
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<header
 		class:collapse
 		class={layout}
@@ -56,7 +57,9 @@
 	article {
 		padding-top: 4px;
 		background-color: #424242;
-		height: 70%;
+		height: 100%;
+		// height: auto;
+		overflow-y: auto;
 	}
 	header {
 		display: flex;
@@ -69,7 +72,7 @@
 		}
 	}
 	.content {
-		overflow-y: auto;
+		// overflow-y: auto;
 		height: 100%;
 		width: 100%;
 		padding-left: 4px;

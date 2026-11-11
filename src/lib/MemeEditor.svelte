@@ -22,6 +22,8 @@
 		framesFromImages: { files: File[] };
 
 		addPattern: { name: string; image: File };
+
+		openShaderEditor: undefined;
 	}
 	export type MemeEvent<K extends keyof EventsMap> = CustomEvent<EventsMap[K]>;
 </script>
@@ -43,7 +45,8 @@
 		IconCopy,
 		IconUpload,
 		IconDeviceFloppy,
-		IconBug
+		IconBug,
+		IconTools
 	} from '@tabler/icons-svelte';
 	import FileInput from './base/FileInput.svelte';
 	import type { Block, Frame, FrameDrawer, Meme } from './meme';
@@ -75,6 +78,7 @@
 	export let version: string;
 	export let memeExampleURL: string;
 	export let effectsShaders: Record<string, RawShader>;
+	export let materialsShaders: Record<string, RawShader>;
 	export let editorState: BlockEditorState;
 	export let frameDrawer: FrameDrawer;
 	export let devMode: boolean;
@@ -87,7 +91,8 @@
 	}
 	function onPaste(event: ClipboardEvent) {
 		const inFocus = document.activeElement;
-		if (inFocus instanceof HTMLInputElement || inFocus instanceof HTMLTextAreaElement) return;
+		console.log(inFocus);
+		if (inFocus instanceof HTMLInputElement || inFocus instanceof HTMLTextAreaElement || inFocus?.role == 'textbox') return;
 		const items = event.clipboardData?.items;
 		if (!items) return;
 		for (let index = 0; index < items.length; index++) {
@@ -175,6 +180,13 @@
 				<IconUploadAdd /><span>Добавить фреймы из мема</span>
 			</Button>
 		</FileInput>
+		<Button
+			type="primary"
+			justifyContent="flex-start"
+			on:click={() => dispatch('openShaderEditor', undefined)}
+		>
+			<IconTools /><span>Редактор шейдеров</span>
+		</Button>
 		<Contacts
 			{version}
 			on:openExample={() =>
@@ -306,9 +318,11 @@
 					<IconBug />
 				{/if}
 			</div>
-			<div slot="content">
+			<div slot="content" let:tab>
 				{#if tab === 'Текст' && block.content.type == 'text'}
 					<TextContentSettings
+						context={{ frame }}
+						shaders={materialsShaders}
 						bind:content={block.content.value}
 						container={block.container}
 						on:change
@@ -366,8 +380,8 @@
 		min-width: 360px;
 		/* padding: 2px; */
 		/* overflow: auto; */
-		/* display: flex; */
-		/* flex-direction: column; */
+		display: flex;
+		flex-direction: column;
 	}
 	section {
 		/* overflow: auto; */

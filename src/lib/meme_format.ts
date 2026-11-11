@@ -1,10 +1,11 @@
 import type { Content, Meme } from '$lib/meme';
 import JSZip from 'jszip';
-import type { Material, MaterialSettings, MaterialType, ShadowSettings } from './material';
+import type { Material, MaterialSettings, ShadowSettings } from './material';
 import type { TextAlign, TextBaseline, TextCase } from './text/text';
 import { downloadImage, useBlobUrl } from './utils';
 import type { FontSettings } from './text/font';
 import type { Rectangle } from './geometry/rectangle';
+import type { UserShader } from './graphics/user_shader';
 
 type MemeVersions =
 	| MemeDataV0_2_0
@@ -13,17 +14,23 @@ type MemeVersions =
 	| MemeDataV0_2_3
 	| MemeDataV0_2_4
 	| MemeDataV0_2_5
-	| MemeDataV0_2_6;
+	| MemeDataV0_2_6
+	| MemeDataV0_2_7
+	| MemeDataV0_2_8;
 
 export type MemeFile<MemeV extends MemeVersions = MemeData> = {
 	meme: MemeV['meme'];
-	resources: { images: string[]; patterns: string[] };
+	resources: { images: string[]; patterns: string[]; shaders: UserShader[] };
 	formatVersion: string;
 	editorVersion: string;
 };
 export interface MemeData {
 	meme: Meme;
-	resources: { images: { id: string; blob: Blob }[]; patterns: { name: string; blob: Blob }[] };
+	resources: {
+		images: { id: string; blob: Blob }[];
+		patterns: { name: string; blob: Blob }[];
+		shaders: UserShader[];
+	};
 }
 
 type TextContentV0_2_0<Style = TextStyleV0_2_0> = {
@@ -223,6 +230,25 @@ interface MemeDataV0_2_6 {
 		patterns: { name: string; blob: Blob }[];
 	};
 }
+
+interface MemeDataV0_2_7 {
+	version?: '0.2.7';
+	meme: Meme<FrameV0_2_0<BlockV0_2_6>>;
+	resources: {
+		images: { id: string; blob: Blob }[];
+		patterns: { name: string; blob: Blob }[];
+	};
+}
+
+interface MemeDataV0_2_8 {
+	version?: '0.2.8';
+	meme: Meme<FrameV0_2_0<BlockV0_2_6>>;
+	resources: {
+		images: { id: string; blob: Blob }[];
+		patterns: { name: string; blob: Blob }[];
+		shaders: UserShader[];
+	};
+}
 /**
  * -1 -> a < b
  *  0 -> a = b
@@ -275,7 +301,7 @@ function castVersionToActual<From extends MemeVersions>(
 }
 
 export class MemeFormat {
-	static FormatVersion = '0.2.6';
+	static FormatVersion = '0.2.8';
 	static EditorVersion = import.meta.env.VITE_APP_VERSION;
 	static fromFile(file: Blob): Promise<MemeData> {
 		const zip = new JSZip();
@@ -289,7 +315,9 @@ export class MemeFormat {
 					.then(MemeFormat.fromV0_2_3ToV0_2_4)
 					.then(MemeFormat.fromV0_2_4ToV0_2_5)
 					.then(MemeFormat.fromV0_2_5ToV0_2_6)
-					.then(castVersionToActual('0.2.6', this.FormatVersion));
+					.then(MemeFormat.fromV0_2_6ToV0_2_7)
+					.then(MemeFormat.fromV0_2_7ToV0_2_8)
+					.then(castVersionToActual('0.2.8', this.FormatVersion));
 			return index.async('string').then((json) => {
 				const index = JSON.parse(json, (key, value) => {
 					if (key === 'container' && value.type === 'global') {
@@ -319,7 +347,10 @@ export class MemeFormat {
 				])
 					.then(
 						([images, patterns]) =>
-							({ meme: index.meme, resources: { images, patterns } } as MemeVersions)
+							({
+								meme: index.meme,
+								resources: { images, patterns, shaders: index.resources.shaders || [] }
+							} as MemeVersions)
 					)
 					.then(upToVersion(index, '0.2.1', this.fromV0_2_0ToV0_2_1))
 					.then(upToVersion(index, '0.2.2', this.fromV0_2_1ToV0_2_2))
@@ -327,7 +358,9 @@ export class MemeFormat {
 					.then(upToVersion(index, '0.2.4', this.fromV0_2_3ToV0_2_4))
 					.then(upToVersion(index, '0.2.5', this.fromV0_2_4ToV0_2_5))
 					.then(upToVersion(index, '0.2.6', this.fromV0_2_5ToV0_2_6))
-					.then(castVersionToActual('0.2.6', this.FormatVersion));
+					.then(upToVersion(index, '0.2.7', this.fromV0_2_6ToV0_2_7))
+					.then(upToVersion(index, '0.2.8', this.fromV0_2_7ToV0_2_8))
+					.then(castVersionToActual('0.2.8', this.FormatVersion));
 			});
 		});
 	}
@@ -478,6 +511,62 @@ export class MemeFormat {
 			}
 		};
 	}
+	private static fromV0_2_6ToV0_2_7(data: MemeDataV0_2_6): MemeDataV0_2_7 {
+		function migrateContent(
+			content: Content<TextContentV0_2_6, ImageContentV0_2_3>
+		): Content<TextContentV0_2_6, ImageContentV0_2_3> {
+			function migrateMaterial(m: Material) {
+				if (m.settings?.type === 'disable')
+					return {
+						...m,
+						settings: undefined
+					};
+				return m;
+			}
+			if (content.type == 'text') {
+				return {
+					...content,
+					value: {
+						...content.value,
+						style: {
+							...content.value.style,
+							stroke: {
+								...migrateMaterial(content.value.style.stroke)
+							},
+							fill: {
+								...migrateMaterial(content.value.style.fill)
+							}
+						}
+					}
+				};
+			}
+			return content;
+		}
+		return {
+			...data,
+			version: '0.2.7',
+			meme: {
+				frames: data.meme.frames.map((f) => {
+					return {
+						...f,
+						blocks: f.blocks.map((b) => {
+							return {
+								...b,
+								content: migrateContent(b.content)
+							} as BlockV0_2_6;
+						})
+					};
+				})
+			}
+		};
+	}
+	private static fromV0_2_7ToV0_2_8(data: MemeDataV0_2_7): MemeDataV0_2_8 {
+		return {
+			...data,
+			version: '0.2.8',
+			resources: { ...data.resources, shaders: [] }
+		};
+	}
 	static toFile(data: MemeData): Promise<Blob> {
 		const zip = new JSZip();
 		data.resources.images.forEach(({ id, blob }) => {
@@ -492,7 +581,8 @@ export class MemeFormat {
 			editorVersion: this.EditorVersion,
 			resources: {
 				images: data.resources.images.map((t) => t.id),
-				patterns: data.resources.patterns.map((t) => t.name)
+				patterns: data.resources.patterns.map((t) => t.name),
+				shaders: data.resources.shaders
 			}
 		};
 		zip.file('index.json', JSON.stringify(memeFile));
@@ -707,13 +797,13 @@ function convertZeroZeroToActualStyle(
 
 function convertZeroZeroToActualMaterial(
 	brush: ZeroZeroVersionTypes.BrushPath
-): MaterialSettings<MaterialType> {
+): MaterialSettings | undefined {
 	switch (brush.type) {
 		case 'color':
 			return {
 				type: 'color',
 				value: brush.name
-			} as MaterialSettings<'color'>;
+			};
 		case 'pattern':
 			return {
 				type: 'pattern',
@@ -721,11 +811,9 @@ function convertZeroZeroToActualMaterial(
 				rotate: brush.patternSettings.rotate,
 				scale: brush.patternSettings.scale,
 				shift: brush.patternSettings.shift
-			} as MaterialSettings<'pattern'>;
+			};
 		case 'none':
-			return {
-				type: 'disabled'
-			} as MaterialSettings<'disabled'>;
+			return undefined;
 		default:
 			throw new UnsupportedFormatError(
 				`Failed convert old brush ${JSON.stringify(brush)} to material settings`

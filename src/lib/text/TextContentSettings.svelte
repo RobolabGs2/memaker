@@ -1,8 +1,12 @@
 <script lang="ts">
 	import type { Container, TextContent } from '$lib/meme';
 	import TextEditor from './TextEditor.svelte';
+	import type { RawShader } from '$lib/graphics/shader';
+
 	export let content: TextContent;
 	export let container: Container;
+	export let shaders: Record<string, RawShader>;
+	export let context: { frame: { width: number; height: number } };
 </script>
 
 <TextEditor
@@ -10,5 +14,7 @@
 	bind:text={content.text}
 	bind:style={content.style}
 	{container}
+	{shaders}
+	{context}
 	on:addPattern
 />

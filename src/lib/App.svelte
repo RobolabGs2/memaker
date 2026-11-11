@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount, SvelteComponent, tick } from 'svelte';
 	import { writable } from 'svelte/store';
 	import ClipboardErrorModal from './ClipboardErrorModal.svelte';
 	import MemeEditor from './MemeEditor.svelte';
@@ -17,6 +17,8 @@
 	import { EffectShaders } from './effect';
 	import { MaterialShaders } from './material';
 	import { patternsNames } from './material/pattern/store';
+	import FloatWindow from './base/FloatWindow.svelte';
+	import type { UserShader } from './graphics/user_shader';
 
 	export let patternUrls: FileImport[];
 	export let placeholdersUrls: SkinsMap;
@@ -80,21 +82,32 @@
 	let busy = writable('Собираем интерфейс...');
 	let error = writable<unknown>(undefined);
 	let skinKey = 'default';
-	const shaders = {
+	const shaders = new StateStore({
 		materials: MaterialShaders(patternsNames),
 		effects: EffectShaders()
-	};
+	});
+	let userShaders: UserShader[] = [];
+	let shaderEditor: typeof SvelteComponent<any> | undefined = undefined;
+	let shaderEditorState = false;
 	onMount(() => {
 		try {
 			skinKey = new URL(location.href).searchParams.get('skin') ?? skinKey;
 
 			memaker = new Memaker(
-				{ block: activeBlock, frame: activeFrame, meme, busy, previews: updatePreview, error },
+				{
+					block: activeBlock,
+					frame: activeFrame,
+					meme,
+					busy,
+					previews: updatePreview,
+					error,
+					shaders
+				},
 				canvasWebgl,
 				patternUrls,
 				placeholdersUrls,
 				skinKey,
-				shaders
+				userShaders
 			);
 			new RectangleEditor(
 				canvasUI,
@@ -103,7 +116,7 @@
 				activeFrame,
 				activeBlock,
 				editorState,
-				shaders.effects
+				$shaders.effects
 			);
 
 			if (memeURL) {
@@ -115,12 +128,6 @@
 		} catch (e: unknown) {
 			$error = e;
 		}
-		window.addEventListener('keydown', (ev) => {
-			if (ev.key == 'F12') {
-				if (ev.ctrlKey) devMode = !devMode;
-				else if (ev.shiftKey) devTools = true;
-			}
-		});
 		return () => memaker.clear();
 	});
 
@@ -133,11 +140,34 @@
 			else throw err;
 		});
 	}
+	function loadAndOpenOrCloseShaderEditor() {
+		shaderEditorState = !shaderEditorState;
+		if (memaker && !shaderEditor) {
+			memaker.runTask(
+				'Import shader editor',
+				import('$lib/graphics/ui/ShaderEditor.svelte').then(
+					(res) => !shaderEditor && (shaderEditor = res.default)
+				)
+			);
+		}
+	}
 
 	let devMode = false;
 	let devTools = false;
+
+	let compilationError = '';
 </script>
 
+<svelte:window
+	on:keydown={(ev) => {
+		if (ev.key == 'F12') {
+			if (ev.ctrlKey) devMode = !devMode;
+			else if (ev.shiftKey) devTools = true;
+		} else if (ev.key == 'F11' && ev.altKey) {
+			loadAndOpenOrCloseShaderEditor();
+		}
+	}}
+/>
 <ThemeContext bind:theme={$theme}>
 	<Modal open={$busy !== ''} closable={false}>
 		<article>
@@ -152,13 +182,32 @@
 	</Modal>
 	<Modal bind:open={devTools}>
 		<svelte:fragment slot="title">Инструменты разработчика</svelte:fragment>
-		<DevTools {memaker} />
+		<DevTools {memaker} materialsShaders={$shaders.materials} />
 	</Modal>
+	<FloatWindow closable={true} bind:open={shaderEditorState}>
+		<header slot="title">Редактор шейдеров</header>
+		{#if shaderEditor}
+			<svelte:component
+				this={shaderEditor}
+				{compilationError}
+				{shaders}
+				{userShaders}
+				on:compile={(ev) =>
+					memaker
+						?.compileUserShader(ev.detail)
+						.then(() => (compilationError = ''))
+						.catch((err) => (compilationError = err.message))}
+			/>
+		{:else}
+			Грузим редактор кода...
+		{/if}
+	</FloatWindow>
 	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
 	<MemeEditor
 		textureManager={memaker?.textures}
 		{devMode}
-		effectsShaders={shaders.effects}
+		effectsShaders={$shaders.effects}
+		materialsShaders={$shaders.materials}
 		version={import.meta.env.VITE_APP_VERSION}
 		{memeExampleURL}
 		frameDrawer={memaker?.drawer}
@@ -187,6 +236,7 @@
 		on:deleteFrame={(ev) => memaker?.deleteFrame(ev.detail.frame)}
 		on:framesFromImages={(ev) => memaker?.framesFromImages(ev.detail.files)}
 		on:addPattern={(ev) => memaker?.addPattern(ev.detail.name, ev.detail.image)}
+		on:openShaderEditor={() => loadAndOpenOrCloseShaderEditor()}
 	/>
 </ThemeContext>
 

@@ -11,8 +11,10 @@
 	import { deepCopy } from '$lib/state';
 	import TextContentSettings from '$lib/text/TextContentSettings.svelte';
 	import NumberInput from '$lib/base/NumberInput.svelte';
+	import type { RawShader } from '$lib/graphics/shader';
 
 	export let memaker: Memaker;
+	export let materialsShaders: Record<string, RawShader>;
 	let textContent: TextContent = {
 		text: 'Широкая электрификация южных губерний\nдаст мощный толчок подъёму сельского хозяйства.',
 		style: deepCopy(defaultStyle)
@@ -177,7 +179,12 @@
 		<section>Колонки: <NumberInput bind:value={columns} /></section>
 		<FrameSettings bind:value={frameSettings} />
 	</section>
-	<TextContentSettings bind:content={textContent} container={mockContainer} />
+	<TextContentSettings
+		bind:content={textContent}
+		container={mockContainer}
+		shaders={materialsShaders}
+		context={{ frame: frameSettings }}
+	/>
 	<Button type="danger" on:click={generateData}>Сгенерировать данные для шрифта</Button>
 </article>
 

@@ -8,10 +8,10 @@ export const BugleShader: RawShader = {
 	inputs: [
 		{
 			name: 'strength',
-			default: 0.5,
 			title: 'Сила',
 			input: {
 				type: 'float',
+				default: 0.5,
 				min: 0,
 				max: 1.5,
 				step: 0.05,
@@ -20,23 +20,24 @@ export const BugleShader: RawShader = {
 		},
 		{
 			name: 'radius',
-			default: 50,
 			title: 'Радиус',
 			input: {
+				default: 50,
 				type: 'float',
 				min: 0,
-				step: 1
+				step: 1,
+				layout: NumberLayout.NUMBER
 			}
 		},
 		{
 			name: 'center',
-			default: {
-				type: 'frame',
-				value: { x: 0.5, y: 0.5 }
-			},
 			title: 'Центр',
 			input: {
 				type: 'point',
+				default: {
+					type: 'frame',
+					value: { x: 0.5, y: 0.5 }
+				},
 				color: '#0fff00'
 			}
 		}

@@ -11,6 +11,7 @@
 	export let height = '';
 </script>
 
+<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
 <article
 	role="button"
 	tabindex={1}
@@ -22,7 +23,7 @@
 	class={type}
 	style="justify-content:{justifyContent};width:{width || '100%'};{width
 		? `min-width:${width};max-width:${width};`
-		: ''}{height ? `${height};` : ''}{style};"
+		: ''}{height ? `min-height:${height};max-height:${height};` : ''}{style};"
 	on:click|stopPropagation
 	on:mousemove
 	on:mouseout

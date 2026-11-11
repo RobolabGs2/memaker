@@ -14,6 +14,8 @@ import { TextManager } from './text/manager';
 import { Graphics } from './graphics/graphics';
 import type { RawShader } from './graphics/shader';
 import type { ImageContent } from './image';
+import { IsOldMaterial } from './material';
+import { preprocessUserShader, type UserShader } from './graphics/user_shader';
 
 type TextureMeta = {
 	type: 'pattern' | 'image';
@@ -54,7 +56,7 @@ export class Memaker {
 	}
 	public get currentTask(): string {
 		if (!this.busy) return '';
-		return this.backgroundTasks.values().next().value;
+		return this.backgroundTasks.values().next().value || 'Что-то делаем';
 	}
 	readonly gl: WebGL2RenderingContext;
 	constructor(
@@ -65,22 +67,28 @@ export class Memaker {
 			previews: StateStore<Record<string, (canvas: HTMLCanvasElement) => void>>;
 			busy: Writable<string>;
 			error: Writable<unknown>;
+			shaders: StateStore<{
+				materials: Record<string, RawShader>;
+				effects: Record<string, RawShader>;
+			}>;
 		},
 		canvas: HTMLCanvasElement,
 		defaultPatterns: { name: string; url: string }[],
 		placeholdersUrls: SkinsMap,
 		skinKey: string,
-		shaders: {
-			materials: Record<string, RawShader>;
-			effects: Record<string, RawShader>;
-		}
+		readonly userShaders: UserShader[]
 	) {
 		const gl = canvas.getContext('webgl2', { premultipliedAlpha: false });
 		if (!gl) throw new Error('Failed to create WebGL2 context!');
 		this.gl = gl;
 		this.textures = new TextureManager(gl);
 		const fontMetrics = loadFontStatistics();
-		const graphics = new Graphics(gl, this.textures, shaders.materials, shaders.effects);
+		const graphics = new Graphics(
+			gl,
+			this.textures,
+			stores.shaders.value.materials,
+			stores.shaders.value.effects
+		);
 		this.drawer = new FrameDrawer(gl, this.textures, new TextManager(fontMetrics.store), graphics);
 		this.runTask(
 			'Загрузка ресурсов',
@@ -138,7 +146,7 @@ export class Memaker {
 		});
 	}
 	private backgroundTasks: Map<Promise<unknown>, string> = new Map();
-	private runTask<T>(description: string, task: Promise<T>): Promise<T> {
+	public runTask<T>(description: string, task: Promise<T>): Promise<T> {
 		this.backgroundTasks.set(task, description);
 		this.stores.busy.set(this.currentTask);
 		task.catch((err) => {
@@ -658,10 +666,10 @@ export class Memaker {
 						.flatMap((c) => {
 							if (c.type != 'text') return [];
 							const patterns = [];
-							const style = c.value.style;
-							if (style.fill.settings.type == 'pattern') patterns.push(style.fill.settings.name);
-							if (style.stroke.settings.type == 'pattern')
-								patterns.push(style.stroke.settings.name);
+							const strokeMaterial = c.value.style.stroke.settings;
+							const fillMaterial = c.value.style.fill.settings;
+							if (IsOldMaterial('pattern', strokeMaterial)) patterns.push(strokeMaterial.name);
+							if (IsOldMaterial('pattern', fillMaterial)) patterns.push(fillMaterial.name);
 							return patterns;
 						})
 						.filter((b) => b)
@@ -698,14 +706,17 @@ export class Memaker {
 					})
 				)
 			]).then(([images, patterns]) =>
-				MemeFormat.toFile({ meme: this.meme, resources: { images, patterns } })
+				MemeFormat.toFile({
+					meme: this.meme,
+					resources: { images, patterns, shaders: this.userShaders }
+				})
 			)
 		);
 	}
 	openMeme(file: Blob) {
 		return this.importMeme(file, 'replace', 'replace');
 	}
-	importMeme(file: Blob, duplicatedPatterns: 'replace' | 'add', newFrames: 'replace' | 'append') {
+	importMeme(file: Blob, duplicatedResources: 'replace' | 'add', newFrames: 'replace' | 'append') {
 		const textureIdMapping = new Map<string, string>();
 		const patternNameMapping = new Map<string, string>();
 		return this.runTask(
@@ -734,7 +745,7 @@ export class Memaker {
 							memeData.resources.patterns.map(({ name, blob }) =>
 								useBlobUrl(blob, (url) => {
 									if (patternsNames.has(name)) {
-										switch (duplicatedPatterns) {
+										switch (duplicatedResources) {
 											case 'replace': {
 												this.textures.delete(patternsNames.getTexture(name));
 												patternsNames.delete(name);
@@ -764,7 +775,8 @@ export class Memaker {
 										})
 										.then((texture) => patternsNames.addPattern({ name, textureId: texture.id }));
 								})
-							)
+							),
+							memeData.resources.shaders.map((shader) => this.compileUserShader(shader))
 						)
 				)
 					.then(() => {
@@ -786,7 +798,7 @@ export class Memaker {
 											content.value.style.fill.settings
 										];
 										for (const m of materials) {
-											if (m.type !== 'pattern') continue;
+											if (!IsOldMaterial('pattern', m)) continue;
 											const newName = patternNameMapping.get(m.name);
 											if (newName) m.name = newName;
 										}
@@ -805,6 +817,11 @@ export class Memaker {
 								break;
 						}
 						this.activeFrame = this.meme.frames[frameIndex];
+						this.userShaders.push(
+							...memeData.resources.shaders.filter(
+								(x) => !this.userShaders.find((s) => s.title === x.title)
+							)
+						);
 						this.memeUpdated();
 						this.frameUpdated();
 						return tick();
@@ -847,6 +864,19 @@ export class Memaker {
 				return pattern;
 			})
 		).then(() => this.draw(this.activeFrame));
+	}
+	compileUserShader(userShader: UserShader) {
+		const shader = preprocessUserShader(userShader);
+		const type = userShader.type;
+		return this.drawer.graphics.compileShader(type, shader).then((compiled) => {
+			this.drawer.graphics.updateShader(type, shader.title, compiled);
+			if (type === 'effect') this.stores.shaders.value.effects[shader.title] = shader;
+			else if (type === 'material') this.stores.shaders.value.materials[shader.title] = shader;
+			this.stores.shaders.update((e) => e);
+			return tick().then(() => {
+				this.draw();
+			});
+		});
 	}
 	clear() {
 		patternsNames.clear();

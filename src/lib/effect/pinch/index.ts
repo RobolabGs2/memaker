@@ -1,14 +1,14 @@
 import { NumberLayout } from '$lib/graphics/inputs';
-import type { RawShader, ShaderInputDesc } from '$lib/graphics/shader';
+import type { RawShader, UniformDesc } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
-const inputs: ShaderInputDesc[] = [
+const inputs: UniformDesc[] = [
 	{
 		name: 'strength',
-		default: 0.5,
 		title: 'Сила',
 		input: {
 			type: 'float',
+			default: 0.5,
 			min: 0,
 			max: 1.5,
 			step: 0.05,
@@ -17,23 +17,24 @@ const inputs: ShaderInputDesc[] = [
 	},
 	{
 		name: 'radius',
-		default: 50,
 		title: 'Радиус',
 		input: {
+			default: 50,
 			type: 'float',
 			min: 0,
-			step: 1
+			step: 1,
+			layout: NumberLayout.NUMBER
 		}
 	},
 	{
 		name: 'center',
-		default: {
-			type: 'frame',
-			value: { x: 0.5, y: 0.5 }
-		},
 		title: 'Центр',
 		input: {
 			type: 'point',
+			default: {
+				type: 'frame',
+				value: { x: 0.5, y: 0.5 }
+			},
 			color: '#ff00ff'
 		}
 	}

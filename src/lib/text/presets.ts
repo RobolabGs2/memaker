@@ -99,9 +99,6 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 			}
 		},
 		stroke: {
-			settings: {
-				type: 'disabled'
-			},
 			alpha: 1
 		},
 		font: {
@@ -162,7 +159,6 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 			}
 		},
 		stroke: {
-			settings: { type: 'disabled' },
 			alpha: 1
 		},
 		lineSpacing: -0.15,
@@ -212,9 +208,6 @@ const StylePresets: Array<StylePresetType & { name: string }> = [
 			alpha: 1
 		},
 		stroke: {
-			settings: {
-				type: 'disabled'
-			},
 			alpha: 1
 		},
 		font: {

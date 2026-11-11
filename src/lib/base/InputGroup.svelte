@@ -2,7 +2,7 @@
 	import { slide } from 'svelte/transition';
 </script>
 
-<article transition:slide|local><slot /></article>
+<article transition:slide><slot /></article>
 
 <style>
 	article {

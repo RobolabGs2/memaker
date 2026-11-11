@@ -1,16 +1,18 @@
-import type { ShaderInputDesc, RawShader } from '$lib/graphics/shader';
+import { NumberLayout } from '$lib/graphics/inputs';
+import type { UniformDesc, RawShader } from '$lib/graphics/shader';
 import fragment from './shader.frag?raw';
 
-const inputs: ShaderInputDesc[] = [
+const inputs: UniformDesc[] = [
 	{
 		name: 'radius',
 		title: 'Радиус',
 		description: 'Размер пикселя',
-		default: 10,
 		input: {
 			type: 'float',
+			default: 10,
 			min: 1,
-			step: 1
+			step: 1,
+			layout: NumberLayout.NUMBER
 		}
 	}
 ];
