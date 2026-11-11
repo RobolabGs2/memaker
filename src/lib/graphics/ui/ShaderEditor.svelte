@@ -1,183 +1,216 @@
 <script lang="ts">
 	import Button from '$lib/base/Button.svelte';
+	import { IconPlus } from '@tabler/icons-svelte';
 	import UniformsList from './UniformsList.svelte';
-	import type { UniformDesc } from '$lib/graphics/shader';
+	import type { RawShader } from '$lib/graphics/shader';
 	import { createEventDispatcher } from 'svelte';
 	import {
 		NumberLayout,
-		uniformInputTypeToGLSL,
-		type UniformInputType
 	} from '$lib/graphics/inputs';
 	import GLSLEditor, { type CompilationError } from '$lib/graphics/ui/GLSLEditor.svelte';
-	import { type Completion } from '@codemirror/autocomplete';
 	import Select from '$lib/base/Select.svelte';
-	import { deepCopy } from '$lib/state';
-	import { GLSLES3Functions } from './autocomplete';
+	import {
+		completions,
+		parseErrors,
+		preprocessUserShader,
+		userShaderSettings,
+		type UserShader,
+		type UserShaderType
+	} from '../user_shader';
+	import Label from '$lib/base/Label.svelte';
 
 	const dispatch = createEventDispatcher<{
 		compile: {
 			type: 'material' | 'effect';
-			shader: {
-				title: string;
-				vertex?: string;
-				fragment: string;
-				inputs: UniformDesc[];
-			};
+			shader: RawShader;
 		};
 	}>();
 
 	// oncompile
-	export let compilationError: string | undefined = undefined;
-	let title: string = 'debug_shader';
-	let inputs: UniformDesc[] = [];
-	let type: 'material' | 'effect' = 'effect';
-	const header = {
-		material: `#version 300 es
-precision highp float;
-precision highp int;
+	export let compilationError: string;
+	let compilationErrors: CompilationError[];
+	$: {
+		compilationErrors = parseErrors(shader!, compilationError);
+	}
+	export let shaders: Record<UserShaderType, RawShader>;
+	export let userShaders: UserShader[] = [
+		{
+			title: 'Глитч',
+			type: 'effect',
+			fragment: `#define PI 3.1415926
 
-uniform sampler2D stencilSampler;
-uniform vec3 color;
-uniform float alpha;
-uniform int channel;
-uniform int channels;
+float rand(vec2 co, float step) {
+    return fract(cos(dot(co * step, vec2(15.2851, 18.435))) * 74687.84583);
+}
 
-in vec2 texCoord;
-out vec4 FragColor;
+vec4 effect() {
+    int subrowWidth = 10;
+    float maxRadius = maxRadius/resolution.x;
+    float rowIndex = texCoord.y*resolution.y/float(rowWidth);
+    float subrowIndex = texCoord.y*resolution.y/float(subrowWidth);
+    float colIndex = texCoord.x*resolution.x/float(colWidth);
 
-float channelAlpha(int currentChannel, int channels, vec4 o);
-vec4 material();
-void main() {
-    vec4 origin = texture(stencilSampler, texCoord);
-    float originAlpha = channelAlpha(channel, channels, origin);
-    FragColor = material();
-    FragColor.a *= originAlpha * alpha;
+    vec2 shift = texCoord;
+    vec2 cellSeed = floor(vec2(rowIndex, colIndex));
+    vec2 rowSeed = floor(vec2(rowIndex, rowIndex));
+    shift.x += maxRadius*rand(cellSeed, 1.);
+    vec4 shifted = texture(layer, shift);
+    vec4 origin = texture(layer, texCoord);
+    // vec4 origin = texture(layer, floor(vec2(colIndex, rowIndex))*vec2(colWidth, rowWidth)/resolution);
+    // origin += texture(layer, texCoord + shift);
+    // origin /= 2.;
+    float rndR = rand(texCoord, 1.);
+    float rndG = rand(texCoord, 2.);
+    float rndB = rand(texCoord, 3.);
+    vec4 originCoef = vec4(rndR, rndG, rndB, 1);
+    vec4 shiftedCoef = vec4(1)-originCoef;
+    return originCoef*origin+shiftedCoef*shifted;
 }`,
-		effect: `#version 300 es
-precision mediump float;
-precision mediump int;
-
-uniform sampler2D layer;
-in vec2 texCoord;
-out vec4 FragColor;
-vec4 effect();
-void main() {
-    FragColor = effect();
-}`
-	};
-	const defaults = {
-		material: `vec4 material() {
-    vec4 color = vec4(1.0, 0, 0, 1.0);
-    return color;
-}`,
-		effect: `vec4 effect() {
-    vec4 color = texture(layer, texCoord);
-    return color;
-}`
-	};
-	const completionsByType = {
-		material: [],
-		effect: [
-			{
-				label: 'layer',
-				type: 'variable',
-				detail: 'sampler2D: Текстура с текущим слоем'
-			},
-			{
-				label: 'texCoord',
-				type: 'constant',
-				detail: 'vec2: Текстурные координаты на layer'
-			}
-		]
-	};
-	let fragment: string = defaults[type];
-	function shaderHeader() {
-		return (
-			header[type] +
-			inputs.map((u) => `uniform ${uniformInputTypeToGLSL(u.input.type)} ${u.name};`).join('')
-		);
-	}
-
-	const parseErrors = (err: string | undefined) => {
-		if (!err) return [];
-		const added = new Set();
-		const header = shaderHeader().split('\n');
-		return err
-			.matchAll(/ERROR: \d+:(\d+): (.+)/g)
-			.map((match) => {
-				const [_full, line, message] = match;
-				return { line: Math.max(1, +line - header.length), message } as CompilationError;
-			})
-			.filter((err) => {
-				const key = err.line + err.message;
-				if (added.has(key)) return false;
-				added.add(key);
-				return true;
-			})
-			.toArray();
-	};
-	function typeHint(type: UniformInputType) {
-		const glsl = uniformInputTypeToGLSL(type);
-		return glsl === type ? glsl : `${glsl} (${type})`;
-	}
-	function completions(inputs: UniformDesc[]): Completion[] {
-		return inputs
-			.map((desc) => {
-				return {
-					label: desc.name,
-					type: 'variable',
-					detail: `${typeHint(desc.input.type)}: ${desc.title}`,
-					info: desc.description
-				} as Completion;
-			})
-			.concat(completionsByType[type])
-			.concat(GLSLES3Functions);
-	}
+			uniforms: [
+				{
+					name: 'rowWidth',
+					title: 'Ширина строки',
+					input: {
+						type: 'float',
+						default: 10,
+						// min: 1,
+						step: 1,
+						layout: NumberLayout.NUMBER
+					}
+				},
+				{
+					name: 'colWidth',
+					title: 'Ширина столбца',
+					input: {
+						type: 'float',
+						default: 100,
+						// min: 1,
+						step: 1,
+						layout: NumberLayout.NUMBER
+					}
+				},
+				{
+					name: 'maxRadius',
+					title: 'Радиус',
+					input: {
+						type: 'float',
+						default: 100,
+						// min: 1,
+						step: 10,
+						layout: NumberLayout.NUMBER
+					}
+				},
+				{
+					name: 'color',
+					title: 'Цвет',
+					input: {
+						type: 'color',
+						default: '#000000'
+					}
+				}
+			]
+		}
+	];
+	export let shader: UserShader | undefined;
+	let newType: UserShaderType = 'effect';
+	let newTitle: string = 'Пользовательский';
+	let newTitleError: string = '';
 
 	const types = ['material', 'effect'] as const;
+
+	let shadersList: Array<undefined | UserShader> = [undefined];
+	$: {
+		shadersList = [undefined as undefined | UserShader].concat(userShaders);
+		console.log(shadersList);
+	}
 </script>
 
 <main>
-	<Select
-		bind:value={type}
-		items={types}
-		on:change={(ev) => {
-			fragment = defaults[ev.detail.value];
-		}}
-	/>
-	<Button
-		type="primary"
-		on:click={() =>
-			dispatch('compile', {
-				type,
-				shader: {
-					fragment: shaderHeader() + '\n' + fragment,
-					inputs: deepCopy(inputs),
-					title
+	<!-- {#if creatingNewShader} -->
+	<section class="shaderSelector">
+		<Select
+			bind:value={shader}
+			css={{ height: '', width: '100%', main: '' }}
+			items={shadersList}
+			placeholder={undefined}
+			on:change={(ev) => {
+				// fragment = shaderSettings[ev.detail.value].default;
+			}}
+			let:item
+		>
+			{#if item}
+				{item.title} {item.type}
+			{:else}
+				выберите или создайте шейдер
+			{/if}
+		</Select>
+		<Button type="primary" style="flex: 1" on:click={() => (shader = undefined)}>
+			<IconPlus />
+		</Button>
+	</section>
+	{#if shader}
+		<UniformsList bind:inputs={shader.uniforms} />
+		<section>
+			<Label error={compilationErrors.map((x) => x.message).join('|\n')}>Фрагментный шейдер</Label>
+			<GLSLEditor
+				bind:text={shader.fragment}
+				errors={compilationErrors}
+				hints={completions(shader)}
+			/>
+		</section>
+		<Button
+			type="primary"
+			on:click={() => {
+				if (shader)
+					dispatch('compile', {
+						type: shader.type,
+						shader: preprocessUserShader(shader)
+					});
+			}}
+		>
+			Компилировать
+		</Button>
+	{:else}
+		<Label error={newTitleError}>
+			Название
+			<input bind:value={newTitle} />
+		</Label>
+		<Label for="ignore">
+			Тип
+			<Select bind:value={newType} items={types} css={{ height: '', width: '50%', main: '' }} />
+		</Label>
+		<Button
+			type="primary"
+			on:click={() => {
+				const alreadyExists =
+					Object.values(shaders)
+						.flatMap((x) => x)
+						.find((s) => s.title == newTitle) != undefined ||
+					userShaders.find((s) => s.title == newTitle) != undefined;
+				if (alreadyExists) {
+					newTitleError = 'Шейдер с таким названием уже существует';
+					return;
 				}
-			})}
-	>
-		Компилировать
-	</Button>
-	<section>
-		<header>Название</header>
-		<input bind:value={title} />
-	</section>
-	<UniformsList bind:inputs />
-	<section>
-		<header>Фрагментный шейдер</header>
-		<GLSLEditor
-			bind:text={fragment}
-			errors={parseErrors(compilationError)}
-			hints={completions(inputs)}
-		/>
-	</section>
+				shader = {
+					title: newTitle,
+					type: newType,
+					uniforms: [],
+					fragment: userShaderSettings[newType].default
+				};
+				userShaders.push(shader);
+				userShaders = userShaders;
+			}}
+		>
+			Создать шейдер
+		</Button>
+	{/if}
 </main>
 
 <style>
-	header {
+	.shaderSelector {
 		display: flex;
-		align-items: end;
-		justify-content: space-between;
+	}
+	main {
+		min-height: 512px;
 	}
 </style>

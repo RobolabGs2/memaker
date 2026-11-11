@@ -18,6 +18,7 @@
 	import { MaterialShaders } from './material';
 	import { patternsNames } from './material/pattern/store';
 	import FloatWindow from './base/FloatWindow.svelte';
+	import type { RawShader } from './graphics/shader';
 
 	export let patternUrls: FileImport[];
 	export let placeholdersUrls: SkinsMap;
@@ -175,10 +176,12 @@
 		<DevTools {memaker} materialsShaders={shaders.materials} />
 	</Modal>
 	<FloatWindow closable={true} bind:open={shaderEditorState}>
+		<header slot="title">Редактор шейдеров</header>
 		{#if shaderEditor}
 			<svelte:component
 				this={shaderEditor}
 				{compilationError}
+				{shaders}
 				on:compile={(ev) => {
 					if (!memaker) return;
 					const { type, shader } = ev.detail;

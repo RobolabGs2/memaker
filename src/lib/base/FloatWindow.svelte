@@ -19,10 +19,6 @@
 		if (!closable) return;
 		if (dispatch('close', { action: reason }, { cancelable: true })) open = false;
 	}
-	onMount(() => {
-		return () => {
-		};
-	});
 	const windowPos = { x: 0, y: 0 };
 	function onMouseMoveHandler(ev: MouseEvent) {
 		const fromX = ev.pageX;
@@ -47,7 +43,6 @@
 </script>
 
 {#if open}
-	<!-- <div class="container fixed" on:keypress={exitOnEsc}> -->
 	<article style="left:{windowPos.x}px;top:{windowPos.y}px;">
 		<header on:mousedown={dragHeader}>
 			<slot name="title">Окно</slot>
@@ -61,20 +56,9 @@
 			<footer><slot name="footer" /></footer>
 		{/if}
 	</article>
-	<!-- </div> -->
 {/if}
 
 <style lang="scss">
-	// .fixed {
-	// 	width: 100%;
-	// 	height: 100%;
-	// 	position: fixed;
-	// 	top: 0;
-	// 	bottom: 0;
-	// 	left: 0;
-	// 	right: 0;
-	// 	z-index: 100;
-	// }
 	.container {
 		display: flex;
 		align-items: center;

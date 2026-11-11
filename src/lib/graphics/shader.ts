@@ -21,12 +21,6 @@ export interface ShaderSettings {
 	settings: ShaderUniforms;
 }
 
-export interface ShaderResource {
-	name: string;
-	shader: RawShader;
-	source: 'default' | 'user';
-}
-
 export interface RawShader<T = unknown> {
 	title: string;
 	description?: string;
