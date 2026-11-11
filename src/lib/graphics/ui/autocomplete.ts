@@ -1,3 +1,5 @@
+import { uniformInputTypeToGLSL, type UniformInputType } from '../inputs';
+import { userShaderSettings, type UserShader } from '../user_shader';
 import rawData from './glsl_funcs.json';
 import { type Completion, type CompletionInfo } from '@codemirror/autocomplete';
 
@@ -32,3 +34,23 @@ export class GLSLFuncCompletion implements Completion {
 export const GLSLES3Functions = rawData.map(
 	(data) => new GLSLFuncCompletion(data as FlatFuncDeclaration)
 );
+
+
+export function completions(shader: UserShader): Completion[] {
+	return shader.uniforms
+		.map((desc) => {
+			return {
+				label: desc.name,
+				type: 'variable',
+				detail: `${typeHint(desc.input.type)}: ${desc.title}`,
+				info: desc.description
+			} as Completion;
+		})
+		.concat(userShaderSettings[shader.type].completions)
+		.concat(GLSLES3Functions);
+}
+
+function typeHint(type: UniformInputType) {
+	const glsl = uniformInputTypeToGLSL(type);
+	return glsl === type ? glsl : `${glsl} (${type})`;
+}

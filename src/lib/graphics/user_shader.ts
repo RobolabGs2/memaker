@@ -1,7 +1,5 @@
 import { uniformInputTypeToGLSL, type UniformInputType } from './inputs';
 import type { RawShader, UniformDesc } from './shader';
-import { type Completion } from '@codemirror/autocomplete';
-import { GLSLES3Functions } from './ui/autocomplete';
 import type { CompilationError } from './ui/GLSLEditor.svelte';
 import { deepCopy } from '$lib/state';
 
@@ -100,24 +98,6 @@ void main() {
 	}
 } as const;
 
-export function completions(shader: UserShader): Completion[] {
-	return shader.uniforms
-		.map((desc) => {
-			return {
-				label: desc.name,
-				type: 'variable',
-				detail: `${typeHint(desc.input.type)}: ${desc.title}`,
-				info: desc.description
-			} as Completion;
-		})
-		.concat(userShaderSettings[shader.type].completions)
-		.concat(GLSLES3Functions);
-}
-
-function typeHint(type: UniformInputType) {
-	const glsl = uniformInputTypeToGLSL(type);
-	return glsl === type ? glsl : `${glsl} (${type})`;
-}
 
 function shaderHeader(shader: UserShader) {
 	return (

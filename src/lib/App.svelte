@@ -18,7 +18,7 @@
 	import { MaterialShaders } from './material';
 	import { patternsNames } from './material/pattern/store';
 	import FloatWindow from './base/FloatWindow.svelte';
-	import type { RawShader } from './graphics/shader';
+	import type { UserShader } from './graphics/user_shader';
 
 	export let patternUrls: FileImport[];
 	export let placeholdersUrls: SkinsMap;
@@ -82,10 +82,11 @@
 	let busy = writable('Собираем интерфейс...');
 	let error = writable<unknown>(undefined);
 	let skinKey = 'default';
-	const shaders = {
+	const shaders = new StateStore({
 		materials: MaterialShaders(patternsNames),
 		effects: EffectShaders()
-	};
+	});
+	let userShaders: UserShader[] = [];
 	let shaderEditor: typeof SvelteComponent<any> | undefined = undefined;
 	let shaderEditorState = false;
 	onMount(() => {
@@ -93,12 +94,20 @@
 			skinKey = new URL(location.href).searchParams.get('skin') ?? skinKey;
 
 			memaker = new Memaker(
-				{ block: activeBlock, frame: activeFrame, meme, busy, previews: updatePreview, error },
+				{
+					block: activeBlock,
+					frame: activeFrame,
+					meme,
+					busy,
+					previews: updatePreview,
+					error,
+					shaders
+				},
 				canvasWebgl,
 				patternUrls,
 				placeholdersUrls,
 				skinKey,
-				shaders
+				userShaders
 			);
 			new RectangleEditor(
 				canvasUI,
@@ -107,7 +116,7 @@
 				activeFrame,
 				activeBlock,
 				editorState,
-				shaders.effects
+				$shaders.effects
 			);
 
 			if (memeURL) {
@@ -173,7 +182,7 @@
 	</Modal>
 	<Modal bind:open={devTools}>
 		<svelte:fragment slot="title">Инструменты разработчика</svelte:fragment>
-		<DevTools {memaker} materialsShaders={shaders.materials} />
+		<DevTools {memaker} materialsShaders={$shaders.materials} />
 	</Modal>
 	<FloatWindow closable={true} bind:open={shaderEditorState}>
 		<header slot="title">Редактор шейдеров</header>
@@ -182,24 +191,12 @@
 				this={shaderEditor}
 				{compilationError}
 				{shaders}
-				on:compile={(ev) => {
-					if (!memaker) return;
-					const { type, shader } = ev.detail;
-					memaker.drawer.graphics
-						.compileShader(type, shader)
-						.then((compiled) => {
-							compilationError = '';
-							memaker.drawer.graphics.updateShader(type, shader.title, compiled);
-							if (type === 'effect') shaders.effects[shader.title] = shader;
-							else if (type === 'material') shaders.materials[shader.title] = shader;
-							return tick().then(() => {
-								memaker.draw();
-							});
-						})
-						.catch((err) => {
-							compilationError = err.message;
-						});
-				}}
+				{userShaders}
+				on:compile={(ev) =>
+					memaker
+						?.compileUserShader(ev.detail)
+						.then(() => (compilationError = ''))
+						.catch((err) => (compilationError = err.message))}
 			/>
 		{:else}
 			Грузим редактор кода...
@@ -209,8 +206,8 @@
 	<MemeEditor
 		textureManager={memaker?.textures}
 		{devMode}
-		effectsShaders={shaders.effects}
-		materialsShaders={shaders.materials}
+		effectsShaders={$shaders.effects}
+		materialsShaders={$shaders.materials}
 		version={import.meta.env.VITE_APP_VERSION}
 		{memeExampleURL}
 		frameDrawer={memaker?.drawer}
