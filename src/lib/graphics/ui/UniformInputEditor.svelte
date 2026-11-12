@@ -11,6 +11,7 @@
 		type UniformInputType
 	} from '../inputs';
 	import PointInput from '$lib/base/PointInput.svelte';
+	import Checkbox from '$lib/base/Checkbox.svelte';
 
 	export let value: UniformInput;
 	const dispatch = createEventDispatcher<{ change: { value: UniformInput; field: string } }>();
@@ -25,8 +26,6 @@
 				value = {
 					type: 'int',
 					default: 0,
-					min: 0,
-					max: 100,
 					layout: NumberLayout.RANGE,
 					step: 1
 				};
@@ -35,8 +34,6 @@
 				value = {
 					type: 'float',
 					default: 0,
-					min: 0,
-					max: 1,
 					layout: NumberLayout.RANGE,
 					step: 0.01
 				};
@@ -45,8 +42,6 @@
 				value = {
 					type: 'angle',
 					default: 0,
-					min: 0,
-					max: 360,
 					step: 0.5
 				};
 				break;
@@ -83,18 +78,52 @@
 		/>
 	</Label>
 	{#if value.type === 'float' || value.type === 'int' || value.type === 'angle'}
-		{#if value.min !== undefined}
-			<Label>
-				Минимум{#if value.type === 'angle'}°{/if}
+		<Label>
+			Минимум{#if value.type === 'angle'}°{/if}
+			<Checkbox
+				value={value.min !== undefined}
+				on:change={(ev) => {
+					if (value.type === 'float' || value.type === 'int' || value.type === 'angle') {
+						if (ev.detail) {
+							value.min = 0;
+						} else {
+							value.min = undefined;
+						}
+					}
+				}}
+			/>
+			{#if value.min !== undefined}
 				<NumberInput bind:value={value.min} on:change={onChange('min')} />
-			</Label>
-		{/if}
-		{#if value.max !== undefined}
-			<Label>
-				Максимум{#if value.type === 'angle'}°{/if}
+			{/if}
+		</Label>
+		<Label>
+			Максимум{#if value.type === 'angle'}°{/if}
+			<Checkbox
+				value={value.max !== undefined}
+				on:change={(ev) => {
+					if (value.type === 'float' || value.type === 'int' || value.type === 'angle') {
+						if (ev.detail) {
+							switch (value.type) {
+								case 'float':
+									value.max = 1;
+									break;
+								case 'int':
+									value.max = 100;
+									break;
+								case 'angle':
+									value.max = Math.PI*2;
+									break;
+							}
+						} else {
+							value.max = undefined;
+						}
+					}
+				}}
+			/>
+			{#if value.max !== undefined}
 				<NumberInput bind:value={value.max} on:change={onChange('max')} />
-			</Label>
-		{/if}
+			{/if}
+		</Label>
 		{#if value.step !== undefined}
 			<Label>Шаг<NumberInput bind:value={value.step} on:change={onChange('step')} /></Label>
 		{/if}
