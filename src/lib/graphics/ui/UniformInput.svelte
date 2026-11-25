@@ -32,12 +32,12 @@
 
 <Label for="ignore">
 	<span title={desc.description}>
-		{#if desc.input.type == 'point'}
+		{#if desc.input.type === 'point'}
 			<div style={`width:10px;height:10px;background-color:${desc.input.color};`} />
 		{/if}
 		{desc.title}
 	</span>
-	{#if desc.input.type == 'float'}
+	{#if desc.input.type === 'float'}
 		<NumberInput
 			bind:value={value[name]}
 			min={desc.input.min ?? -Infinity}
@@ -45,7 +45,7 @@
 			step={desc.input.step ?? 0.1}
 			withRange={desc.input.layout == NumberLayout.RANGE}
 		/>
-	{:else if desc.input.type == 'int'}
+	{:else if desc.input.type === 'int'}
 		<NumberInput
 			bind:value={value[name]}
 			min={desc.input.min ?? Number.MIN_SAFE_INTEGER}
@@ -53,7 +53,7 @@
 			step={desc.input.step ?? 1}
 			withRange={desc.input.layout == NumberLayout.RANGE}
 		/>
-	{:else if desc.input.type == 'angle'}
+	{:else if desc.input.type === 'angle'}
 		<NumberInput
 			value={angleMode == '°' ? (value[name] * 180) / Math.PI : value[name]}
 			min={angleMode == '°'
@@ -66,10 +66,24 @@
 			on:change={onAngleChange}
 		/>
 		<Select items={['°', 'rad']} bind:value={angleMode} css={angleSelectCSS} />
-	{:else if desc.input.type == 'color'}
+	{:else if desc.input.type === 'color'}
 		<ColorInput bind:value={value[name]} />
-	{:else if desc.input.type == 'point'}
+	{:else if desc.input.type === 'point'}
 		<PointInput bind:value={value[name]} />
+	{:else if desc.input.type === 'enum'}
+		<Select
+			items={desc.input.values}
+			value={desc.input.values[value[name]] || desc.input.values[0]}
+			let:item
+			on:change={(ev) => {
+				console.log(ev.detail.value);
+				if (desc.input.type != 'enum') return;
+				console.log(desc.input.values.indexOf(ev.detail.value));
+				value[name] = desc.input.values.indexOf(ev.detail.value);
+			}}
+		>
+			{item.title}
+		</Select>
 	{/if}
 </Label>
 

@@ -51,6 +51,17 @@ interface ShaderInputTypesMap {
 			default: string;
 		};
 	};
+	enum: {
+		input: {
+			type: 'enum';
+			default: number;
+			values: {
+				title: string;
+				name: string;
+				value: number;
+			}[];
+		};
+	};
 }
 
 export type UniformInputType = keyof ShaderInputTypesMap;
@@ -59,7 +70,8 @@ export const UniformInputTypes: ReadonlyArray<UniformInputType> = [
 	'int',
 	'angle',
 	'point',
-	'color'
+	'color',
+	'enum'
 ];
 export type UniformInputDefault<T extends UniformInputType = UniformInputType> =
 	ShaderInputTypesMap[T]['input']['default'];
@@ -78,6 +90,8 @@ export function uniformInputTypeToGLSL(t: UniformInputType): string {
 			return 'vec2';
 		case 'color':
 			return 'vec3';
+		case 'enum':
+			return 'int';
 	}
 }
 

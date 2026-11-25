@@ -14,6 +14,7 @@
 				case 'int':
 				case 'float':
 				case 'angle':
+				case 'enum':
 					value.input.default = 0;
 					break;
 				case 'color':
@@ -21,6 +22,7 @@
 					break;
 				case 'point':
 					value.input.default = { type: 'frame', value: { x: 0.5, y: 0.5 } };
+					break;
 			}
 		}
 

@@ -89,7 +89,7 @@ void main() {
 				label: 'resolution',
 				type: 'constant',
 				detail: 'vec2: Разрешение текущего слоя'
-			},
+			}
 		],
 		default: `vec4 effect() {
 	vec4 color = texture(layer, texCoord);
@@ -98,12 +98,24 @@ void main() {
 	}
 } as const;
 
-
 function shaderHeader(shader: UserShader) {
 	return (
 		userShaderSettings[shader.type].header +
 		shader.uniforms
-			.map((u) => `uniform ${uniformInputTypeToGLSL(u.input.type)} ${u.name};`)
+			.map((u) => {
+				let res = `uniform ${uniformInputTypeToGLSL(u.input.type)} ${u.name};`;
+				if (u.input.type == 'enum') {
+					res +=
+						'\n' +
+						u.input.values
+							.map(
+								({ name, value }) =>
+									`#define ${name.toUpperCase()}_${u.name.toUpperCase()} ${value}\n`
+							)
+							.join('');
+				}
+				return res;
+			})
 			.join('')
 	);
 }

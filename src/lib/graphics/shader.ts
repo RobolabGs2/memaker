@@ -78,6 +78,10 @@ export function inputToUniform(
 			uniforms[uniformName] = [x, ctx.size.height - y];
 			break;
 		}
+		case 'enum': {
+			uniforms[uniformName] = settings.values[value as number]?.value || 0
+			break;
+		}
 	}
 }
 

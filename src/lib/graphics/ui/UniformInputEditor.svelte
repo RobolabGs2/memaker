@@ -12,6 +12,7 @@
 	} from '../inputs';
 	import PointInput from '$lib/base/PointInput.svelte';
 	import Checkbox from '$lib/base/Checkbox.svelte';
+	import EnumEditor from '../EnumEditor.svelte';
 
 	export let value: UniformInput;
 	const dispatch = createEventDispatcher<{ change: { value: UniformInput; field: string } }>();
@@ -61,6 +62,12 @@
 					}
 				};
 				break;
+			case 'enum':
+				value = {
+					type: 'enum',
+					default: 0,
+					values: [{ name: 'UNKNOWN', title: 'Неизвестное', value: 0 }]
+				};
 			default:
 				break;
 		}
@@ -111,7 +118,7 @@
 									value.max = 100;
 									break;
 								case 'angle':
-									value.max = Math.PI*2;
+									value.max = Math.PI * 2;
 									break;
 							}
 						} else {
@@ -164,6 +171,22 @@
 		</Label>
 	{:else if value.type === 'color'}
 		<Label>По умолчанию <ColorInput bind:value={value.default} /></Label>
+	{:else if value.type == 'enum'}
+		<EnumEditor bind:values={value.values}/>
+		<Label for="ignore">
+			По умолчанию
+			<Select
+				items={value.values}
+				value={value.values[value.default] || value.values[0]}
+				let:item
+				on:change={(ev) => {
+					if (value.type != 'enum') return;
+					value.default = value.values.indexOf(ev.detail.value);
+				}}
+			>
+				{item.title}
+			</Select>
+		</Label>
 	{:else}
 		ERROR
 	{/if}

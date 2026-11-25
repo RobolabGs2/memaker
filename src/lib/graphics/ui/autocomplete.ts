@@ -18,7 +18,9 @@ export class GLSLFuncCompletion implements Completion {
 	constructor(raw: FlatFuncDeclaration) {
 		const info = document.createElement('article');
 		[this.label, this.signatures, this.params, this.detail, info.innerHTML] = raw;
-		this.detail = `(${this.signatures[0][1].map(v => `${v.type} ${v.name}`).join(", ")}): ${this.signatures[0][0]} — ${this.detail}`
+		this.detail = `(${this.signatures[0][1].map((v) => `${v.type} ${v.name}`).join(', ')}): ${
+			this.signatures[0][0]
+		} — ${this.detail}`;
 		this.info = () => {
 			return info;
 		};
@@ -28,13 +30,12 @@ export class GLSLFuncCompletion implements Completion {
 
 	info: (completion: Completion) => CompletionInfo;
 	readonly type = 'function';
-	section = "functions";
+	section = 'functions';
 }
 
 export const GLSLES3Functions = rawData.map(
 	(data) => new GLSLFuncCompletion(data as FlatFuncDeclaration)
 );
-
 
 export function completions(shader: UserShader): Completion[] {
 	return shader.uniforms
@@ -46,6 +47,16 @@ export function completions(shader: UserShader): Completion[] {
 				info: desc.description
 			} as Completion;
 		})
+		.concat(
+			shader.uniforms.flatMap((desc) => {
+				if (desc.input.type !== 'enum') return [];
+				return desc.input.values.map(({ name, title, value }) => ({
+					label: `${name.toUpperCase()}_${desc.name.toUpperCase()}`,
+					type: 'constant',
+					detail: `${typeHint('enum')}: ${title} ${value}`,
+				}))
+			})
+		)
 		.concat(userShaderSettings[shader.type].completions)
 		.concat(GLSLES3Functions);
 }

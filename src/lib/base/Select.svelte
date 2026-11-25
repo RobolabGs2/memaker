@@ -25,27 +25,23 @@
 	<svelte:fragment slot="content">
 		{#each items as item}
 			{#if item != placeholder}
-				<label class:active={item === value}>
-					<input
-						type="radio"
-						bind:group={value}
-						value={item}
-						on:change={(ev) => {
-							if (ev.currentTarget.checked) dispatch('change', { value: item });
-						}}
-					/>
+				<button
+					type="button"
+					class:active={item === value}
+					on:click={() => {
+						value = item;
+						dispatch('change', { value: item });
+					}}
+				>
 					<slot {item}>{item}</slot>
-				</label>
+				</button>
 			{/if}
 		{/each}
 	</svelte:fragment>
 </DropDown>
 
 <style lang="scss">
-	input {
-		display: none;
-	}
-	label {
+	button {
 		padding: 4px;
 		width: 100%;
 		min-height: 28px;
