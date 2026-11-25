@@ -3,10 +3,7 @@
 	import { IconPlus } from '@tabler/icons-svelte';
 	import UniformsList from './UniformsList.svelte';
 	import type { RawShader } from '$lib/graphics/shader';
-	import { createEventDispatcher } from 'svelte';
-	import {
-		NumberLayout,
-	} from '$lib/graphics/inputs';
+	import { createEventDispatcher, tick } from 'svelte';
 	import GLSLEditor, { type CompilationError } from '$lib/graphics/ui/GLSLEditor.svelte';
 	import Select from '$lib/base/Select.svelte';
 	import {
@@ -17,6 +14,7 @@
 	} from '../user_shader';
 	import Label from '$lib/base/Label.svelte';
 	import { completions } from './autocomplete';
+	import Checkbox from '$lib/base/Checkbox.svelte';
 
 	const dispatch = createEventDispatcher<{
 		compile: UserShader;
@@ -34,6 +32,7 @@
 	let newType: UserShaderType = 'effect';
 	let newTitle: string = 'Пользовательский';
 	let newTitleError: string = '';
+	let autoCompilation = false;
 
 	const types = ['material', 'effect'] as const;
 
@@ -75,14 +74,26 @@
 				bind:text={shader.fragment}
 				errors={compilationErrors}
 				hints={completions(shader)}
+				on:keydown={(ev) => {
+					if (!shader) return;
+					if (ev.code == 'KeyB' && ev.ctrlKey) {
+						dispatch('compile', shader);
+					}
+				}}
+				on:keyup={() => {
+					if (autoCompilation) {
+						if (shader) dispatch('compile', shader);
+					}
+				}}
 			/>
 		</section>
+		<Label>Компиляция при вводе: <Checkbox bind:value={autoCompilation} /></Label>
 		<Button
 			type="primary"
 			on:click={() => {
-				if (shader)
-					dispatch('compile', shader);
+				if (shader) dispatch('compile', shader);
 			}}
+			title="Хоткей: Ctrl+B"
 		>
 			Компилировать
 		</Button>
@@ -128,5 +139,6 @@
 	}
 	main {
 		min-height: 512px;
+		padding: 8px;
 	}
 </style>

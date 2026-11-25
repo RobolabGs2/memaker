@@ -17,7 +17,6 @@
 	import { EffectShaders } from './effect';
 	import { MaterialShaders } from './material';
 	import { patternsNames } from './material/pattern/store';
-	import FloatWindow from './base/FloatWindow.svelte';
 	import type { UserShader } from './graphics/user_shader';
 
 	export let patternUrls: FileImport[];
@@ -86,7 +85,7 @@
 		materials: MaterialShaders(patternsNames),
 		effects: EffectShaders()
 	});
-	let userShaders: UserShader[] = [];
+	let userShaders = new StateStore<UserShader[]>([]);
 	let shaderEditor: typeof SvelteComponent<any> | undefined = undefined;
 	let shaderEditorState = false;
 	onMount(() => {
@@ -101,13 +100,13 @@
 					busy,
 					previews: updatePreview,
 					error,
-					shaders
+					shaders,
+					userShaders,
 				},
 				canvasWebgl,
 				patternUrls,
 				placeholdersUrls,
 				skinKey,
-				userShaders
 			);
 			new RectangleEditor(
 				canvasUI,
@@ -184,24 +183,6 @@
 		<svelte:fragment slot="title">Инструменты разработчика</svelte:fragment>
 		<DevTools {memaker} materialsShaders={$shaders.materials} />
 	</Modal>
-	<FloatWindow closable={true} bind:open={shaderEditorState}>
-		<header slot="title">Редактор шейдеров</header>
-		{#if shaderEditor}
-			<svelte:component
-				this={shaderEditor}
-				{compilationError}
-				{shaders}
-				{userShaders}
-				on:compile={(ev) =>
-					memaker
-						?.compileUserShader(ev.detail)
-						.then(() => (compilationError = ''))
-						.catch((err) => (compilationError = err.message))}
-			/>
-		{:else}
-			Грузим редактор кода...
-		{/if}
-	</FloatWindow>
 	<ClipboardErrorModal bind:fallbackBlob={showFirefoxCopyBlob} />
 	<MemeEditor
 		textureManager={memaker?.textures}
@@ -237,7 +218,27 @@
 		on:framesFromImages={(ev) => memaker?.framesFromImages(ev.detail.files)}
 		on:addPattern={(ev) => memaker?.addPattern(ev.detail.name, ev.detail.image)}
 		on:openShaderEditor={() => loadAndOpenOrCloseShaderEditor()}
-	/>
+	>
+		{#if shaderEditorState}
+			<div style="max-width:50%; height: 100%; flex: 1;">
+				{#if shaderEditor}
+					<svelte:component
+						this={shaderEditor}
+						{compilationError}
+						{shaders}
+						userShaders={$userShaders}
+						on:compile={(ev) =>
+							memaker
+								?.compileUserShader(ev.detail)
+								.then(() => (compilationError = ''))
+								.catch((err) => (compilationError = err.message))}
+					/>
+				{:else}
+					Грузим редактор кода...
+				{/if}
+			</div>
+		{/if}
+	</MemeEditor>
 </ThemeContext>
 
 <style lang="scss">

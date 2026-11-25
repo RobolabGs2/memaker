@@ -71,12 +71,12 @@ export class Memaker {
 				materials: Record<string, RawShader>;
 				effects: Record<string, RawShader>;
 			}>;
+			userShaders: StateStore<UserShader[]>;
 		},
 		canvas: HTMLCanvasElement,
 		defaultPatterns: { name: string; url: string }[],
 		placeholdersUrls: SkinsMap,
 		skinKey: string,
-		readonly userShaders: UserShader[]
 	) {
 		const gl = canvas.getContext('webgl2', { premultipliedAlpha: false });
 		if (!gl) throw new Error('Failed to create WebGL2 context!');
@@ -708,7 +708,7 @@ export class Memaker {
 			]).then(([images, patterns]) =>
 				MemeFormat.toFile({
 					meme: this.meme,
-					resources: { images, patterns, shaders: this.userShaders }
+					resources: { images, patterns, shaders: this.stores.userShaders.value }
 				})
 			)
 		);
@@ -817,11 +817,12 @@ export class Memaker {
 								break;
 						}
 						this.activeFrame = this.meme.frames[frameIndex];
-						this.userShaders.push(
+						this.stores.userShaders.value.push(
 							...memeData.resources.shaders.filter(
-								(x) => !this.userShaders.find((s) => s.title === x.title)
+								(x) => !this.stores.userShaders.value.find((s) => s.title === x.title)
 							)
 						);
+						this.stores.userShaders.update((e) => e);
 						this.memeUpdated();
 						this.frameUpdated();
 						return tick();

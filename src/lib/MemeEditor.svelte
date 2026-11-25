@@ -46,7 +46,9 @@
 		IconUpload,
 		IconDeviceFloppy,
 		IconBug,
-		IconTools
+		IconTools,
+		IconArrowsMaximize,
+		IconArrowsMinimize
 	} from '@tabler/icons-svelte';
 	import FileInput from './base/FileInput.svelte';
 	import type { Block, Frame, FrameDrawer, Meme } from './meme';
@@ -68,6 +70,7 @@
 	import IconText from './base/icons/IconText.svelte';
 	import PreviewBlock from './PreviewBlock.svelte';
 	import { TextureManager } from './graphics/textures';
+	import ToggleButton from './base/ToggleButton.svelte';
 
 	export let meme: Meme;
 	export let frame: Frame;
@@ -83,7 +86,7 @@
 	export let frameDrawer: FrameDrawer;
 	export let devMode: boolean;
 	export let textureManager: TextureManager;
-
+	let showSidebars = true;
 	const dispatch = createEventDispatcher<EventsMap>();
 
 	function onChangeBackground(file: File) {
@@ -92,7 +95,12 @@
 	function onPaste(event: ClipboardEvent) {
 		const inFocus = document.activeElement;
 		console.log(inFocus);
-		if (inFocus instanceof HTMLInputElement || inFocus instanceof HTMLTextAreaElement || inFocus?.role == 'textbox') return;
+		if (
+			inFocus instanceof HTMLInputElement ||
+			inFocus instanceof HTMLTextAreaElement ||
+			inFocus?.role == 'textbox'
+		)
+			return;
 		const items = event.clipboardData?.items;
 		if (!items) return;
 		for (let index = 0; index < items.length; index++) {
@@ -130,71 +138,73 @@
 </script>
 
 <article>
-	<section>
-		<Button type="primary" justifyContent="flex-start" on:click={() => dispatch('createFrame')}>
-			<IconNewSection /> <span>Новый фрейм</span>
-		</Button>
-		<PreviewsContainer
-			height="50%"
-			items={meme.frames}
-			bind:active={frame}
-			let:item
-			let:index
-			on:drop={onDrop((files) => dispatch('framesFromImages', { files }))}
-		>
-			<FramePreview {index} bind:updatePreview={previews[item.id]}>
-				<PreviewActions
-					up
-					down
-					remove
-					copy
-					value={item}
-					on:up={() => dispatch('shiftFrame', { frame: item, shift: -1 })}
-					on:down={() => dispatch('shiftFrame', { frame: item, shift: 1 })}
-					on:remove={() => dispatch('deleteFrame', { frame: item })}
-					on:copy={() => dispatch('createFrame', { origin: item })}
-				/>
-			</FramePreview>
-		</PreviewsContainer>
-		<Button
-			type="primary"
-			justifyContent="flex-start"
-			on:click={() => dispatch('renderMeme', { meme })}
-		>
-			<IconPhotoDown size={24} /> <span>Скачать мем</span>
-		</Button>
-		<Button
-			type="primary"
-			justifyContent="flex-start"
-			on:click={() => dispatch('saveMeme', { meme })}
-		>
-			<IconDeviceFloppy size={24} /> <span>Сохранить проект мема</span>
-		</Button>
-		<FileInput accept=".meme" on:change={(ev) => dispatch('openMeme', { file: ev.detail[0] })}>
-			<Button type="primary" justifyContent="flex-start">
-				<IconUpload size={24} /><span>Открыть мем</span>
+	{#if showSidebars}
+		<section>
+			<Button type="primary" justifyContent="flex-start" on:click={() => dispatch('createFrame')}>
+				<IconNewSection /> <span>Новый фрейм</span>
 			</Button>
-		</FileInput>
-		<FileInput accept=".meme" on:change={(ev) => dispatch('importMeme', { file: ev.detail[0] })}>
-			<Button type="primary" justifyContent="flex-start">
-				<IconUploadAdd /><span>Добавить фреймы из мема</span>
+			<PreviewsContainer
+				height="50%"
+				items={meme.frames}
+				bind:active={frame}
+				let:item
+				let:index
+				on:drop={onDrop((files) => dispatch('framesFromImages', { files }))}
+			>
+				<FramePreview {index} bind:updatePreview={previews[item.id]}>
+					<PreviewActions
+						up
+						down
+						remove
+						copy
+						value={item}
+						on:up={() => dispatch('shiftFrame', { frame: item, shift: -1 })}
+						on:down={() => dispatch('shiftFrame', { frame: item, shift: 1 })}
+						on:remove={() => dispatch('deleteFrame', { frame: item })}
+						on:copy={() => dispatch('createFrame', { origin: item })}
+					/>
+				</FramePreview>
+			</PreviewsContainer>
+			<Button
+				type="primary"
+				justifyContent="flex-start"
+				on:click={() => dispatch('renderMeme', { meme })}
+			>
+				<IconPhotoDown size={24} /> <span>Скачать мем</span>
 			</Button>
-		</FileInput>
-		<Button
-			type="primary"
-			justifyContent="flex-start"
-			on:click={() => dispatch('openShaderEditor', undefined)}
-		>
-			<IconTools /><span>Редактор шейдеров</span>
-		</Button>
-		<Contacts
-			{version}
-			on:openExample={() =>
-				fetch(memeExampleURL)
-					.then((resp) => resp.blob())
-					.then((blob) => dispatch('openMeme', { file: blob }))}
-		/>
-	</section>
+			<Button
+				type="primary"
+				justifyContent="flex-start"
+				on:click={() => dispatch('saveMeme', { meme })}
+			>
+				<IconDeviceFloppy size={24} /> <span>Сохранить проект мема</span>
+			</Button>
+			<FileInput accept=".meme" on:change={(ev) => dispatch('openMeme', { file: ev.detail[0] })}>
+				<Button type="primary" justifyContent="flex-start">
+					<IconUpload size={24} /><span>Открыть мем</span>
+				</Button>
+			</FileInput>
+			<FileInput accept=".meme" on:change={(ev) => dispatch('importMeme', { file: ev.detail[0] })}>
+				<Button type="primary" justifyContent="flex-start">
+					<IconUploadAdd /><span>Добавить фреймы из мема</span>
+				</Button>
+			</FileInput>
+			<Button
+				type="primary"
+				justifyContent="flex-start"
+				on:click={() => dispatch('openShaderEditor', undefined)}
+			>
+				<IconTools /><span>Редактор шейдеров</span>
+			</Button>
+			<Contacts
+				{version}
+				on:openExample={() =>
+					fetch(memeExampleURL)
+						.then((resp) => resp.blob())
+						.then((blob) => dispatch('openMeme', { file: blob }))}
+			/>
+		</section>
+	{/if}
 	<section>
 		<header class="controls">
 			<FileInput
@@ -214,143 +224,149 @@
 				<IconCopy /><span>Копировать</span>
 			</Button>
 			<EditorModes bind:available={editorState.available} bind:current={editorState.mode} />
+			<ToggleButton bind:value={showSidebars}>
+				{#if showSidebars}<IconArrowsMaximize/>Спрятать панели{:else}<IconArrowsMinimize/>Показать панели{/if}
+			</ToggleButton>
 		</header>
 		<header class="canvas">
-			<Canvas
-				bind:webgl={canvasWebgl}
-				bind:ui={canvasUI}
-				on:drop={onDrop((images, keys) =>
-					dispatch(keys.ctrlKey ? 'createImageBlock' : 'changeBackground', { file: images[0] })
-				)}
-			/>
+			<div style="width:100%; height: 100%; flex: 1;">
+				<Canvas
+					bind:webgl={canvasWebgl}
+					bind:ui={canvasUI}
+					on:drop={onDrop((images, keys) =>
+						dispatch(keys.ctrlKey ? 'createImageBlock' : 'changeBackground', { file: images[0] })
+					)}
+				/>
+			</div>
+			<slot />
 		</header>
-		<!-- <section> -->
 		<FrameSettings bind:value={frame} />
-		<!-- </section> -->
 	</section>
-	<section>
-		<header style="display: flex;">
-			<Button
-				type="primary"
-				justifyContent="flex-start"
-				on:click={() => dispatch('createTextBlock')}
+	{#if showSidebars}
+		<section>
+			<header style="display: flex;">
+				<Button
+					type="primary"
+					justifyContent="flex-start"
+					on:click={() => dispatch('createTextBlock')}
+				>
+					<IconNewSection /> <span>Новый блок</span>
+				</Button>
+				<Button
+					type="primary"
+					width="148px"
+					disablePadding
+					on:click={() => dispatch('createImageBlock', {})}
+				>
+					<IconPhoto /> <span>С картинкой</span>
+				</Button>
+			</header>
+			<PreviewsContainer
+				height="25%"
+				reverse
+				items={frame.blocks}
+				bind:active={block}
+				let:item
+				on:drop={onDrop((images) =>
+					images.forEach((img) => dispatch('createImageBlock', { file: img }))
+				)}
 			>
-				<IconNewSection /> <span>Новый блок</span>
-			</Button>
-			<Button
-				type="primary"
-				width="148px"
-				disablePadding
-				on:click={() => dispatch('createImageBlock', {})}
+				{#if item.id == block.id}
+					<PreviewBlock value={block}>
+						<PreviewActions
+							up
+							down
+							remove
+							copy
+							value={block}
+							on:up={() => dispatch('shiftBlock', { block, shift: 1 })}
+							on:down={() => dispatch('shiftBlock', { block, shift: -1 })}
+							on:remove={() => dispatch('deleteBlock', { block })}
+							on:copy={() => dispatch('cloneBlock', { block })}
+							iconSize={20}
+						>
+							{#if block.content.type == 'text'}
+								<BlockConverter
+									{frame}
+									bind:style={block.content.value.style}
+									bind:block
+									{frameDrawer}
+									iconSize={20}
+								/>
+							{/if}
+						</PreviewActions>
+					</PreviewBlock>
+				{:else}
+					<PreviewBlock value={item} />
+				{/if}
+			</PreviewsContainer>
+			<TabsContainer
+				layout="horizontal"
+				tabs={[
+					block.content.type === 'text' ? 'Текст' : 'Изображение',
+					'Контейнер',
+					'Эффекты',
+					'Наложение'
+				].concat(devMode ? ['Отладка'] : [])}
+				let:tab
 			>
-				<IconPhoto /> <span>С картинкой</span>
-			</Button>
-		</header>
-		<PreviewsContainer
-			height="25%"
-			reverse
-			items={frame.blocks}
-			bind:active={block}
-			let:item
-			on:drop={onDrop((images) =>
-				images.forEach((img) => dispatch('createImageBlock', { file: img }))
-			)}
-		>
-			{#if item.id == block.id}
-				<PreviewBlock value={block}>
-					<PreviewActions
-						up
-						down
-						remove
-						copy
-						value={block}
-						on:up={() => dispatch('shiftBlock', { block, shift: 1 })}
-						on:down={() => dispatch('shiftBlock', { block, shift: -1 })}
-						on:remove={() => dispatch('deleteBlock', { block })}
-						on:copy={() => dispatch('cloneBlock', { block })}
-						iconSize={20}
-					>
-						{#if block.content.type == 'text'}
-							<BlockConverter
-								{frame}
-								bind:style={block.content.value.style}
-								bind:block
-								{frameDrawer}
-								iconSize={20}
-							/>
-						{/if}
-					</PreviewActions>
-				</PreviewBlock>
-			{:else}
-				<PreviewBlock value={item} />
-			{/if}
-		</PreviewsContainer>
-		<TabsContainer
-			layout="horizontal"
-			tabs={[
-				block.content.type === 'text' ? 'Текст' : 'Изображение',
-				'Контейнер',
-				'Эффекты',
-				'Наложение'
-			].concat(devMode ? ['Отладка'] : [])}
-			let:tab
-		>
-			<div class="center" title={tab}>
-				{#if tab == 'Текст'}
-					<IconText size={24} />
-				{:else if tab == 'Изображение'}
-					<IconPhoto size={24} />
-				{:else if tab == 'Контейнер'}
-					<IconBorderCorners size={24} />
-				{:else if tab == 'Эффекты'}
-					<SvgIcon
-						size={20}
-						type="bootstrap"
-						path="M9.5 2.672a.5.5 0 1 0 1 0V.843a.5.5 0 0 0-1 0zm4.5.035A.5.5 0 0 0 13.293 2L12 3.293a.5.5 0 1 0 .707.707zM7.293 4A.5.5 0 1 0 8 3.293L6.707 2A.5.5 0 0 0 6 2.707zm-.621 2.5a.5.5 0 1 0 0-1H4.843a.5.5 0 1 0 0 1zm8.485 0a.5.5 0 1 0 0-1h-1.829a.5.5 0 0 0 0 1zM13.293 10A.5.5 0 1 0 14 9.293L12.707 8a.5.5 0 1 0-.707.707zM9.5 11.157a.5.5 0 0 0 1 0V9.328a.5.5 0 0 0-1 0zm1.854-5.097a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L8.646 5.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0l1.293-1.293Zm-3 3a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L.646 13.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0z"
-					/>
-				{:else if tab == 'Наложение'}
-					<SvgIcon
-						size={20}
-						type="bootstrap"
-						path="M8.235 1.559a.5.5 0 0 0-.47 0l-7.5 4a.5.5 0 0 0 0 .882L3.188 8 .264 9.559a.5.5 0 0 0 0 .882l7.5 4a.5.5 0 0 0 .47 0l7.5-4a.5.5 0 0 0 0-.882L12.813 8l2.922-1.559a.5.5 0 0 0 0-.882zm3.515 7.008L14.438 10 8 13.433 1.562 10 4.25 8.567l3.515 1.874a.5.5 0 0 0 .47 0zM8 9.433 1.562 6 8 2.567 14.438 6z"
-					/>
-				{:else}
-					<IconBug />
-				{/if}
-			</div>
-			<div slot="content" let:tab>
-				{#if tab === 'Текст' && block.content.type == 'text'}
-					<TextContentSettings
-						context={{ frame }}
-						shaders={materialsShaders}
-						bind:content={block.content.value}
-						container={block.container}
-						on:change
-						on:addPattern
-					/>
-				{:else if tab === 'Изображение' && block.content.type == 'image'}
-					<ImageContentSettings
-						bind:content={block.content.value}
-						on:change={(ev) => dispatch('modifyImageBlock', { file: ev.detail[0], block })}
-					/>
-				{:else if tab === 'Контейнер'}
-					<ContainerSettings
-						{textureManager}
-						content={block.content}
-						frameHeight={frame.height}
-						frameWidth={frame.width}
-						bind:container={block.container}
-					/>
-				{:else if tab === 'Эффекты'}
-					<EffectInput shaders={effectsShaders} context={{ frame }} bind:value={block.effects} />
-				{:else if tab === 'Наложение'}
-					<LayerInput bind:value={block.layer} />
-				{:else}
-					<JsonView bind:value={block} />
-				{/if}
-			</div>
-		</TabsContainer>
-	</section>
+				<div class="center" title={tab}>
+					{#if tab == 'Текст'}
+						<IconText size={24} />
+					{:else if tab == 'Изображение'}
+						<IconPhoto size={24} />
+					{:else if tab == 'Контейнер'}
+						<IconBorderCorners size={24} />
+					{:else if tab == 'Эффекты'}
+						<SvgIcon
+							size={20}
+							type="bootstrap"
+							path="M9.5 2.672a.5.5 0 1 0 1 0V.843a.5.5 0 0 0-1 0zm4.5.035A.5.5 0 0 0 13.293 2L12 3.293a.5.5 0 1 0 .707.707zM7.293 4A.5.5 0 1 0 8 3.293L6.707 2A.5.5 0 0 0 6 2.707zm-.621 2.5a.5.5 0 1 0 0-1H4.843a.5.5 0 1 0 0 1zm8.485 0a.5.5 0 1 0 0-1h-1.829a.5.5 0 0 0 0 1zM13.293 10A.5.5 0 1 0 14 9.293L12.707 8a.5.5 0 1 0-.707.707zM9.5 11.157a.5.5 0 0 0 1 0V9.328a.5.5 0 0 0-1 0zm1.854-5.097a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L8.646 5.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0l1.293-1.293Zm-3 3a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L.646 13.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0z"
+						/>
+					{:else if tab == 'Наложение'}
+						<SvgIcon
+							size={20}
+							type="bootstrap"
+							path="M8.235 1.559a.5.5 0 0 0-.47 0l-7.5 4a.5.5 0 0 0 0 .882L3.188 8 .264 9.559a.5.5 0 0 0 0 .882l7.5 4a.5.5 0 0 0 .47 0l7.5-4a.5.5 0 0 0 0-.882L12.813 8l2.922-1.559a.5.5 0 0 0 0-.882zm3.515 7.008L14.438 10 8 13.433 1.562 10 4.25 8.567l3.515 1.874a.5.5 0 0 0 .47 0zM8 9.433 1.562 6 8 2.567 14.438 6z"
+						/>
+					{:else}
+						<IconBug />
+					{/if}
+				</div>
+				<div slot="content" let:tab>
+					{#if tab === 'Текст' && block.content.type == 'text'}
+						<TextContentSettings
+							context={{ frame }}
+							shaders={materialsShaders}
+							bind:content={block.content.value}
+							container={block.container}
+							on:change
+							on:addPattern
+						/>
+					{:else if tab === 'Изображение' && block.content.type == 'image'}
+						<ImageContentSettings
+							bind:content={block.content.value}
+							on:change={(ev) => dispatch('modifyImageBlock', { file: ev.detail[0], block })}
+						/>
+					{:else if tab === 'Контейнер'}
+						<ContainerSettings
+							{textureManager}
+							content={block.content}
+							frameHeight={frame.height}
+							frameWidth={frame.width}
+							bind:container={block.container}
+						/>
+					{:else if tab === 'Эффекты'}
+						<EffectInput shaders={effectsShaders} context={{ frame }} bind:value={block.effects} />
+					{:else if tab === 'Наложение'}
+						<LayerInput bind:value={block.layer} />
+					{:else}
+						<JsonView bind:value={block} />
+					{/if}
+				</div>
+			</TabsContainer>
+		</section>
+	{/if}
 </article>
 
 <style lang="scss">
@@ -402,6 +418,7 @@
 	.canvas {
 		height: 100%;
 		width: 100%;
+		display: flex;
 	}
 	span {
 		padding-left: 8px;

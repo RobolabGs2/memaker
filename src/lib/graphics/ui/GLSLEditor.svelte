@@ -28,7 +28,7 @@
 		CompletionContext,
 		type CompletionSource
 	} from '@codemirror/autocomplete';
-	import { indentWithTab } from '@codemirror/commands';
+	import { insertTab } from '@codemirror/commands';
 	import { shader } from '@codemirror/legacy-modes/mode/clike';
 	import { StreamLanguage } from '@codemirror/language';
 	import { oneDark } from '@codemirror/theme-one-dark';
@@ -75,7 +75,12 @@
 			doc: text,
 			extensions: [
 				basicSetup,
-				keymap.of([indentWithTab]),
+				keymap.of([
+					{
+						key: 'Tab',
+						run: insertTab
+					}
+				]),
 				keymap.of(vscodeKeymap),
 				language,
 				hitsAutocompletion,
@@ -88,12 +93,15 @@
 	});
 </script>
 
-<article bind:this={editorElem} />
+<!-- svelte-ignore a11y-no-noninteractive-element-to-interactive-role -->
+<article bind:this={editorElem} on:keydown on:keyup role="textbox"/>
 
 <style>
 	article {
-		height: 300px;
 		display: flex;
+		resize: vertical;
+		overflow: auto;
+		height: 300px;
 	}
 	article > :global(*) {
 		flex: 1;
